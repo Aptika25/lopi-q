@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "proto/user";
+
+service UserService {
+  rpc GetProfile (GetProfileRequest) returns (UserResponse);
+  rpc ListUsers (ListUsersRequest) returns (ListUsersResponse);
+  rpc CreateUser (CreateUserRequest) returns (UserResponse);
+  rpc UpdateUser (UpdateUserRequest) returns (UserResponse);
+  rpc ToggleActive (ToggleActiveRequest) returns (UserResponse);
+  rpc Reset2FA (Reset2FARequest) returns (Reset2FAResponse);
+}
+
+message User {
+  int32 id = 1;
+  string nip = 2;
+  string email = 3;
+  string name = 4;
+  string role = 5;
+  string jabatan = 6;
+  string unit_kerja = 7;
+  bool totp_enabled = 8;
+  bool is_active = 9;
+  string created_at = 10;
+}
+
+message GetProfileRequest {
+  int32 user_id = 1;
+}
+
+message ListUsersRequest {}
+
+message ListUsersResponse {
+  bool success = 1;
+  repeated User users = 2;
+  string error = 3;
+}
+
+message CreateUserRequest {
+  string nip = 1;
+  string email = 2;
+  string name = 3;
+  string role = 4;
+  string jabatan = 5;
+  string unit_kerja = 6;
+  string password = 7;
+}
+
+message UpdateUserRequest {
+  int32 id = 1;
+  string nip = 2;
+  string email = 3;
+  string name = 4;
+  string role = 5;
+  string jabatan = 6;
+  string unit_kerja = 7;
+  repeated string permissions = 8;
+  bool is_active = 9;
+  string password = 10;
+}
+
+message ToggleActiveRequest {
+  int32 id = 1;
+  bool is_active = 2;
+}
+
+message Reset2FARequest {
+  int32 id = 1;
+}
+
+message Reset2FAResponse {
+  bool success = 1;
+  string message = 2;
+  string error = 3;
+}
+
+message UserResponse {
+  bool success = 1;
+  User user = 2;
+  string message = 3;
+  string error = 4;
+}

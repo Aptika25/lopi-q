@@ -1,0 +1,9 @@
+go 1.26.1
+
+use (
+	./pkg
+	./proto
+	./services/api-gateway
+	./services/auth-service
+	./services/user-service
+)
