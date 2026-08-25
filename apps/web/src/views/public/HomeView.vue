@@ -14,8 +14,9 @@
             <span class="font-label-sm text-xs font-bold text-primary">Sistem Otomasi Magang Terverifikasi</span>
           </div>
 
-          <h1 class="font-display text-3xl sm:text-5xl lg:text-[50px] lg:leading-[58px] text-on-surface font-extrabold tracking-tight">
-            Presensi & Logbook Aktivitas Magang <span class="gradient-text">LOPI-Q</span>
+          <h1 class="font-display text-2xl sm:text-4xl lg:text-[42px] lg:leading-[50px] text-on-surface font-extrabold tracking-tight">
+            Presensi & Logbook <br class="hidden sm:inline" />
+            Aktivitas Magang <span class="whitespace-nowrap gradient-text">LOPI-Q</span>
           </h1>
 
           <p class="text-sm sm:text-base font-body text-on-surface-variant leading-relaxed">
