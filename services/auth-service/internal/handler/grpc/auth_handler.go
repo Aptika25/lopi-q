@@ -38,7 +38,7 @@ func generateBackupCodes(count int) []string {
 func (h *AuthHandler) Login(ctx context.Context, req *auth.LoginRequest) (*auth.LoginResponse, error) {
 	u := h.repo.FindByIdentifier(req.Identifier)
 	if u == nil {
-		return &auth.LoginResponse{Success: false, Error: "NIP / Email Dinas atau password salah."}, nil
+		return &auth.LoginResponse{Success: false, Error: "Email atau password salah."}, nil
 	}
 
 	if !u.IsActive {
@@ -47,7 +47,7 @@ func (h *AuthHandler) Login(ctx context.Context, req *auth.LoginRequest) (*auth.
 
 	err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(req.Password))
 	if err != nil {
-		return &auth.LoginResponse{Success: false, Error: "NIP / Email Dinas atau password salah."}, nil
+		return &auth.LoginResponse{Success: false, Error: "Email atau password salah."}, nil
 	}
 
 	tempToken, _ := jwt.GenerateTempToken(u.ID, 15*time.Minute)

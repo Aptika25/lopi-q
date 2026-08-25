@@ -438,7 +438,7 @@ Otomasi Logbook Magang.</h2>
                     class="w-full pl-11 pr-4 py-3 bg-surface-container-lowest border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-container/20 rounded-xl focus:outline-none transition-all font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant/50" 
                     id="email" 
                     name="email" 
-                    placeholder="aswan@bulukumbakab.go.id" 
+                    placeholder="admin@lopi-q.bulukumbakab.go.id" 
                     required 
                     type="email"
                     :disabled="loading"

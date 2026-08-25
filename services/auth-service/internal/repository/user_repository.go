@@ -137,13 +137,11 @@ func (r *UserRepository) FindByIdentifier(identifier string) *model.User {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	clean := strings.TrimSpace(identifier)
-	cleanNIP := strings.ReplaceAll(clean, " ", "")
-	cleanEmail := strings.ToLower(clean)
+	cleanEmail := strings.ToLower(strings.TrimSpace(identifier))
 
 	for i := range r.users {
 		u := &r.users[i]
-		if strings.ReplaceAll(u.NIP, " ", "") == cleanNIP || strings.ToLower(u.Email) == cleanEmail {
+		if strings.ToLower(strings.TrimSpace(u.Email)) == cleanEmail {
 			return u
 		}
 	}
