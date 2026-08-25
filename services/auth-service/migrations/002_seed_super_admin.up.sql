@@ -1,0 +1,6 @@
+-- Seed superadmin auth account (password: Asw&a198)
+INSERT INTO auth_users (id, nip, email, name, role, jabatan, unit_kerja, password, is_active)
+VALUES (1, '199501012020011000', 'aswan@bulukumbakab.go.id', 'Muhammad Aswan', 'superadmin', 'HEAD OF DISKOMINFO', 'Diskominfo Kab. Bulukumba', '$2a$10$EwQk2ADnVXXIVSSSueM4sOnO9Py1TQB0l5Bynadgn1Ke7TXT6W/vO', true)
+ON CONFLICT (email) DO NOTHING;
+
+SELECT setval(pg_get_serial_sequence('auth_users', 'id'), (SELECT COALESCE(MAX(id), 1) FROM auth_users));

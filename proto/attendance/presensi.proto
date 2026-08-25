@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package presensi;
+
+option go_package = "proto/presensi";
+
+service PresensiService {
+  rpc GetPoskoQR (GetPoskoQRRequest) returns (GetPoskoQRResponse);
+  rpc ClockIn (ClockInRequest) returns (PresensiResponse);
+  rpc ClockOut (ClockOutRequest) returns (PresensiResponse);
+  rpc GetHistory (GetHistoryRequest) returns (GetHistoryResponse);
+  rpc GetTodayStatus (GetTodayStatusRequest) returns (GetTodayStatusResponse);
+}
+
+message PresensiRecord {
+  int32 id = 1;
+  int32 user_id = 2;
+  string user_nip = 3;
+  string user_name = 4;
+  string type = 5;
+  string timestamp = 6;
+  double latitude = 7;
+  double longitude = 8;
+  double distance_meters = 9;
+  bool within_radius = 10;
+}
+
+message GetPoskoQRRequest {}
+
+message GetPoskoQRResponse {
+  bool success = 1;
+  string posko_name = 2;
+  string address = 3;
+  string qr_token = 4;
+  string qr_image = 5;
+  double latitude = 6;
+  double longitude = 7;
+  double max_radius_meters = 8;
+  string error = 9;
+}
+
+message ClockInRequest {
+  int32 user_id = 1;
+  string user_nip = 2;
+  string user_name = 3;
+  double latitude = 4;
+  double longitude = 5;
+  string qr_token = 6;
+}
+
+message ClockOutRequest {
+  int32 user_id = 1;
+  string user_nip = 2;
+  string user_name = 3;
+  double latitude = 4;
+  double longitude = 5;
+  string qr_token = 6;
+}
+
+message PresensiResponse {
+  bool success = 1;
+  string message = 2;
+  double distance_meters = 3;
+  PresensiRecord record = 4;
+  string error = 5;
+}
+
+message GetHistoryRequest {
+  int32 limit = 1;
+  int32 user_id = 2;
+  string user_nip = 3;
+}
+
+message GetHistoryResponse {
+  bool success = 1;
+  repeated PresensiRecord history = 2;
+  string error = 3;
+}
+
+message GetTodayStatusRequest {
+  int32 user_id = 1;
+}
+
+message GetTodayStatusResponse {
+  bool success = 1;
+  PresensiRecord masuk = 2;
+  PresensiRecord pulang = 3;
+  bool is_masuk = 4;
+  bool is_pulang = 5;
+  string error = 6;
+}

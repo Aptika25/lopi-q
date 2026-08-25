@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "proto/auth";
+
+service AuthService {
+  rpc Login (LoginRequest) returns (LoginResponse);
+  rpc Verify2FA (Verify2FARequest) returns (Verify2FAResponse);
+  rpc Setup2FA (Setup2FARequest) returns (Setup2FAResponse);
+  rpc Enable2FA (Enable2FARequest) returns (Enable2FAResponse);
+  rpc Disable2FA (Disable2FARequest) returns (Disable2FAResponse);
+  rpc SelfReset2FA (SelfReset2FARequest) returns (SelfReset2FAResponse);
+}
+
+message LoginRequest {
+  string identifier = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  bool success = 1;
+  bool otp_required = 2;
+  string temp_token = 3;
+  string token = 4;
+  int32 user_id = 5;
+  string role = 6;
+  string nip = 7;
+  string name = 8;
+  string error = 9;
+  bool otp_setup_required = 10;
+}
+
+message Verify2FARequest {
+  string temp_token = 1;
+  string code = 2;
+}
+
+message Verify2FAResponse {
+  bool success = 1;
+  string token = 2;
+  int32 user_id = 3;
+  string role = 4;
+  string nip = 5;
+  string name = 6;
+  string error = 7;
+}
+
+message Setup2FARequest {
+  int32 user_id = 1;
+  string temp_token = 2;
+}
+
+message Setup2FAResponse {
+  bool success = 1;
+  string secret = 2;
+  string otpauth_url = 3;
+  string qr_code = 4;
+  string error = 5;
+}
+
+message Enable2FARequest {
+  int32 user_id = 1;
+  string code = 2;
+  string secret = 3;
+  string temp_token = 4;
+}
+
+message Enable2FAResponse {
+  bool success = 1;
+  repeated string backup_codes = 2;
+  string error = 3;
+}
+
+message Disable2FARequest {
+  int32 user_id = 1;
+}
+
+message Disable2FAResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message SelfReset2FARequest {
+  string temp_token = 1;
+  string backup_code = 2;
+}
+
+message SelfReset2FAResponse {
+  bool success = 1;
+  string error = 2;
+}
