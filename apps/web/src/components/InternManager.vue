@@ -174,9 +174,9 @@
           <div>
             <label class="block text-slate-700 font-bold mb-1">Peran (Role)</label>
             <select v-model="form.role" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-rose-600 focus:bg-white">
-              <option value="intern">Peserta Magang</option>
-              <option value="admin">Admin</option>
-              <option value="superadmin">Super Admin</option>
+              <option value="intern">Peserta Magang (Siswa / Mahasiswa)</option>
+              <option value="pembimbing">Pembimbing Magang / Mentor</option>
+              <option value="superadmin">Super Admin Diskominfo</option>
             </select>
           </div>
 
