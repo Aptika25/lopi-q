@@ -121,7 +121,12 @@ const downloadBackupCodes = () => {
 
 const handleLogin = async () => {
   if (!email.value || !password.value) {
-    errorMessage.value = 'Email atau NIP wajib diisi.'
+    errorMessage.value = 'Alamat email dan kata sandi wajib diisi.'
+    return
+  }
+
+  if (!email.value.includes('@')) {
+    errorMessage.value = 'Login hanya dapat menggunakan alamat email yang valid (contoh: aswan@bulukumbakab.go.id).'
     return
   }
 
@@ -423,19 +428,19 @@ Otomasi Logbook Magang.</h2>
 
             <!-- Form -->
             <form v-if="!authStore.otpRequired" @submit.prevent="handleLogin" class="flex flex-col gap-md">
-              <!-- Email / NIP Field -->
+              <!-- Email Field -->
               <div class="flex flex-col gap-xs">
-                <label class="font-label-md text-label-md text-on-surface-variant" for="email">Email atau NIP</label>
+                <label class="font-label-md text-label-md text-on-surface-variant" for="email">Alamat Email</label>
                 <div class="relative">
-                  <span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-[20px]">person</span>
+                  <span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-[20px]">mail</span>
                   <input 
                     v-model="email"
                     class="w-full pl-11 pr-4 py-3 bg-surface-container-lowest border border-outline-variant focus:border-primary focus:ring-4 focus:ring-primary-container/20 rounded-xl focus:outline-none transition-all font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant/50" 
                     id="email" 
                     name="email" 
-                    placeholder="admin@lopi-q.bulukumbakab.go.id" 
+                    placeholder="aswan@bulukumbakab.go.id" 
                     required 
-                    type="text"
+                    type="email"
                     :disabled="loading"
                   />
                 </div>
