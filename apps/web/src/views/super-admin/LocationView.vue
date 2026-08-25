@@ -6,7 +6,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
         <div>
           <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Manajemen Lokasi Posko &amp; Geofence QR Code</h2>
-          <p class="font-sans text-slate-500 mt-1 text-xs">Konfigurasi koordinat geofence Posko Siaga 112 dan kelola QR Code resmi untuk presensi Call Taker.</p>
+          <p class="font-sans text-slate-500 mt-1 text-xs">Konfigurasi koordinat geofence Posko Siaga 112 dan kelola QR Code resmi untuk presensi Peserta Magang.</p>
         </div>
 
         <div class="flex items-center gap-2 shrink-0">
@@ -537,7 +537,7 @@ const downloadOfficialQrImage = () => {
 
   ctx.fillStyle = '#fef08a' // yellow-200
   ctx.font = 'bold 16px sans-serif'
-  ctx.fillText('NTPD 112 - POSKO PRESENSI SIAGA CALL TAKER', 450, 122)
+  ctx.fillText('NTPD 112 - POSKO PRESENSI SIAGA PESERTA MAGANG', 450, 122)
 
   // Outer Border Frame Box
   ctx.strokeStyle = '#cbd5e1'

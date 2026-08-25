@@ -6,7 +6,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          Riwayat Presensi Call Taker 112
+          Riwayat Presensi Peserta Magang 112
         </h2>
         <p class="text-xs text-slate-400 mt-1">Log presensi masuk & pulang beserta lokasi GPS & verifikasi radius 10 meter.</p>
       </div>
@@ -27,7 +27,7 @@
         <thead class="bg-slate-900/90 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800">
           <tr>
             <th class="py-3.5 px-4">Waktu (WITA)</th>
-            <th class="py-3.5 px-4">Call Taker / NIP</th>
+            <th class="py-3.5 px-4">Peserta Magang / NIP</th>
             <th class="py-3.5 px-4">Tipe Presensi</th>
             <th class="py-3.5 px-4">Jarak Geofence</th>
             <th class="py-3.5 px-4">Status QR Code</th>

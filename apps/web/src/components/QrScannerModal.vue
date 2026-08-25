@@ -48,7 +48,7 @@
             {{ scannerError }}
           </div>
         </div>
-        <p class="text-[11px] text-slate-400 text-center">Arahkan kamera HP ke QR Code yang terpajang di meja Posko Call Taker 112.</p>
+        <p class="text-[11px] text-slate-400 text-center">Arahkan kamera HP ke QR Code yang terpajang di meja Posko Peserta Magang 112.</p>
       </div>
 
       <!-- Server Posko QR Mode -->

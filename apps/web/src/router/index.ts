@@ -14,27 +14,27 @@ const routes: RouteRecordRaw[] = [
     meta: { guestOnly: true, hideNavbarFooter: true },
   },
   {
-    path: '/calltaker/dashboard',
-    name: 'CallTakerDashboard',
-    component: () => import('@/views/call-taker/DashboardView.vue'),
+    path: '/intern/dashboard',
+    name: 'InternDashboard',
+    component: () => import('@/views/intern/DashboardView.vue'),
     meta: { requiresAuth: true, hideNavbarFooter: true },
   },
   {
-    path: '/calltaker/history',
-    name: 'CallTakerHistory',
-    component: () => import('@/views/call-taker/HistoryView.vue'),
+    path: '/intern/history',
+    name: 'InternHistory',
+    component: () => import('@/views/intern/HistoryView.vue'),
     meta: { requiresAuth: true, hideNavbarFooter: true },
   },
   {
     path: '/presensi',
-    name: 'CallTakerPresensi',
-    component: () => import('@/views/call-taker/ScanView.vue'),
+    name: 'InternPresensi',
+    component: () => import('@/views/intern/ScanView.vue'),
     meta: { requiresAuth: true, hideNavbarFooter: true },
   },
   {
-    path: '/calltaker/scan',
-    name: 'CallTakerScan',
-    component: () => import('@/views/call-taker/ScanView.vue'),
+    path: '/intern/scan',
+    name: 'InternScan',
+    component: () => import('@/views/intern/ScanView.vue'),
     meta: { requiresAuth: true, hideNavbarFooter: true },
   },
   {
@@ -50,9 +50,9 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, requiresAdmin: true, hideNavbarFooter: true },
   },
   {
-    path: '/admin/calltakers',
-    name: 'AdminCallTakers',
-    component: () => import('@/views/super-admin/CallTakersView.vue'),
+    path: '/admin/interns',
+    name: 'AdminInterns',
+    component: () => import('@/views/super-admin/InternsView.vue'),
     meta: { requiresAuth: true, requiresAdmin: true, hideNavbarFooter: true },
   },
   {
@@ -118,7 +118,7 @@ router.beforeEach(async (to, _from, next) => {
       if (authStore.isAdmin) {
         next({ name: 'AdminDashboard' })
       } else {
-        next({ name: 'CallTakerDashboard' })
+        next({ name: 'InternDashboard' })
       }
     } else {
       next()

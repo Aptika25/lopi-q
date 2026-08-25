@@ -5,7 +5,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
         <div>
           <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Dashboard Overview Utama</h2>
-          <p class="font-sans text-slate-500 mt-1 text-xs">Monitoring presensi Call Taker secara real-time, radar Geofence Posko Siaga 112, dan kontrol sistem.</p>
+          <p class="font-sans text-slate-500 mt-1 text-xs">Monitoring presensi Peserta Magang secara real-time, radar Geofence Posko Siaga 112, dan kontrol sistem.</p>
         </div>
       </div>
       <div class="bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden border border-rose-900/40">
@@ -22,7 +22,7 @@
             Dashboard Super Admin Posko 112
           </h1>
           <p class="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-            Monitoring presensi Call Taker secara real-time, pantau radar Geofence Posko Siaga 112 Kabupaten Bulukumba, dan kelola otentikasi dua langkah (2FA).
+            Monitoring presensi Peserta Magang secara real-time, pantau radar Geofence Posko Siaga 112 Kabupaten Bulukumba, dan kelola otentikasi dua langkah (2FA).
           </p>
         </div>
       </div>
@@ -32,7 +32,7 @@
         <!-- Stat Card 1 -->
         <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-3 hover:shadow-md transition-shadow">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Total Call Taker</span>
+            <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Total Peserta Magang</span>
             <div class="w-10 h-10 bg-rose-50 text-rose-700 rounded-2xl flex items-center justify-center border border-rose-100">
               <span class="material-symbols-outlined text-[22px]">headphones</span>
             </div>
@@ -94,11 +94,11 @@
         </h3>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <router-link to="/admin/calltakers" class="p-4 bg-slate-50 hover:bg-rose-50/60 border border-slate-200 hover:border-rose-300 rounded-2xl text-center space-y-2 transition-all group decoration-none">
+          <router-link to="/admin/interns" class="p-4 bg-slate-50 hover:bg-rose-50/60 border border-slate-200 hover:border-rose-300 rounded-2xl text-center space-y-2 transition-all group decoration-none">
             <div class="w-10 h-10 bg-white text-rose-700 rounded-xl flex items-center justify-center mx-auto shadow-2xs group-hover:scale-110 transition-transform">
               <span class="material-symbols-outlined text-[20px]">badge</span>
             </div>
-            <div class="text-xs font-bold text-slate-800 group-hover:text-rose-900">Call Takers</div>
+            <div class="text-xs font-bold text-slate-800 group-hover:text-rose-900">Peserta Magangs</div>
           </router-link>
 
           <router-link to="/admin/admins" class="p-4 bg-slate-50 hover:bg-rose-50/60 border border-slate-200 hover:border-rose-300 rounded-2xl text-center space-y-2 transition-all group decoration-none">
@@ -146,7 +146,7 @@
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="text-base font-display font-black text-slate-900 flex items-center gap-2">
               <span class="material-symbols-outlined text-rose-700">assignment_ind</span>
-              <span>Pengajuan Sakit &amp; Tukar Shift Call Taker</span>
+              <span>Pengajuan Sakit &amp; Tukar Shift Peserta Magang</span>
             </h3>
             <span class="px-2.5 py-0.5 bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-bold rounded-full">
               {{ leaveRequests.length }} Pengajuan
@@ -155,7 +155,7 @@
 
           <div v-if="leaveRequests.length === 0" class="text-center py-8 text-xs text-slate-400 space-y-2">
             <span class="material-symbols-outlined text-3xl text-slate-300">task_alt</span>
-            <p>Belum ada pengajuan sakit atau tukar shift baru dari Call Taker.</p>
+            <p>Belum ada pengajuan sakit atau tukar shift baru dari Peserta Magang.</p>
           </div>
 
           <div v-else class="space-y-3">

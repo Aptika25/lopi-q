@@ -5,9 +5,9 @@
       <div>
         <h2 class="text-xl font-display font-black text-slate-900 flex items-center gap-2">
           <span class="material-symbols-outlined text-rose-700 text-[24px]">manage_accounts</span>
-          Manajemen Call Taker & Akun User
+          Manajemen Peserta Magang & Akun User
         </h2>
-        <p class="text-xs text-slate-500 mt-1">Kelola data Call Takers NTPD 112 Kabupaten Bulukumba, atur password, dan reset 2FA.</p>
+        <p class="text-xs text-slate-500 mt-1">Kelola data Peserta Magangs NTPD 112 Kabupaten Bulukumba, atur password, dan reset 2FA.</p>
       </div>
 
       <button 
@@ -15,7 +15,7 @@
         class="px-4 py-2.5 bg-gradient-to-r from-rose-700 via-rose-600 to-amber-600 hover:from-rose-800 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer border-0"
       >
         <span class="material-symbols-outlined text-[18px]">person_add</span>
-        <span>Tambah Call Taker Baru</span>
+        <span>Tambah Peserta Magang Baru</span>
       </button>
     </div>
 
@@ -37,7 +37,7 @@
       <table class="w-full text-left text-xs text-slate-700">
         <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
           <tr>
-            <th class="py-3.5 px-4">Call Taker / NIP / Email Dinas</th>
+            <th class="py-3.5 px-4">Peserta Magang / NIP / Email Dinas</th>
             <th class="py-3.5 px-4">Jabatan</th>
             <th class="py-3.5 px-4">Unit Kerja</th>
             <th class="py-3.5 px-4">Role</th>
@@ -61,10 +61,10 @@
                 :class="{
                   'bg-rose-50 text-rose-700 border-rose-200': u.role === 'superadmin',
                   'bg-indigo-50 text-indigo-700 border-indigo-200': u.role === 'admin',
-                  'bg-slate-100 text-slate-700 border-slate-200': u.role === 'call_taker' || u.role === 'calltaker'
+                  'bg-slate-100 text-slate-700 border-slate-200': u.role === 'intern' || u.role === 'intern'
                 }"
               >
-                {{ u.role === 'superadmin' ? 'SUPER ADMIN' : (u.role === 'admin' ? 'ADMIN' : 'CALL TAKER') }}
+                {{ u.role === 'superadmin' ? 'SUPER ADMIN' : (u.role === 'admin' ? 'ADMIN' : 'PESERTA MAGANG') }}
               </span>
             </td>
             <td class="py-3.5 px-4">
@@ -114,7 +114,7 @@
       <div class="bg-white w-full max-w-md rounded-3xl p-6 relative border border-slate-200 shadow-2xl">
         <h3 class="text-lg font-display font-black text-slate-900 mb-4 flex items-center gap-2">
           <span class="material-symbols-outlined text-rose-700">edit_square</span>
-          <span>{{ isEditing ? `Edit Akun: ${form.name}` : 'Tambah Call Taker / Admin Baru' }}</span>
+          <span>{{ isEditing ? `Edit Akun: ${form.name}` : 'Tambah Peserta Magang / Admin Baru' }}</span>
         </h3>
 
         <form @submit.prevent="saveUser" class="space-y-4 text-xs">
@@ -174,7 +174,7 @@
           <div>
             <label class="block text-slate-700 font-bold mb-1">Peran (Role)</label>
             <select v-model="form.role" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-rose-600 focus:bg-white">
-              <option value="call_taker">Call Taker</option>
+              <option value="intern">Peserta Magang</option>
               <option value="admin">Admin</option>
               <option value="superadmin">Super Admin</option>
             </select>
@@ -223,7 +223,7 @@ const form = ref({
   name: '',
   jabatan: '',
   unit_kerja: '',
-  role: 'call_taker',
+  role: 'intern',
   password: ''
 });
 
@@ -248,7 +248,7 @@ function openAddModal() {
     name: '',
     jabatan: 'OPERATOR LAYANAN OPERASIONAL',
     unit_kerja: 'Dinas Sosial',
-    role: 'call_taker',
+    role: 'intern',
     password: ''
   };
   showModal.value = true;
@@ -263,7 +263,7 @@ function openEditModal(u) {
     name: u.name || '',
     jabatan: u.jabatan || '',
     unit_kerja: u.unit_kerja || '',
-    role: u.role || 'call_taker',
+    role: u.role || 'intern',
     password: ''
   };
   showModal.value = true;

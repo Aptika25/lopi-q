@@ -1,11 +1,11 @@
 <template>
-  <CallTakerLayout>
+  <InternLayout>
     <div class="space-y-6 select-none font-sans w-full pb-28 sm:pb-8">
       <!-- Page Header -->
       <div class="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
         <div>
           <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Laporan Kehadiran Saya</h2>
-          <p class="font-sans text-slate-500 mt-1 text-xs hidden sm:block">Riwayat absensi dan log presensi harian petugas Call Taker di Posko Siaga NTPD 112 Bulukumba.</p>
+          <p class="font-sans text-slate-500 mt-1 text-xs hidden sm:block">Riwayat absensi dan log presensi harian petugas Peserta Magang di Posko Siaga NTPD 112 Bulukumba.</p>
         </div>
       </div>
       <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -16,7 +16,7 @@
           <div class="flex-1 min-w-0 space-y-1">
             <!-- 1. Nama -->
             <h2 class="text-lg font-display font-black text-slate-900 leading-tight">
-              {{ authStore.user?.name || 'Call Taker 112' }}
+              {{ authStore.user?.name || 'Peserta Magang 112' }}
             </h2>
             
             <!-- 2. NIP. -->
@@ -271,7 +271,7 @@
           <div class="space-y-1">
             <h3 class="text-base font-extrabold text-slate-900">Konfirmasi Keluar Sesi</h3>
             <p class="text-xs text-slate-500 leading-relaxed">
-              Apakah Anda yakin ingin keluar dari akun <strong class="text-slate-800">{{ authStore.user?.name || 'Call Taker' }}</strong>? Anda harus memasukkan kredensial login kembali untuk masuk.
+              Apakah Anda yakin ingin keluar dari akun <strong class="text-slate-800">{{ authStore.user?.name || 'Peserta Magang' }}</strong>? Anda harus memasukkan kredensial login kembali untuk masuk.
             </p>
           </div>
 
@@ -292,14 +292,14 @@
         </div>
       </div>
     </Teleport>
-  </CallTakerLayout>
+  </InternLayout>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import CallTakerLayout from '@/layouts/CallTakerLayout.vue'
+import InternLayout from '@/layouts/InternLayout.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()

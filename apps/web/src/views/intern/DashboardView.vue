@@ -1,10 +1,10 @@
 <template>
-  <CallTakerLayout>
+  <InternLayout>
     <div class="space-y-6 select-none font-sans">
       <!-- Page Header -->
       <div class="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
         <div>
-          <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Dashboard Status Siaga Call Taker</h2>
+          <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Dashboard Status Siaga Peserta Magang</h2>
           <p class="font-sans text-slate-500 mt-1 text-xs hidden sm:block">Panel operasional siaga 112, status pendaftaran presensi, dan riwayat tugas presensi harian.</p>
         </div>
       </div>
@@ -19,15 +19,15 @@
             </div>
 
             <div class="space-y-1 flex-1 min-w-0">
-              <!-- Call Taker Status Pill -->
+              <!-- Peserta Magang Status Pill -->
               <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-rose-50 text-rose-800 rounded-full text-[10px] sm:text-xs font-extrabold border border-rose-200">
                 <span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-ping"></span>
-                <span>CALL TAKER POSKO SIAGA 112</span>
+                <span>PESERTA MAGANG POSKO SIAGA 112</span>
               </div>
 
               <!-- 1. Selamat Tugas, [Nama]! -->
               <h2 class="text-base sm:text-xl md:text-2xl font-display font-black text-slate-900 leading-tight truncate">
-                Selamat Tugas, {{ authStore.user?.name || 'Petugas Call Taker' }}!
+                Selamat Tugas, {{ authStore.user?.name || 'Petugas Peserta Magang' }}!
               </h2>
 
               <!-- 2. NIP -->
@@ -58,7 +58,7 @@
             </button>
 
             <router-link 
-              to="/calltaker/scan" 
+              to="/intern/scan" 
               class="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-rose-700 via-rose-600 to-amber-600 hover:from-rose-800 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 decoration-none cursor-pointer active:scale-98"
             >
               <span class="material-symbols-outlined text-[18px]">qr_code_scanner</span>
@@ -275,13 +275,13 @@
       </div>
 
     </div>
-  </CallTakerLayout>
+  </InternLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
-import CallTakerLayout from '@/layouts/CallTakerLayout.vue';
+import InternLayout from '@/layouts/InternLayout.vue';
 import { useAuthStore } from '@/stores/auth';
 
 const authStore = useAuthStore();
@@ -612,7 +612,7 @@ async function submitLeaveRequest() {
     const newReq = {
       id: Date.now(),
       created_at: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      user_name: authStore.user?.name || 'Call Taker',
+      user_name: authStore.user?.name || 'Peserta Magang',
       user_nip: authStore.user?.nip || '19940503 202521 1 138',
       category: form.value.category,
       shift_date: form.value.shift_date,

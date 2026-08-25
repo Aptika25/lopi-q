@@ -237,7 +237,7 @@ const menuGroups = [
     icon: 'group',
     items: [
       { to: '/admin/admins', label: 'Manajemen Admin', icon: 'admin_panel_settings' },
-      { to: '/admin/calltakers', label: 'Manajemen Call Taker', icon: 'support_agent' }
+      { to: '/admin/interns', label: 'Manajemen Peserta Magang', icon: 'support_agent' }
     ]
   },
   {
@@ -288,7 +288,7 @@ function isGroupActive(group) {
 const pageTitle = computed(() => {
   const path = route.path;
   if (path === '/admin/admins') return 'Manajemen Admin';
-  if (path === '/admin/calltakers') return 'Manajemen Call Taker';
+  if (path === '/admin/interns') return 'Manajemen Peserta Magang';
   if (path === '/admin/attendance-recap') return 'Rekapan Kehadiran';
   if (path === '/admin/location') return 'Manajemen Lokasi & QR';
   if (path === '/admin/schedules') return 'Manajemen Jadwal Shift';
@@ -300,7 +300,7 @@ const pageTitle = computed(() => {
 const breadcrumbSub = computed(() => {
   const path = route.path;
   if (path === '/admin/admins') return 'Manajemen Admin';
-  if (path === '/admin/calltakers') return 'Call Taker';
+  if (path === '/admin/interns') return 'Peserta Magang';
   if (path === '/admin/attendance-recap') return 'Presensi';
   if (path === '/admin/location') return 'Geofence';
   if (path === '/admin/schedules') return 'Shift';

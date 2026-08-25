@@ -144,7 +144,7 @@ const handleLogin = async () => {
       if (authStore.isAdmin) {
         router.push('/admin')
       } else {
-        router.push('/calltaker/scan')
+        router.push('/intern/scan')
       }
     } else {
       errorMessage.value = authStore.error || 'Email/NIP atau kata sandi tidak valid.'
@@ -205,7 +205,7 @@ const handleVerify2fa = async () => {
       if (authStore.isAdmin) {
         router.push('/admin')
       } else {
-        router.push('/calltaker/scan')
+        router.push('/intern/scan')
       }
     } else {
       errorMessage.value = authStore.error || 'Kode verifikasi salah atau kedaluwarsa.'
@@ -248,7 +248,7 @@ const togglePassword = () => {
           <div class="max-w-md">
             <h2 class="font-display-lg text-display-lg text-white mb-md leading-tight whitespace-pre-line">Respon Cepat Tanggap 112,
 Layanan Presensi Siaga.</h2>
-            <p class="font-body-md text-body-md text-primary-fixed-dim opacity-90 leading-relaxed">Sistem informasi manajemen presensi terintegrasi dengan pengawasan lokasi presisi geofence radius 2 meter dan autentikasi aman untuk seluruh Call Taker NTPD 112 Kabupaten Bulukumba.</p>
+            <p class="font-body-md text-body-md text-primary-fixed-dim opacity-90 leading-relaxed">Sistem informasi manajemen presensi terintegrasi dengan pengawasan lokasi presisi geofence radius 2 meter dan autentikasi aman untuk seluruh Peserta Magang NTPD 112 Kabupaten Bulukumba.</p>
           </div>
           <!-- Footer Branding -->
           <div class="font-body-sm text-body-sm text-primary-fixed">

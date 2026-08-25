@@ -5,7 +5,7 @@
       <!-- Page Header -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
         <div>
-          <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Manajemen Jadwal Shift &amp; Tim Call Taker</h2>
+          <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Manajemen Jadwal Shift &amp; Tim Peserta Magang</h2>
           <p class="font-sans text-slate-500 mt-1 text-xs">Pengaturan dinamis pembagian tim, roster shift bulanan, override petugas pengganti (standby backup), dan ekspor dokumen Word (.doc).</p>
         </div>
 
@@ -114,7 +114,7 @@
                     ⚡ Mode Aktif: {{ shiftMode }} Shift / Hari
                   </span>
                 </div>
-                <p class="text-xs text-slate-300 mt-1">Penetapan skema jam kerja ini otomatis menyesuaikan pendeteksian scan presensi pada aplikasi Call Taker dan tabel rekapan admin.</p>
+                <p class="text-xs text-slate-300 mt-1">Penetapan skema jam kerja ini otomatis menyesuaikan pendeteksian scan presensi pada aplikasi Peserta Magang dan tabel rekapan admin.</p>
               </div>
             </div>
           </div>
@@ -171,7 +171,7 @@
             <div>
               <h2 class="text-base font-display font-black text-slate-800 flex items-center gap-2">
                 <span class="material-symbols-outlined text-rose-700">groups</span>
-                <span>Pembagian Tim Call Taker Dinamis (2 Petugas per Tim)</span>
+                <span>Pembagian Tim Peserta Magang Dinamis (2 Petugas per Tim)</span>
               </h2>
               <p class="text-xs text-slate-500 mt-0.5">Atur anggota Tim A–E secara manual melalui dropdown, atau acak tim secara otomatis.</p>
             </div>
@@ -502,7 +502,7 @@
           <div>
             <h2 class="text-base font-display font-black text-slate-900 flex items-center gap-2">
               <span class="material-symbols-outlined text-rose-700">assignment_ind</span>
-              <span>Daftar Pengajuan Sakit / Izin / Tukar Shift Call Taker</span>
+              <span>Daftar Pengajuan Sakit / Izin / Tukar Shift Peserta Magang</span>
             </h2>
             <p class="text-xs text-slate-500 mt-0.5">Verifikasi dokumen bukti dokter dan setujui penugasan petugas pengganti (standby backup).</p>
           </div>
@@ -519,7 +519,7 @@
         <!-- Request List Table -->
         <div v-if="leaveRequests.length === 0" class="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
           <span class="material-symbols-outlined text-slate-300 text-5xl">task_alt</span>
-          <p class="text-xs font-bold text-slate-500 mt-2">Belum ada pengajuan sakit atau tukar shift dari Call Taker.</p>
+          <p class="text-xs font-bold text-slate-500 mt-2">Belum ada pengajuan sakit atau tukar shift dari Peserta Magang.</p>
         </div>
 
         <div v-else class="overflow-x-auto rounded-2xl border border-slate-200">
@@ -650,7 +650,7 @@
 
             <!-- Judul Surat -->
             <div class="text-center py-2 space-y-1">
-              <h2 class="font-black text-sm uppercase tracking-wide">DAFTAR NAMA PETUGAS CALL TAKER LAYANAN NTPD 112</h2>
+              <h2 class="font-black text-sm uppercase tracking-wide">DAFTAR NAMA PETUGAS PESERTA MAGANG LAYANAN NTPD 112</h2>
               <h3 class="font-bold text-xs uppercase">KAB. BULUKUMBA</h3>
             </div>
 
@@ -678,7 +678,7 @@
 
             <!-- Title Jadwal -->
             <div class="text-center pt-4 space-y-1">
-              <h2 class="font-black text-sm uppercase tracking-wide">JADWAL SHIFT PETUGAS CALL TAKER LAYANAN NTPD 112</h2>
+              <h2 class="font-black text-sm uppercase tracking-wide">JADWAL SHIFT PETUGAS PESERTA MAGANG LAYANAN NTPD 112</h2>
               <h3 class="font-bold text-xs uppercase">KAB. BULUKUMBA BULAN {{ monthNames[selectedMonth] }} {{ selectedYear }}</h3>
             </div>
 
@@ -778,7 +778,7 @@ const previewImageUrl = ref('')
 // Helper for digits-only NIP comparisons
 const cleanNipDigits = (nip?: string) => String(nip || '').replace(/\D/g, '')
 
-// Dynamic List of Call Takers
+// Dynamic List of Peserta Magangs
 const masterOfficers = ref<any[]>([
   { name: 'A.Mappalua, S.Pd', nip: '19940503 202521 1 138', jabatan: 'PENATA LAYANAN OPERASIONAL', unit: 'Dinas Sosial' },
   { name: 'Suherman, S.Pd', nip: '19870304 202521 1 061', jabatan: 'PENATA LAYANAN OPERASIONAL', unit: 'Badan Penanggulangan Bencana Daerah' },
@@ -800,7 +800,7 @@ const loadLiveCallTakers = async () => {
     }
     const allUsers = authStore?.usersList || []
     const activeCallTakers = allUsers.filter((u: any) => {
-      const isCT = u.role === 'call_taker' || u.role === 'calltaker'
+      const isCT = u.role === 'intern' || u.role === 'intern'
       const isActive = u.is_active !== false && u.status !== 'INACTIVE'
       return isCT && isActive
     })
@@ -1389,7 +1389,7 @@ const buildSuratTugasHTML = () => {
 
       <!-- Judul -->
       <div style="text-align: center; margin-bottom: 15px;">
-        <h2 style="margin: 0; font-size: 13px; font-weight: bold; text-transform: uppercase;">DAFTAR NAMA PETUGAS CALL TAKER LAYANAN NTPD 112</h2>
+        <h2 style="margin: 0; font-size: 13px; font-weight: bold; text-transform: uppercase;">DAFTAR NAMA PETUGAS PESERTA MAGANG LAYANAN NTPD 112</h2>
         <h3 style="margin: 3px 0 0 0; font-size: 12px; font-weight: bold; text-transform: uppercase;">KAB. BULUKUMBA</h3>
       </div>
 
@@ -1410,7 +1410,7 @@ const buildSuratTugasHTML = () => {
 
       <!-- Judul Jadwal -->
       <div style="text-align: center; margin-top: 20px; margin-bottom: 15px;">
-        <h2 style="margin: 0; font-size: 13px; font-weight: bold; text-transform: uppercase;">JADWAL SHIFT PETUGAS CALL TAKER LAYANAN NTPD 112</h2>
+        <h2 style="margin: 0; font-size: 13px; font-weight: bold; text-transform: uppercase;">JADWAL SHIFT PETUGAS PESERTA MAGANG LAYANAN NTPD 112</h2>
         <h3 style="margin: 3px 0 0 0; font-size: 12px; font-weight: bold; text-transform: uppercase;">KAB. BULUKUMBA BULAN ${monthStr.toUpperCase()} ${yearStr}</h3>
       </div>
 
@@ -1479,7 +1479,7 @@ const printDocument = () => {
     win.document.write(`
       <html>
         <head>
-          <title>Lampiran Surat Tugas Shift Call Taker 112</title>
+          <title>Lampiran Surat Tugas Shift Peserta Magang 112</title>
         </head>
         <body>
           ${contentHTML}

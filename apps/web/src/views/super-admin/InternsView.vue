@@ -5,8 +5,8 @@
       <!-- Page Header -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
         <div>
-          <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Manajemen Call Taker</h2>
-          <p class="font-sans text-slate-500 mt-1 text-xs">Kelola data seluruh petugas Call Taker 112 lintas instansi/dinas Kabupaten Bulukumba.</p>
+          <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Manajemen Peserta Magang</h2>
+          <p class="font-sans text-slate-500 mt-1 text-xs">Kelola data seluruh petugas Peserta Magang 112 lintas instansi/dinas Kabupaten Bulukumba.</p>
         </div>
         <button
           v-if="authStore.isAdmin"
@@ -14,7 +14,7 @@
           class="w-full sm:w-auto py-2.5 px-4 bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer border-0 shrink-0"
         >
           <span class="material-symbols-outlined text-[16px]">person_add</span>
-          <span>Tambah Call Taker Baru</span>
+          <span>Tambah Peserta Magang Baru</span>
         </button>
       </div>
 
@@ -62,7 +62,7 @@
         <!-- Loading State -->
         <div v-if="loading" class="flex flex-col items-center justify-center py-14 gap-3 text-slate-400">
           <span class="material-symbols-outlined text-[40px] animate-spin">sync</span>
-          <span class="text-xs">Mengambil data petugas Call Taker...</span>
+          <span class="text-xs">Mengambil data petugas Peserta Magang...</span>
         </div>
 
         <div v-else class="w-full">
@@ -71,7 +71,7 @@
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">
-                  <th class="py-3.5 px-4 min-w-[260px] whitespace-nowrap">Nama Call Taker &amp; NIP.</th>
+                  <th class="py-3.5 px-4 min-w-[260px] whitespace-nowrap">Nama Peserta Magang &amp; NIP.</th>
                   <th class="py-3.5 px-4">Email</th>
                   <th class="py-3.5 px-4">Unit Kerja / Instansi</th>
                   <th class="py-3.5 px-4">Jabatan</th>
@@ -151,7 +151,7 @@
                       <button
                         @click="openEditDialog(ct)"
                         class="p-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
-                        title="Edit Data Call Taker"
+                        title="Edit Data Peserta Magang"
                       >
                         <span class="material-symbols-outlined text-[16px]">edit</span>
                       </button>
@@ -159,7 +159,7 @@
                         v-if="authStore.isAdmin && ct.totp_enabled"
                         @click="handleReset2FA(ct)"
                         class="p-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
-                        title="Reset 2FA Call Taker"
+                        title="Reset 2FA Peserta Magang"
                       >
                         <span class="material-symbols-outlined text-[16px]">lock_reset</span>
                       </button>
@@ -167,7 +167,7 @@
                   </td>
                 </tr>
                 <tr v-if="filteredCallTakers.length === 0">
-                  <td colspan="7" class="py-12 text-center text-slate-400 font-medium">Tidak ada data petugas Call Taker yang sesuai.</td>
+                  <td colspan="7" class="py-12 text-center text-slate-400 font-medium">Tidak ada data petugas Peserta Magang yang sesuai.</td>
                 </tr>
               </tbody>
             </table>
@@ -233,7 +233,7 @@
                 </div>
               </div>
             </div>
-            <div v-if="filteredCallTakers.length === 0" class="py-12 text-center text-slate-400 font-medium text-xs">Tidak ada data Call Taker.</div>
+            <div v-if="filteredCallTakers.length === 0" class="py-12 text-center text-slate-400 font-medium text-xs">Tidak ada data Peserta Magang.</div>
           </div>
         </div>
       </div>
@@ -247,7 +247,7 @@
           <div class="flex justify-between items-center border-b border-slate-100 pb-3">
             <h3 class="font-display font-black text-slate-900 text-base flex items-center gap-2">
               <span class="material-symbols-outlined text-rose-700">{{ isEdit ? 'edit_square' : 'person_add' }}</span>
-              {{ isEdit ? 'Edit Data Call Taker' : 'Tambah Call Taker Baru' }}
+              {{ isEdit ? 'Edit Data Peserta Magang' : 'Tambah Peserta Magang Baru' }}
             </h3>
             <button @click="closeDialog" class="p-1 rounded-full hover:bg-slate-100 text-slate-400 border-0 bg-transparent cursor-pointer">
               <span class="material-symbols-outlined text-[18px]">close</span>
@@ -341,7 +341,7 @@
                 class="py-2.5 px-5 bg-gradient-to-r from-rose-700 to-amber-600 hover:from-rose-800 hover:to-amber-700 text-white text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border-0 font-bold shadow-md disabled:opacity-60"
               >
                 <span v-if="submitLoading" class="animate-spin material-symbols-outlined text-[16px]">sync</span>
-                <span>{{ isEdit ? 'Simpan Perubahan' : 'Tambah Call Taker' }}</span>
+                <span>{{ isEdit ? 'Simpan Perubahan' : 'Tambah Peserta Magang' }}</span>
               </button>
             </div>
           </form>
@@ -458,16 +458,16 @@ const triggerConfirm = (title: string, description: string, onConfirm: () => voi
   }
 }
 
-// ===== LOAD CALL TAKERS =====
+// ===== LOAD PESERTA MAGANGS =====
 const loadCallTakers = async () => {
   loading.value = true
   try {
     await authStore.fetchUsers()
     callTakers.value = (authStore.usersList || [])
-      .filter((u: any) => u.role === 'call_taker')
+      .filter((u: any) => u.role === 'intern')
       .sort((a: any, b: any) => a.name.localeCompare(b.name))
   } catch (err) {
-    showToast(false, 'Gagal memuat data petugas Call Taker.')
+    showToast(false, 'Gagal memuat data petugas Peserta Magang.')
   } finally {
     loading.value = false
   }
@@ -539,7 +539,7 @@ const handleToggleActive = async (ct: any) => {
 const handleReset2FA = (ct: any) => {
   triggerConfirm(
     'Reset Keamanan 2FA?',
-    `Apakah Anda yakin ingin menonaktifkan Google Authenticator (2FA) untuk petugas Call Taker ${ct.name}? Petugas harus melakukan scan ulang QR 2FA saat login berikutnya.`,
+    `Apakah Anda yakin ingin menonaktifkan Google Authenticator (2FA) untuk petugas Peserta Magang ${ct.name}? Petugas harus melakukan scan ulang QR 2FA saat login berikutnya.`,
     async () => {
       submitLoading.value = true
       try {
@@ -547,7 +547,7 @@ const handleReset2FA = (ct: any) => {
         showToast(true, `2FA untuk ${ct.name} berhasil dinonaktifkan.`)
         await loadCallTakers()
       } catch (err) {
-        showToast(false, 'Gagal mereset 2FA Call Taker.')
+        showToast(false, 'Gagal mereset 2FA Peserta Magang.')
       } finally {
         submitLoading.value = false
       }
@@ -576,15 +576,15 @@ const submitForm = async () => {
         email: form.value.email,
         unit_kerja: form.value.unit_kerja,
         jabatan: form.value.jabatan,
-        role: 'call_taker',
+        role: 'intern',
         password: form.value.password
       })
       if (res.success) {
-        showToast(true, 'Data Call Taker berhasil diperbarui.')
+        showToast(true, 'Data Peserta Magang berhasil diperbarui.')
         closeDialog()
         await loadCallTakers()
       } else {
-        errorMessage.value = res.error || 'Gagal memperbarui data Call Taker.'
+        errorMessage.value = res.error || 'Gagal memperbarui data Peserta Magang.'
       }
     } else {
       const res = await authStore.createUser({
@@ -594,14 +594,14 @@ const submitForm = async () => {
         password: form.value.password,
         unit_kerja: form.value.unit_kerja,
         jabatan: form.value.jabatan,
-        role: 'call_taker'
+        role: 'intern'
       })
       if (res.success) {
-        showToast(true, 'Call Taker baru berhasil ditambahkan!')
+        showToast(true, 'Peserta Magang baru berhasil ditambahkan!')
         closeDialog()
         await loadCallTakers()
       } else {
-        errorMessage.value = res.error || 'Gagal menambahkan Call Taker.'
+        errorMessage.value = res.error || 'Gagal menambahkan Peserta Magang.'
       }
     }
   } catch (err: any) {

@@ -1,5 +1,5 @@
 <template>
-  <CallTakerLayout>
+  <InternLayout>
     <div class="max-w-4xl mx-auto space-y-6 select-none font-sans relative">
       
       <!-- Floating Top Toast Notification Overlay (Instant Alert without Scrolling) -->
@@ -342,7 +342,7 @@
                 PRESENSI {{ scanMode }} BERHASIL!
               </span>
               <h3 class="text-lg font-display font-black text-slate-900 mt-2">
-                {{ authStore.user?.name || 'Petugas Call Taker' }}
+                {{ authStore.user?.name || 'Petugas Peserta Magang' }}
               </h3>
               <p class="text-xs text-slate-500 font-medium leading-relaxed">
                 {{ successMessage }}
@@ -369,11 +369,11 @@
       </transition>
 
     </div>
-  </CallTakerLayout>
+  </InternLayout>
 </template>
 
 <script setup lang="ts">
-import CallTakerLayout from '@/layouts/CallTakerLayout.vue'
+import InternLayout from '@/layouts/InternLayout.vue'
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
@@ -786,7 +786,7 @@ const evaluateShiftSchedule = async () => {
 }
 
 
-// ===== LEAFLET MAP INTEGRATION FOR CALL TAKER =====
+// ===== LEAFLET MAP INTEGRATION FOR PESERTA MAGANG =====
 const initLeafletMap = () => {
   if (typeof (window as any).L === 'undefined') {
     const link = document.createElement('link')
@@ -843,7 +843,7 @@ const setupLeaflet = () => {
     const userLat = currentLat.value || poskoLat.value
     const userLng = currentLng.value || poskoLng.value
     userMarker = L.marker([userLat, userLng], { icon: userIcon }).addTo(mapInstance)
-      .bindPopup(`<b>Posisi Call Taker</b>`)
+      .bindPopup(`<b>Posisi Peserta Magang</b>`)
 
     updateMapVisuals()
   })
@@ -1094,7 +1094,7 @@ const submitScanPresensi = async () => {
         redirectCountdown.value = seconds
         if (seconds <= 0) {
           clearInterval(interval)
-          router.push('/calltaker/history')
+          router.push('/intern/history')
         }
       }, 750)
     } else {

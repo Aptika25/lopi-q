@@ -5,7 +5,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4 mb-4">
         <div>
           <div class="flex items-center gap-2 flex-wrap">
-            <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Rekapan Kehadiran &amp; Presensi Call Taker</h2>
+            <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Rekapan Kehadiran &amp; Presensi Peserta Magang</h2>
             <span 
               class="px-2.5 py-0.5 text-[11px] font-black uppercase rounded-full tracking-wider border inline-flex items-center gap-1"
               :class="(schedulesData?.shiftMode || 2) === 3 ? 'bg-purple-100 text-purple-800 border-purple-300' : 'bg-emerald-100 text-emerald-800 border-emerald-300'"
@@ -14,7 +14,7 @@
             </span>
           </div>
           <p class="font-sans text-slate-500 mt-1 text-xs">
-            Rekapitulasi riwayat absensi, jam masuk/pulang, dan laporan log presensi siaga petugas Call Taker 112.
+            Rekapitulasi riwayat absensi, jam masuk/pulang, dan laporan log presensi siaga petugas Peserta Magang 112.
           </p>
         </div>
         <div class="flex items-center gap-2 flex-wrap shrink-0">
@@ -325,7 +325,7 @@
         <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="material-symbols-outlined text-rose-500 text-xl">edit_square</span>
-            <h3 class="font-bold text-sm">Edit Presensi Manual Call Taker</h3>
+            <h3 class="font-bold text-sm">Edit Presensi Manual Peserta Magang</h3>
           </div>
           <button @click="showEditModal = false" class="text-slate-400 hover:text-white border-0 bg-transparent cursor-pointer text-base">✕</button>
         </div>
@@ -520,13 +520,13 @@ function getTeamBadgeClass(teamCode) {
 }
 
 const resolveLatestName = (nip, fallbackName) => {
-  if (!nip && !fallbackName) return 'Call Taker';
+  if (!nip && !fallbackName) return 'Peserta Magang';
   const cleanNip = String(nip || '').replace(/\s+/g, '');
   const fallbackClean = String(fallbackName || '').toLowerCase().trim();
   const firstName = fallbackClean.split(/[\s,.]+/)[0]; // e.g. "abdullah", "munawir"
 
   const userList = authStore?.usersList || [];
-  if (!userList || userList.length === 0) return fallbackName || 'Call Taker';
+  if (!userList || userList.length === 0) return fallbackName || 'Peserta Magang';
 
   // 1. Try exact NIP match
   let user = userList.find((u) => {
@@ -552,7 +552,7 @@ const resolveLatestName = (nip, fallbackName) => {
     });
   }
 
-  return user?.name || user?.Name || fallbackName || 'Call Taker';
+  return user?.name || user?.Name || fallbackName || 'Peserta Magang';
 };
 
 const fetchAttendanceHistory = async () => {
@@ -1234,7 +1234,7 @@ async function exportExcel() {
       return;
     }
     const XLSX = await import('xlsx');
-    const headers = ['No.', 'Tanggal', 'Shift', 'Tim', 'Nama Call Taker', 'Keterangan', 'NIP', 'OPD Unit Kerja', 'Jam Masuk (WITA)', 'Jam Pulang (WITA)', 'Status Kehadiran'];
+    const headers = ['No.', 'Tanggal', 'Shift', 'Tim', 'Nama Peserta Magang', 'Keterangan', 'NIP', 'OPD Unit Kerja', 'Jam Masuk (WITA)', 'Jam Pulang (WITA)', 'Status Kehadiran'];
     const rows = list.map((r, i) => [
       i + 1,
       r.date,
@@ -1278,7 +1278,7 @@ async function exportPdf() {
     doc.setFontSize(11);
     doc.text('POSKO TERPADU NTPD 112', W / 2, 17.5, { align: 'center' });
     doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5);
-    doc.text(`Laporan Rekapan Kehadiran & Presensi Call Taker Bulan ${monthLabel}`, W / 2, 23.5, { align: 'center' });
+    doc.text(`Laporan Rekapan Kehadiran & Presensi Peserta Magang Bulan ${monthLabel}`, W / 2, 23.5, { align: 'center' });
     doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
     doc.text(`Dicetak Pada: ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Makassar' })} WITA`, W / 2, 28.5, { align: 'center' });
     doc.setLineWidth(0.4);
@@ -1374,7 +1374,7 @@ function exportDoc() {
           <div class="header">
             <h1>PEMERINTAH KABUPATEN BULUKUMBA</h1>
             <h2>POSKO TERPADU NTPD 112</h2>
-            <p><b>Laporan Rekapan Kehadiran &amp; Presensi Call Taker Bulan ${monthLabel}</b></p>
+            <p><b>Laporan Rekapan Kehadiran &amp; Presensi Peserta Magang Bulan ${monthLabel}</b></p>
             <p style="font-size: 9.5pt; color: #64748b;">Dicetak Pada: ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Makassar' })} WITA</p>
           </div>
 

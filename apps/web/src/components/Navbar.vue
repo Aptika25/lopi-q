@@ -33,15 +33,15 @@
           <span class="sm:hidden">Dashboard</span>
         </router-link>
 
-        <!-- Call Taker Only Button -->
+        <!-- Peserta Magang Only Button -->
         <router-link 
-          v-else-if="authStore.isCallTaker"
-          to="/calltaker/dashboard"
+          v-else-if="authStore.isIntern"
+          to="/intern/dashboard"
           class="px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-bold bg-primary-container hover:bg-on-primary-fixed-variant text-on-primary shadow-md transition-all decoration-none flex items-center gap-1.5 whitespace-nowrap border-0"
         >
           <span class="material-symbols-outlined text-[16px] sm:text-[18px]">support_agent</span>
-          <span class="hidden sm:inline">Halaman Call Taker</span>
-          <span class="sm:hidden">Call Taker</span>
+          <span class="hidden sm:inline">Halaman Peserta Magang</span>
+          <span class="sm:hidden">Peserta Magang</span>
         </router-link>
       </div>
 

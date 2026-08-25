@@ -10,7 +10,7 @@
         </div>
 
         <h1 class="text-3xl sm:text-5xl font-display font-black text-on-surface leading-tight tracking-tight">
-          Sistem Presensi Geofence Call Taker <span class="text-primary">LOPI-Q</span>
+          Sistem Presensi Geofence Peserta Magang <span class="text-primary">LOPI-Q</span>
         </h1>
 
         <p class="text-sm sm:text-base font-body text-on-surface-variant leading-relaxed max-w-xl">
@@ -19,7 +19,7 @@
 
         <div class="flex flex-col sm:flex-row gap-4 mt-2 w-full sm:w-auto">
           <router-link 
-            to="/calltaker/scan" 
+            to="/intern/scan" 
             class="bg-primary-container hover:bg-on-primary-fixed-variant text-on-primary font-bold text-xs sm:text-sm px-6 py-3.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 decoration-none w-full sm:w-auto border-0"
           >
             <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
@@ -96,7 +96,7 @@
         </div>
 
         <router-link 
-          to="/calltaker/scan"
+          to="/intern/scan"
           class="relative z-10 bg-primary-container hover:bg-on-primary-fixed-variant text-on-primary font-bold text-xs sm:text-sm px-7 py-3.5 rounded-xl shadow-md transition-colors flex items-center gap-2 whitespace-nowrap decoration-none border-0"
         >
           <span>Mulai Presensi Sekarang</span>

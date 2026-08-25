@@ -27,7 +27,7 @@
               <div class="flex items-center justify-between p-3.5 bg-white rounded-xl border border-slate-200/80">
                 <div>
                   <div class="font-bold text-slate-900">Wajibkan 2FA Semua Pengguna</div>
-                  <div class="text-[11px] text-slate-500 mt-0.5">Seluruh Call Taker &amp; Admin wajib mengaktifkan TOTP saat login pertama kali.</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">Seluruh Peserta Magang &amp; Admin wajib mengaktifkan TOTP saat login pertama kali.</div>
                 </div>
                 <input type="checkbox" checked class="w-4 h-4 text-rose-600 rounded cursor-pointer" />
               </div>
@@ -53,7 +53,7 @@
               <div class="flex items-center justify-between p-3.5 bg-white rounded-xl border border-slate-200/80">
                 <div>
                   <div class="font-bold text-slate-900">Batas Maksimal Radius</div>
-                  <div class="text-[11px] text-slate-500 mt-0.5">Toleransi jarak presensi Call Taker dari Posko Siaga 112 Bulukumba.</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">Toleransi jarak presensi Peserta Magang dari Posko Siaga 112 Bulukumba.</div>
                 </div>
                 <span class="font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">2.0 Meter</span>
               </div>
@@ -61,7 +61,7 @@
               <div class="flex items-center justify-between p-3.5 bg-white rounded-xl border border-slate-200/80">
                 <div>
                   <div class="font-bold text-slate-900">Validasi Kamera Real-Time</div>
-                  <div class="text-[11px] text-slate-500 mt-0.5">Wajib mengambil foto kamera Call Taker saat melakukan presensi siaga.</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">Wajib mengambil foto kamera Peserta Magang saat melakukan presensi siaga.</div>
                 </div>
                 <input type="checkbox" checked class="w-4 h-4 text-rose-600 rounded cursor-pointer" />
               </div>
