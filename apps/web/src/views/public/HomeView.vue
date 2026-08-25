@@ -6,15 +6,15 @@
       <div class="flex-1 flex flex-col gap-6 items-start text-left">
         <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-surface-container-lowest rounded-lg border border-outline-variant">
           <span class="material-symbols-outlined text-primary text-[18px]">verified_user</span>
-          <span class="text-xs font-bold text-on-surface-variant">Sistem Keamanan Terverifikasi</span>
+          <span class="text-xs font-bold text-on-surface-variant">Sistem Otomasi Magang Terverifikasi</span>
         </div>
 
         <h1 class="text-3xl sm:text-5xl font-display font-black text-on-surface leading-tight tracking-tight">
-          Sistem Presensi Geofence Peserta Magang <span class="text-primary">LOPI-Q</span>
+          Presensi & Logbook Aktivitas Magang <span class="text-primary">LOPI-Q</span>
         </h1>
 
         <p class="text-sm sm:text-base font-body text-on-surface-variant leading-relaxed max-w-xl">
-          Sistem absensi berbasis lokasi untuk petugas Call Center 112. Pastikan Anda berada dalam radius 2.0 meter dari pusat komando sebelum melakukan pemindaian QR untuk mengaktifkan status siaga.
+          <strong>LOPI-Q</strong> (Layanan Otomasi Presensi, Informasi Aktivitas, dan Quality Monitoring Magang) merupakan sistem absensi geofence presisi radius 2.0 meter dan pencatatan logbook harian untuk Siswa & Mahasiswa Magang Diskominfo Kabupaten Bulukumba.
         </p>
 
         <div class="flex flex-col sm:flex-row gap-4 mt-2 w-full sm:w-auto">
@@ -72,7 +72,7 @@
             <span class="material-symbols-outlined text-[24px]">my_location</span>
           </div>
           <h3 class="text-lg font-display font-bold text-on-surface">Geofence Radius 2.0m</h3>
-          <p class="text-xs text-on-surface-variant leading-relaxed">Sistem akan menolak presensi jika lokasi Anda berada di luar radius 2 meter dari pusat komando LOPI-Q.</p>
+          <p class="text-xs text-on-surface-variant leading-relaxed">Sistem secara otomatis menolak presensi jika posisi Anda berada di luar radius 2 meter dari lokasi magang Diskominfo Bulukumba.</p>
         </div>
 
         <!-- Feature 2 -->
@@ -80,8 +80,8 @@
           <div class="w-12 h-12 rounded-2xl bg-primary-fixed text-primary flex items-center justify-center mb-2">
             <span class="material-symbols-outlined text-[24px]">qr_code_scanner</span>
           </div>
-          <h3 class="text-lg font-display font-bold text-on-surface">Pemindaian QR Kamera</h3>
-          <p class="text-xs text-on-surface-variant leading-relaxed">Gunakan kamera perangkat Anda untuk memindai kode QR dinamis yang tersedia di layar utama pos jaga.</p>
+          <h3 class="text-lg font-display font-bold text-on-surface">Pemindaian QR & Logbook Harian</h3>
+          <p class="text-xs text-on-surface-variant leading-relaxed">Gunakan kamera untuk memindai kode QR presensi dan mengisi jurnal aktivitas harian magang secara otomatis.</p>
         </div>
       </div>
     </section>
@@ -91,8 +91,8 @@
       <div class="bg-surface-container-lowest rounded-3xl p-8 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-8 border border-outline-variant relative overflow-hidden shadow-xs">
         <div class="absolute top-0 right-0 w-64 h-64 bg-primary-container/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
         <div class="relative z-10 flex flex-col gap-2 text-center md:text-left">
-          <h3 class="text-xl sm:text-2xl font-display font-black text-on-surface tracking-tight">Siap Melakukan Presensi Siaga 112?</h3>
-          <p class="text-xs sm:text-sm text-on-surface-variant">Pastikan lokasi Anda aktif dan arahkan kamera ke QR Code.</p>
+          <h3 class="text-xl sm:text-2xl font-display font-black text-on-surface tracking-tight">Siap Melakukan Presensi & Logbook Magang?</h3>
+          <p class="text-xs sm:text-sm text-on-surface-variant">Pastikan lokasi Anda aktif dan arahkan kamera ke QR Code di lokasi magang.</p>
         </div>
 
         <router-link 

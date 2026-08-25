@@ -242,13 +242,14 @@ const togglePassword = () => {
           <!-- Branding -->
           <div class="flex flex-col gap-0.5">
             <h1 class="font-headline-md text-headline-md text-white tracking-tight">LOPI-Q</h1>
-            <p class="font-label-md text-label-md text-primary-fixed tracking-widest uppercase mt-1">NTPD KABUPATEN BULUKUMBA</p>
+            <p class="font-label-md text-label-md text-primary-fixed tracking-wider uppercase mt-1">DISKOMINFO KABUPATEN BULUKUMBA</p>
+            <p class="font-body-sm text-xs text-primary-fixed-dim opacity-95 mt-1 leading-snug">Layanan Otomasi Presensi, Informasi Aktivitas, dan Quality Monitoring Magang</p>
           </div>
           <!-- Mission Statement -->
           <div class="max-w-md">
-            <h2 class="font-display-lg text-display-lg text-white mb-md leading-tight whitespace-pre-line">Respon Cepat Tanggap 112,
-Layanan Presensi Siaga.</h2>
-            <p class="font-body-md text-body-md text-primary-fixed-dim opacity-90 leading-relaxed">Sistem informasi manajemen presensi terintegrasi dengan pengawasan lokasi presisi geofence radius 2 meter dan autentikasi aman untuk seluruh Peserta Magang NTPD 112 Kabupaten Bulukumba.</p>
+            <h2 class="font-display-lg text-display-lg text-white mb-md leading-tight whitespace-pre-line">Presensi Digital Siaga,
+Otomasi Logbook Magang.</h2>
+            <p class="font-body-md text-body-md text-primary-fixed-dim opacity-90 leading-relaxed">Sistem informasi manajemen presensi dan laporan aktivitas harian terintegrasi dengan pengawasan lokasi geofence presisi radius 2 meter untuk seluruh Siswa dan Mahasiswa Magang Diskominfo Kabupaten Bulukumba.</p>
           </div>
           <!-- Footer Branding -->
           <div class="font-body-sm text-body-sm text-primary-fixed">
