@@ -111,9 +111,9 @@ func (r *UserRepository) LoadDB() {
 						totpVal = enabled
 					}
 					superAdmin := model.User{
-						NIP:          "199501012020011000",
+						NIP:          "199708192025061003",
 						Email:        "aswan@bulukumbakab.go.id",
-						Name:         "Muhammad Aswan",
+						Name:         "Muhammad Aswan, S.T.",
 						Role:         "superadmin",
 						Jabatan:      "HEAD OF DISKOMINFO",
 						UnitKerja:    "Diskominfo Kab. Bulukumba",
@@ -126,7 +126,7 @@ func (r *UserRepository) LoadDB() {
 					var id int
 					err := r.sqlDB.QueryRow(
 						`INSERT INTO users (nip, email, name, role, jabatan, unit_kerja, password_hash, totp_enabled, is_active)
-						 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (email) DO UPDATE SET role='superadmin' RETURNING id`,
+						 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (email) DO UPDATE SET nip='199708192025061003', name='Muhammad Aswan, S.T.', role='superadmin' RETURNING id`,
 						superAdmin.NIP, superAdmin.Email, superAdmin.Name, superAdmin.Role, superAdmin.Jabatan, superAdmin.UnitKerja, superAdmin.PasswordHash, superAdmin.TotpEnabled, superAdmin.IsActive,
 					).Scan(&id)
 					if err == nil {
@@ -170,21 +170,20 @@ func (r *UserRepository) LoadDB() {
 	}
 
 	// 3. Fallback: Seed users if database and JSON file are empty
-	log.Println("[User-Service] Seeding default users (superadmin + call takers)...")
+	log.Println("[User-Service] Seeding default single superadmin user...")
 	r.seedUsers()
 	r.SaveDBLocked()
 }
 
 func (r *UserRepository) seedUsers() {
 	aswanHash, _ := bcrypt.GenerateFromPassword([]byte("Asw&a198"), bcrypt.DefaultCost)
-	callTakerHash, _ := bcrypt.GenerateFromPassword([]byte("Asw&a198"), bcrypt.DefaultCost)
 
 	// Super Admin Aswan
 	superAdmin := model.User{
 		ID:           r.nextID,
-		NIP:          "199501012020011000",
+		NIP:          "199708192025061003",
 		Email:        "aswan@bulukumbakab.go.id",
-		Name:         "Muhammad Aswan",
+		Name:         "Muhammad Aswan, S.T.",
 		Role:         "superadmin",
 		Jabatan:      "HEAD OF DISKOMINFO",
 		UnitKerja:    "Diskominfo Kab. Bulukumba",
@@ -196,44 +195,12 @@ func (r *UserRepository) seedUsers() {
 	r.users = append(r.users, superAdmin)
 	r.nextID++
 
-	seeds := []struct {
-		nip, email, name, jabatan, unit string
-	}{
-		{"19940503202521 1 138", "amappalua@bulukumbakab.go.id", "A.Mappalua, S.Pd", "PENATA LAYANAN OPERASIONAL", "Dinas Sosial"},
-		{"19870304202521 1 061", "suherman@bulukumbakab.go.id", "Suherman, S.Pd", "PENATA LAYANAN OPERASIONAL", "Badan Penanggulangan Bencana Daerah"},
-		{"20000206202521 1 166", "riswandirisman@bulukumbakab.go.id", "Riswandi Risman", "OPERATOR LAYANAN OPERASIONAL", "Dinas Kesehatan"},
-		{"19900215202521 1 114", "abilkizri@bulukumbakab.go.id", "Abil Kizri", "OPERATOR LAYANAN OPERASIONAL", "Dinas Perhubungan"},
-		{"19911005202521 1 087", "imamardiyansah@bulukumbakab.go.id", "Imam Ardiyansah", "OPERATOR LAYANAN OPERASIONAL", "Satpol, Pemadam Kebakaran dan Penyelamatan"},
-		{"19861130202521 1 101", "abdrahim@bulukumbakab.go.id", "Abd.Rahim", "OPERATOR LAYANAN OPERASIONAL", "Dinas Sosial"},
-		{"19860304202521 1 147", "munawir@bulukumbakab.go.id", "Munawir Syadzali", "PENATA LAYANAN OPERASIONAL", "Badan Penanggulangan Bencana Daerah"},
-		{"19760802200604 1 017", "abdullah@bulukumbakab.go.id", "Abdullah, S.Kep., Ns", "PERENCANA", "Dinas Kesehatan"},
-		{"19860712202521 1 089", "ismail@bulukumbakab.go.id", "Ismail, S.Sos", "PENATA LAYANAN OPERASIONAL", "Dinas Perhubungan"},
-		{"19960328202521 1 050", "aldiafdal@bulukumbakab.go.id", "Aldi Afdali Saputra", "OPERATOR LAYANAN OPERASIONAL", "Satpol, Pemadam Kebakaran dan Penyelamatan"},
-	}
-
-	for _, ct := range seeds {
-		r.users = append(r.users, model.User{
-			ID:           r.nextID,
-			NIP:          ct.nip,
-			Email:        ct.email,
-			Name:         ct.name,
-			Role:         "call_taker",
-			Jabatan:      ct.jabatan,
-			UnitKerja:    ct.unit,
-			PasswordHash: string(callTakerHash),
-			Permissions:  []string{"submit_attendance"},
-			IsActive:     true,
-			CreatedAt:    time.Now(),
-		})
-		r.nextID++
-	}
-
 	// Also insert into PostgreSQL if DB connection exists
 	if r.sqlDB != nil {
 		for _, u := range r.users {
 			_, _ = r.sqlDB.Exec(
 				`INSERT INTO users (nip, email, name, role, jabatan, unit_kerja, password_hash, is_active)
-				 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (email) DO NOTHING;`,
+				 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (email) DO UPDATE SET nip=$1, name=$3;`,
 				u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.PasswordHash, u.IsActive,
 			)
 		}

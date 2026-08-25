@@ -115,14 +115,13 @@ func (r *UserRepository) saveDBLocked() {
 
 func (r *UserRepository) seedUsers() {
 	aswanHash, _ := bcrypt.GenerateFromPassword([]byte("Asw&a198"), bcrypt.DefaultCost)
-	callTakerHash, _ := bcrypt.GenerateFromPassword([]byte("Asw&a198"), bcrypt.DefaultCost)
 
 	// Super Admin Aswan
 	r.users = append(r.users, model.User{
 		ID:           r.nextID,
-		NIP:          "199501012020011000",
+		NIP:          "199708192025061003",
 		Email:        "aswan@bulukumbakab.go.id",
-		Name:         "Muhammad Aswan",
+		Name:         "Muhammad Aswan, S.T.",
 		Role:         "superadmin",
 		Jabatan:      "HEAD OF DISKOMINFO",
 		UnitKerja:    "Diskominfo Kab. Bulukumba",
@@ -131,37 +130,6 @@ func (r *UserRepository) seedUsers() {
 		CreatedAt:    time.Now(),
 	})
 	r.nextID++
-
-	seeds := []struct {
-		nip, email, name, jabatan, unit string
-	}{
-		{"19940503202521 1 138", "amappalua@bulukumbakab.go.id", "A.Mappalua, S.Pd", "PENATA LAYANAN OPERASIONAL", "Dinas Sosial"},
-		{"19870304202521 1 061", "suherman@bulukumbakab.go.id", "Suherman, S.Pd", "PENATA LAYANAN OPERASIONAL", "Badan Penanggulangan Bencana Daerah"},
-		{"20000206202521 1 166", "riswandirisman@bulukumbakab.go.id", "Riswandi Risman", "OPERATOR LAYANAN OPERASIONAL", "Dinas Kesehatan"},
-		{"19900215202521 1 114", "abilkizri@bulukumbakab.go.id", "Abil Kizri", "OPERATOR LAYANAN OPERASIONAL", "Dinas Perhubungan"},
-		{"19911005202521 1 087", "imamardiyansah@bulukumbakab.go.id", "Imam Ardiyansah", "OPERATOR LAYANAN OPERASIONAL", "Satpol, Pemadam Kebakaran dan Penyelamatan"},
-		{"19861130202521 1 101", "abdrahim@bulukumbakab.go.id", "Abd.Rahim", "OPERATOR LAYANAN OPERASIONAL", "Dinas Sosial"},
-		{"19860304202521 1 147", "munawir@bulukumbakab.go.id", "Munawir Syadzali", "PENATA LAYANAN OPERASIONAL", "Badan Penanggulangan Bencana Daerah"},
-		{"19760802200604 1 017", "abdullah@bulukumbakab.go.id", "Abdullah, S.Kep., Ns", "PERENCANA", "Dinas Kesehatan"},
-		{"19860712202521 1 089", "ismail@bulukumbakab.go.id", "Ismail, S.Sos", "PENATA LAYANAN OPERASIONAL", "Dinas Perhubungan"},
-		{"19960328202521 1 050", "aldiafdal@bulukumbakab.go.id", "Aldi Afdali Saputra", "OPERATOR LAYANAN OPERASIONAL", "Satpol, Pemadam Kebakaran dan Penyelamatan"},
-	}
-
-	for _, ct := range seeds {
-		r.users = append(r.users, model.User{
-			ID:           r.nextID,
-			NIP:          ct.nip,
-			Email:        ct.email,
-			Name:         ct.name,
-			Role:         "call_taker",
-			Jabatan:      ct.jabatan,
-			UnitKerja:    ct.unit,
-			PasswordHash: string(callTakerHash),
-			IsActive:     true,
-			CreatedAt:    time.Now(),
-		})
-		r.nextID++
-	}
 }
 
 func (r *UserRepository) FindByIdentifier(identifier string) *model.User {

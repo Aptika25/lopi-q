@@ -37,13 +37,10 @@ services:
       - auth-migrate
     ports:
       - "50051:50051"
-    volumes:
-      - ./data:/app/data
     env_file:
       - ./services/auth-service/.env
     environment:
       - PORT=50051
-      - DB_PATH=/app/data/users.json
       - JWT_SECRET=lopiq_super_secret_jwt_key_2026
       - DB_TYPE=postgres
       - DB_HOST=postgres_apps
@@ -66,13 +63,10 @@ services:
       - user-migrate
     ports:
       - "50052:50052"
-    volumes:
-      - ./data:/app/data
     env_file:
       - ./services/user-service/.env
     environment:
       - PORT=50052
-      - DB_PATH=/app/data/users.json
       - DB_TYPE=postgres
       - DB_HOST=postgres_apps
       - DB_PORT=5432
@@ -98,8 +92,6 @@ services:
       - user-service
     ports:
       - "5000:5000"
-    volumes:
-      - ./data:/app/data
     env_file:
       - ./services/api-gateway/.env
     environment:
