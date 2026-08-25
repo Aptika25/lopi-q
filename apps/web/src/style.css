@@ -10,6 +10,10 @@
 
 body {
   font-family: 'Inter', 'Poppins', sans-serif !important;
+  background-color: #fbf9f8;
+  color: #1d1b1c;
+  margin: 0;
+  padding: 0;
 }
 
 .material-symbols-outlined {
