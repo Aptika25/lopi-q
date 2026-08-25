@@ -17,19 +17,19 @@
         'fixed inset-y-0 left-0 w-64 h-screen bg-white border-r border-slate-200/80 z-50 flex flex-col justify-between py-5 px-3 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:relative lg:inset-auto shrink-0'
       ]"
     >
-      <!-- Branding with 112 Logo Icon -->
+      <!-- Branding with LOPI-Q Logo Icon -->
       <div class="px-3 mb-6">
-        <router-link to="/admin" class="flex items-center space-x-3 text-slate-900 decoration-none">
-          <div class="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-700 via-rose-600 to-amber-500 text-white font-display font-black text-xl shadow-md shrink-0">
-            <span class="tracking-tighter">112</span>
+        <router-link to="/admin" class="flex items-center space-x-3 text-on-surface decoration-none">
+          <div class="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-primary-container text-on-primary font-display font-black text-xl shadow-md shrink-0">
+            <span class="tracking-tighter">LQ</span>
             <span class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white"></span>
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-fixed-dim opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-primary border-2 border-white"></span>
             </span>
           </div>
           <div>
-            <h1 class="text-base font-display font-black text-slate-900 tracking-tight leading-none">GARDA<span class="text-rose-700">112</span></h1>
-            <p class="text-[9px] font-bold text-rose-800 tracking-wider uppercase mt-1">NTPD 112 KAB. BULUKUMBA</p>
+            <h1 class="text-base font-display font-black text-on-surface tracking-tight leading-none">LOPI-<span class="text-primary">Q</span></h1>
+            <p class="text-[9px] font-bold text-primary tracking-wider uppercase mt-1">KABUPATEN BULUKUMBA</p>
           </div>
         </router-link>
       </div>
@@ -40,7 +40,7 @@
         <div class="relative">
           <span
             v-if="$route.path === '/admin'"
-            class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-rose-700 rounded-r-full"
+            class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full"
           ></span>
 
           <router-link
@@ -48,12 +48,12 @@
             @click="mobileMenuOpen = false"
             :class="[
               $route.path === '/admin'
-                ? 'bg-rose-50 text-rose-700 font-bold'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium',
+                ? 'bg-primary-fixed/40 text-primary font-bold'
+                : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-medium',
               'w-full py-2.5 px-3 rounded-xl flex items-center gap-2.5 text-xs transition-all duration-200 cursor-pointer text-left border-0 bg-transparent decoration-none'
             ]"
           >
-            <span :class="['material-symbols-outlined text-[18px]', $route.path === '/admin' ? 'fill text-rose-700' : '']">dashboard</span>
+            <span :class="['material-symbols-outlined text-[18px]', $route.path === '/admin' ? 'fill text-primary' : '']">dashboard</span>
             <span>Dashboard Overview</span>
           </router-link>
         </div>
@@ -65,15 +65,15 @@
             @click="toggleGroup(group.key)"
             :class="[
               isGroupActive(group)
-                ? 'text-rose-700 font-bold bg-rose-50/50'
-                : 'text-slate-700 hover:bg-slate-50 font-semibold',
+                ? 'text-primary font-bold bg-primary-fixed/20'
+                : 'text-on-surface hover:bg-surface-container-low font-semibold',
               'w-full py-2.5 px-3 rounded-xl flex items-center gap-2.5 text-xs transition-all duration-200 cursor-pointer text-left border-0 bg-transparent'
             ]"
           >
-            <span :class="['material-symbols-outlined text-[18px]', isGroupActive(group) ? 'text-rose-700' : 'text-slate-500']">{{ group.icon }}</span>
+            <span :class="['material-symbols-outlined text-[18px]', isGroupActive(group) ? 'text-primary' : 'text-on-surface-variant']">{{ group.icon }}</span>
             <span class="flex-1 truncate">{{ group.title }}</span>
             <span 
-              class="material-symbols-outlined text-[16px] transition-transform duration-200 text-slate-400 shrink-0"
+              class="material-symbols-outlined text-[16px] transition-transform duration-200 text-outline shrink-0"
               :class="{ 'rotate-180': expandedGroups[group.key] }"
             >
               keyboard_arrow_down
@@ -89,7 +89,7 @@
               <!-- Active child marker -->
               <span
                 v-if="$route.path === item.to"
-                class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-rose-700 rounded-r-full"
+                class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-primary rounded-r-full"
               ></span>
 
               <router-link
@@ -97,12 +97,12 @@
                 @click="mobileMenuOpen = false"
                 :class="[
                   $route.path === item.to
-                    ? 'bg-rose-100/60 text-rose-700 font-bold'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium',
+                    ? 'bg-primary-fixed/40 text-primary font-bold'
+                    : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-medium',
                   'w-full py-2 px-3 rounded-xl flex items-center gap-2 text-[11px] transition-all duration-200 cursor-pointer text-left border-0 bg-transparent decoration-none'
                 ]"
               >
-                <span :class="['material-symbols-outlined text-[16px]', $route.path === item.to ? 'fill text-rose-700' : '']">{{ item.icon }}</span>
+                <span :class="['material-symbols-outlined text-[16px]', $route.path === item.to ? 'fill text-primary' : '']">{{ item.icon }}</span>
                 <span class="truncate">{{ item.label }}</span>
               </router-link>
             </div>
@@ -111,20 +111,20 @@
       </nav>
 
       <!-- Bottom User Section & Logout -->
-      <div class="border-t border-slate-200/80 pt-3.5 flex flex-col gap-3">
+      <div class="border-t border-outline-variant/40 pt-3.5 flex flex-col gap-3">
         <div class="flex items-center gap-2.5 px-3">
-          <div class="h-9 w-9 rounded-full bg-gradient-to-br from-rose-700 to-rose-600 text-white flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
+          <div class="h-9 w-9 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
             {{ authStore.user?.name ? authStore.user.name.charAt(0).toUpperCase() : 'M' }}
           </div>
           <div class="flex flex-col justify-center min-w-0 text-left">
-            <span class="text-xs font-bold text-slate-900 truncate leading-tight block">{{ authStore.user?.name || 'Muhammad Aswan, S.T.' }}</span>
-            <span class="text-[9px] text-slate-400 font-mono uppercase truncate leading-none mt-0.5 block">SUPERADMIN</span>
+            <span class="text-xs font-bold text-on-surface truncate leading-tight block">{{ authStore.user?.name || 'Muhammad Aswan, S.T.' }}</span>
+            <span class="text-[9px] text-on-surface-variant font-mono uppercase truncate leading-none mt-0.5 block">SUPERADMIN</span>
           </div>
         </div>
 
         <button 
           @click="handleLogout"
-          class="w-full py-2 px-3 bg-red-500/10 hover:bg-red-600 text-red-600 hover:text-white text-xs rounded-xl border border-red-500/20 hover:border-red-600 transition-all active:scale-[0.96] flex items-center justify-center gap-2 cursor-pointer duration-200 font-semibold"
+          class="w-full py-2 px-3 bg-error-container/30 hover:bg-error text-error hover:text-on-error text-xs rounded-xl border border-error-container transition-all active:scale-[0.96] flex items-center justify-center gap-2 cursor-pointer duration-200 font-semibold"
         >
           <span>Keluar Sesi</span>
           <span class="material-symbols-outlined text-[16px]">logout</span>
