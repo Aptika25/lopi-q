@@ -1,20 +1,15 @@
 /* ========================================================
-   FONT SYSTEM — Identik dengan webopd-bkpsdm
-   - Heading / Display  : Montserrat (font-display)
-   - Body / UI           : Poppins   (font-sans / body)
+   FONT SYSTEM & THEME
+   - Heading / Display & Body: Inter / Montserrat / Poppins
    ======================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-.font-display {
-  font-family: 'Montserrat', sans-serif !important;
-}
-
 body {
-  font-family: 'Poppins', sans-serif !important;
+  font-family: 'Inter', 'Poppins', sans-serif !important;
 }
 
 .material-symbols-outlined {
@@ -39,10 +34,11 @@ body {
 
 @layer utilities {
   .glass-card {
-    background: rgba(15, 23, 42, 0.85);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(248, 187, 208, 0.4);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
   }
 
   .glow-green {
