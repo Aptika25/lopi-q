@@ -123,7 +123,7 @@ func (r *UserRepository) seedUsers() {
 		Email:        "aswan@bulukumbakab.go.id",
 		Name:         "Muhammad Aswan, S.T.",
 		Role:         "superadmin",
-		Jabatan:      "HEAD OF DISKOMINFO",
+		Jabatan:      "JF Pranata Komputer Ahli Pertama",
 		UnitKerja:    "Diskominfo Kab. Bulukumba",
 		PasswordHash: string(aswanHash),
 		IsActive:     true,

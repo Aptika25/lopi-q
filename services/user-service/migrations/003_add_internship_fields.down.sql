@@ -1,0 +1,7 @@
+ALTER TABLE users 
+DROP COLUMN IF EXISTS institusi,
+DROP COLUMN IF EXISTS jurusan,
+DROP COLUMN IF EXISTS pembimbing,
+DROP COLUMN IF EXISTS periode_mulai,
+DROP COLUMN IF EXISTS periode_selesai,
+DROP COLUMN IF EXISTS status_magang;
