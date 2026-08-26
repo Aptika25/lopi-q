@@ -250,6 +250,81 @@
 
       </div>
 
+      <!-- Microservices & System Infrastructure Status Section -->
+      <div class="bg-white rounded-xl border border-[#ddbfc5] p-6 shadow-xs space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#ddbfc5]/50 pb-3">
+          <div>
+            <h3 class="text-base font-bold text-[#1b1c1c] flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#ab2c5d]">dns</span>
+              <span>Status Layanan Microservices LOPI-Q</span>
+            </h3>
+            <p class="text-xs text-[#574146] mt-0.5">Monitoring kesehatan container backend, API gateway, &amp; database PostgreSQL</p>
+          </div>
+          <span class="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full flex items-center gap-1.5 w-fit">
+            <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+            <span>Semua Layanan Berjalan</span>
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Service 1: API Gateway -->
+          <div class="p-4 bg-slate-50 border border-[#ddbfc5] rounded-xl flex items-center justify-between hover:border-[#ab2c5d] transition-all">
+            <div class="flex items-center gap-3">
+              <div class="p-2.5 bg-[#f06292]/10 rounded-lg text-[#ab2c5d]">
+                <span class="material-symbols-outlined text-xl">api</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-xs text-[#1b1c1c]">API Gateway</h4>
+                <p class="text-[11px] text-[#574146] font-mono">Port: 5000 &bull; REST</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">ACTIVE</span>
+          </div>
+
+          <!-- Service 2: Auth Service -->
+          <div class="p-4 bg-slate-50 border border-[#ddbfc5] rounded-xl flex items-center justify-between hover:border-[#ab2c5d] transition-all">
+            <div class="flex items-center gap-3">
+              <div class="p-2.5 bg-[#f06292]/10 rounded-lg text-[#ab2c5d]">
+                <span class="material-symbols-outlined text-xl">vpn_key</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-xs text-[#1b1c1c]">Auth Service</h4>
+                <p class="text-[11px] text-[#574146] font-mono">Port: 50051 &bull; gRPC</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">ACTIVE</span>
+          </div>
+
+          <!-- Service 3: User Service -->
+          <div class="p-4 bg-slate-50 border border-[#ddbfc5] rounded-xl flex items-center justify-between hover:border-[#ab2c5d] transition-all">
+            <div class="flex items-center gap-3">
+              <div class="p-2.5 bg-[#f06292]/10 rounded-lg text-[#ab2c5d]">
+                <span class="material-symbols-outlined text-xl">group_work</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-xs text-[#1b1c1c]">User Service</h4>
+                <p class="text-[11px] text-[#574146] font-mono">Port: 50052 &bull; gRPC</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">ACTIVE</span>
+          </div>
+
+          <!-- Service 4: PostgreSQL Database -->
+          <div class="p-4 bg-slate-50 border border-[#ddbfc5] rounded-xl flex items-center justify-between hover:border-[#ab2c5d] transition-all">
+            <div class="flex items-center gap-3">
+              <div class="p-2.5 bg-[#fec1d6]/30 rounded-lg text-[#805062]">
+                <span class="material-symbols-outlined text-xl">database</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-xs text-[#1b1c1c]">PostgreSQL DB</h4>
+                <p class="text-[11px] text-[#574146] font-mono">Port: 5432 &bull; Apps</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">ONLINE</span>
+          </div>
+        </div>
+      </div>
+
     </div>
   </AdminLayout>
 </template>
