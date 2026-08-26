@@ -1,9 +1,9 @@
 <template>
   <AdminLayout>
-    <div class="space-y-6 select-none font-sans text-slate-800 max-w-[1200px] mx-auto">
+    <div class="w-full space-y-6 select-none font-sans text-slate-800">
       
       <!-- Header -->
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#ddbfc5]/60 pb-6">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#ddbfc5]/60 pb-6 w-full">
         <div>
           <h1 class="text-2xl md:text-3xl font-extrabold text-[#1b1c1c] tracking-tight flex items-center gap-2">
             <span class="material-symbols-outlined text-[#ab2c5d] text-[32px] fill" style="font-variation-settings: 'FILL' 1;">history</span>
@@ -12,7 +12,7 @@
           <p class="text-sm text-[#574146] mt-1">Monitor system actions, user authentication, and attendance events real-time.</p>
         </div>
         
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-3 shrink-0 flex-wrap sm:flex-nowrap">
           <button 
             @click="fetchLogs"
             :disabled="loading"
@@ -24,7 +24,7 @@
 
           <button 
             @click="exportToCSV"
-            class="py-2.5 px-4 bg-[#ffd9e4] text-[#ab2c5d] hover:bg-[#fec1d6] font-semibold text-xs rounded-full transition-colors flex items-center gap-2 cursor-pointer shadow-xs border border-[#ddbfc5]"
+            class="py-2.5 px-4 bg-[#ffd9e4] text-[#ab2c5d] hover:bg-[#fec1d6] font-semibold text-xs rounded-full transition-colors flex items-center gap-2 cursor-pointer shadow-xs border border-[#ddbfc5] whitespace-nowrap"
           >
             <span class="material-symbols-outlined text-base">download</span>
             Export CSV
@@ -32,7 +32,7 @@
 
           <button 
             @click="exportToPDF"
-            class="py-2.5 px-4 bg-[#ab2c5d] text-white hover:bg-[#5e002b] font-semibold text-xs rounded-full transition-colors flex items-center gap-2 cursor-pointer shadow-xs border-0"
+            class="py-2.5 px-4 bg-[#ab2c5d] text-white hover:bg-[#5e002b] font-semibold text-xs rounded-full transition-colors flex items-center gap-2 cursor-pointer shadow-xs border-0 whitespace-nowrap"
           >
             <span class="material-symbols-outlined text-base">print</span>
             Cetak / PDF

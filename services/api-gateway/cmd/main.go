@@ -18,12 +18,14 @@ func main() {
 	authStub := &client.AuthClientDirectStub{}
 	userStub := &client.UserClientDirectStub{}
 	attendanceStub := &client.AttendanceClientDirectStub{}
+	activityStub := &client.ActivityClientDirectStub{}
 
 	authHTTP := httpHandler.NewAuthHTTPHandler(authStub)
 	userHTTP := httpHandler.NewUserHTTPHandler(userStub)
 	attendanceHTTP := httpHandler.NewAttendanceHTTPHandler(attendanceStub, userStub)
+	activityHTTP := httpHandler.NewActivityHTTPHandler(activityStub)
 
-	r := router.NewRouter(authHTTP, userHTTP, attendanceHTTP)
+	r := router.NewRouter(authHTTP, userHTTP, attendanceHTTP, activityHTTP)
 
 	fmt.Printf("===================================================\n")
 	fmt.Printf("🚀 LOPI-Q API GATEWAY RUNNING ON http://localhost:%s\n", cfg.Port)

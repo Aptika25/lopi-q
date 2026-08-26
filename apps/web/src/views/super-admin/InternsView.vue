@@ -1,27 +1,22 @@
 <template>
   <AdminLayout>
-    <div class="flex flex-col gap-6 w-full select-none">
-
+    <div class="w-full space-y-6 select-none font-sans text-slate-800">
+      
       <!-- Page Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#ddbfc5]/60 pb-6 w-full">
         <div>
-          <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Manajemen Peserta Magang</h2>
-          <p class="font-sans text-slate-500 mt-1 text-xs">Kelola data seluruh petugas Peserta Magang 112 lintas instansi/dinas Kabupaten Bulukumba.</p>
+          <h1 class="text-2xl md:text-3xl font-extrabold text-[#1b1c1c] tracking-tight flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#ab2c5d] text-[32px] fill" style="font-variation-settings: 'FILL' 1;">group</span>
+            Manajemen Peserta Magang
+          </h1>
+          <p class="text-sm text-[#574146] mt-1">Kelola data peserta magang, akun Gmail, jurusan, dan asal sekolah/universitas.</p>
         </div>
-        <button
-          v-if="authStore.isAdmin"
-          @click="openAddDialog"
-          class="w-full sm:w-auto py-2.5 px-4 bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer border-0 shrink-0"
-        >
-          <span class="material-symbols-outlined text-[16px]">person_add</span>
-          <span>Tambah Peserta Magang Baru</span>
-        </button>
       </div>
 
       <!-- Toast Notification -->
       <transition name="fade">
-        <div v-if="toast.show" :class="['flex items-center gap-2.5 p-3.5 rounded-2xl text-xs font-semibold border w-full shadow-sm',
-          toast.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
+        <div v-if="toast.show" :class="['flex items-center gap-2.5 p-3.5 rounded-xl text-xs font-semibold border w-full shadow-xs',
+          toast.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'
         ]">
           <span class="material-symbols-outlined text-[18px] shrink-0">
             {{ toast.success ? 'check_circle' : 'error' }}
@@ -30,318 +25,222 @@
         </div>
       </transition>
 
-      <!-- Search & Filter Controls -->
-      <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-        <!-- Search Input -->
-        <div class="relative w-full md:w-80">
-          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[18px]">search</span>
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Cari Nama, NIP, atau Email..."
-            class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 rounded-xl focus:outline-none transition-all text-xs"
-          />
+      <!-- Action Bar (Glass Card Layout) -->
+      <div class="bg-white/85 backdrop-blur-md rounded-xl border border-[#F8BBD0] p-4 shadow-[0px_10px_30px_rgba(240,98,146,0.05)] flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div class="flex items-center w-full sm:w-auto">
+          <!-- Search Input -->
+          <div class="relative w-full sm:w-80 group">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8a7176] group-focus-within:text-[#ab2c5d] transition-colors text-sm">search</span>
+            <input 
+              v-model="searchQuery" 
+              type="text" 
+              placeholder="Cari nama, NISN, Gmail, jurusan, atau sekolah..." 
+              class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[#F8BBD0] bg-white text-[#1b1c1c] focus:outline-none focus:ring-2 focus:ring-[#f06292]/30 focus:border-[#f06292] transition-all text-xs font-medium"
+            />
+          </div>
         </div>
 
-        <!-- Filter Instansi / Unit Kerja -->
-        <div class="flex items-center gap-2 w-full md:w-auto">
-          <span class="text-xs font-bold text-slate-500 shrink-0">Unit Kerja:</span>
-          <select
-            v-model="selectedUnit"
-            class="w-full md:w-64 px-3 py-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 rounded-xl text-xs font-semibold focus:outline-none"
-          >
-            <option value="">Semua Unit Kerja / Instansi</option>
-            <option v-for="unit in availableUnits" :key="unit" :value="unit">{{ unit }}</option>
-          </select>
-        </div>
+        <!-- Add User Button -->
+        <button 
+          v-if="authStore.isAdmin"
+          @click="openAddDialog"
+          class="bg-[#F06292] hover:bg-[#ab2c5d] text-white font-bold text-xs px-6 py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 shadow-[0px_10px_30px_rgba(240,98,146,0.15)] w-full sm:w-auto shrink-0 border-0 cursor-pointer active:scale-95"
+        >
+          <span class="material-symbols-outlined text-base">add</span>
+          <span>Tambah Peserta Magang</span>
+        </button>
       </div>
 
-      <!-- Main Content Container -->
-      <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col gap-6">
-
+      <!-- Data Table Card -->
+      <div class="bg-white/90 backdrop-blur-md rounded-xl border border-[#F8BBD0] overflow-hidden shadow-[0px_10px_30px_rgba(240,98,146,0.05)]">
+        
         <!-- Loading State -->
-        <div v-if="loading" class="flex flex-col items-center justify-center py-14 gap-3 text-slate-400">
+        <div v-if="loading" class="flex flex-col items-center justify-center py-14 gap-3 text-[#8a7176]">
           <span class="material-symbols-outlined text-[40px] animate-spin">sync</span>
-          <span class="text-xs">Mengambil data petugas Peserta Magang...</span>
+          <span class="text-xs font-medium">Mengambil data peserta magang...</span>
         </div>
 
         <div v-else class="w-full">
-          <!-- Desktop Table View -->
-          <div class="hidden md:block overflow-x-auto w-full border border-slate-200 rounded-2xl">
+          <div class="overflow-x-auto w-full">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">
-                  <th class="py-3.5 px-4 min-w-[260px] whitespace-nowrap">Nama Peserta Magang &amp; NIP.</th>
-                  <th class="py-3.5 px-4">Email</th>
-                  <th class="py-3.5 px-4">Unit Kerja / Instansi</th>
-                  <th class="py-3.5 px-4">Jabatan</th>
-                  <th class="py-3.5 px-4">Status 2FA</th>
-                  <th class="py-3.5 px-4">Status Akun</th>
-                  <th class="py-3.5 px-4 text-center w-28">Aksi</th>
+                <tr class="bg-[#FCE4EC] border-b border-[#F8BBD0]">
+                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Pengguna (Nama &amp; NISN)</th>
+                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Gmail / Email</th>
+                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Jurusan &amp; Asal Sekolah / Univ</th>
+                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Peran</th>
+                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Status</th>
+                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100 text-xs text-slate-700">
-                <tr v-for="ct in filteredCallTakers" :key="ct.id" class="hover:bg-slate-50/60 transition-colors">
-                  <!-- Avatar & Identity (Name & NIP) -->
-                  <td class="py-3.5 px-4 min-w-[260px] whitespace-nowrap">
+              <tbody class="text-xs text-[#1b1c1c] bg-white divide-y divide-[#F8BBD0]">
+                <tr 
+                  v-for="ct in filteredCallTakers" 
+                  :key="ct.id" 
+                  class="border-b border-[#F8BBD0] hover:bg-[#FCE4EC]/40 transition-colors"
+                >
+                  <!-- User Avatar & Identity (Nama & NISN/NIM) -->
+                  <td class="py-4 px-6">
                     <div class="flex items-center gap-3">
-                      <div class="h-9 w-9 rounded-xl shrink-0 font-black text-xs flex items-center justify-center shadow-sm bg-rose-50 text-rose-800 border border-rose-200">
+                      <div class="h-10 w-10 rounded-full bg-[#fec1d6] overflow-hidden flex-shrink-0 flex items-center justify-center text-[#ab2c5d] font-bold text-sm shadow-xs border border-[#ddbfc5]">
                         {{ ct.name?.charAt(0).toUpperCase() }}
                       </div>
-                      <div class="min-w-0">
-                        <div class="font-bold text-slate-900 leading-tight whitespace-nowrap">{{ ct.name }}</div>
-                        <div class="font-mono text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">NIP. {{ ct.nip || '-' }}</div>
+                      <div>
+                        <div class="font-bold text-[#1b1c1c] text-sm">{{ ct.name }}</div>
+                        <div class="font-mono text-[11px] text-[#8a7176]">NISN: {{ ct.nip || '-' }}</div>
                       </div>
                     </div>
                   </td>
 
-                  <!-- Email -->
-                  <td class="py-3.5 px-4">
-                    <div class="font-mono text-[11px] text-slate-600">{{ ct.email }}</div>
+                  <!-- Gmail / Email -->
+                  <td class="py-4 px-6 text-[#574146] font-mono text-xs">
+                    {{ ct.email }}
                   </td>
 
-                  <!-- Unit Kerja -->
-                  <td class="py-3.5 px-4">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-semibold">
-                      {{ ct.unit_kerja || 'Diskominfo Bulukumba' }}
+                  <!-- Jurusan & Asal Sekolah/University -->
+                  <td class="py-4 px-6 text-[#574146]">
+                    <div class="font-bold text-[#1b1c1c]">{{ ct.unit_kerja || 'Rekayasa Perangkat Lunak' }}</div>
+                    <div class="text-[11px] text-[#8a7176]">{{ ct.jabatan || 'SMK Negeri 1 Bulukumba' }}</div>
+                  </td>
+
+                  <!-- Role Badge -->
+                  <td class="py-4 px-6">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FCE4EC] text-[#F06292] border border-[#F06292]/20">
+                      INTERN
                     </span>
                   </td>
 
-                  <!-- Jabatan -->
-                  <td class="py-3.5 px-4 text-slate-600 font-medium text-[11px]">
-                    {{ ct.jabatan || 'OPERATOR LAYANAN OPERASIONAL' }}
+                  <!-- Status (Active / Inactive) -->
+                  <td class="py-4 px-6">
+                    <button 
+                      @click="handleToggleActive(ct)"
+                      :disabled="togglingId === ct.id"
+                      class="inline-flex items-center gap-1.5 text-xs font-bold border-0 bg-transparent cursor-pointer transition-opacity"
+                      :class="ct.is_active ? 'text-green-600' : 'text-gray-400'"
+                    >
+                      <span class="w-2.5 h-2.5 rounded-full" :class="ct.is_active ? 'bg-green-500 animate-pulse' : 'bg-gray-400'"></span>
+                      <span>{{ ct.is_active ? 'Aktif' : 'Nonaktif' }}</span>
+                    </button>
                   </td>
 
-                  <!-- Status 2FA Badge -->
-                  <td class="py-3.5 px-4 whitespace-nowrap">
-                    <span :class="['inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold border shadow-2xs',
-                      ct.totp_enabled 
-                        ? 'bg-emerald-50 border-emerald-200/80 text-emerald-700' 
-                        : 'bg-amber-50 border-amber-200/80 text-amber-700']">
-                      <span class="material-symbols-outlined text-[14px]" :class="ct.totp_enabled ? 'text-emerald-600' : 'text-amber-600'">
-                        {{ ct.totp_enabled ? 'verified_user' : 'shield_lock' }}
-                      </span>
-                      <span>{{ ct.totp_enabled ? '2FA Terverifikasi' : 'Belum Setup 2FA' }}</span>
-                    </span>
-                  </td>
-
-                  <!-- Active Toggle -->
-                  <td class="py-3.5 px-4">
-                    <div class="flex items-center gap-2">
-                      <button
-                        type="button"
-                        @click="handleToggleActive(ct)"
-                        :disabled="!authStore.isAdmin || togglingId === ct.id"
-                        :class="[
-                          ct.is_active ? 'bg-emerald-500' : 'bg-slate-200',
-                          'relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed'
-                        ]"
-                      >
-                        <span :class="[ct.is_active ? 'translate-x-4' : 'translate-x-0', 'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200']"></span>
-                      </button>
-                      <span :class="['text-[10px] font-bold', ct.is_active ? 'text-emerald-600' : 'text-slate-400']">
-                        {{ ct.is_active ? 'Aktif' : 'Nonaktif' }}
-                      </span>
-                    </div>
-                  </td>
-
-                  <!-- Action Buttons -->
-                  <td class="py-3.5 px-4 text-center">
-                    <div class="flex items-center justify-center gap-1.5">
-                      <button
+                  <!-- Action Buttons (Edit & Reset 2FA/Delete) -->
+                  <td class="py-4 px-6 text-right">
+                    <div class="flex justify-end gap-2">
+                      <button 
                         @click="openEditDialog(ct)"
-                        class="p-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
+                        class="p-2 text-[#574146] hover:text-[#ab2c5d] transition-colors rounded-lg hover:bg-[#ffd9e4] border-0 cursor-pointer bg-transparent"
                         title="Edit Data Peserta Magang"
                       >
-                        <span class="material-symbols-outlined text-[16px]">edit</span>
+                        <span class="material-symbols-outlined text-base">edit</span>
                       </button>
-                      <button
-                        v-if="authStore.isAdmin && ct.totp_enabled"
+                      <button 
                         @click="handleReset2FA(ct)"
-                        class="p-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
-                        title="Reset 2FA Peserta Magang"
+                        class="p-2 text-rose-600 hover:text-rose-800 transition-colors rounded-lg hover:bg-rose-50 border-0 cursor-pointer bg-transparent"
+                        title="Reset 2FA"
                       >
-                        <span class="material-symbols-outlined text-[16px]">lock_reset</span>
+                        <span class="material-symbols-outlined text-base">lock_reset</span>
                       </button>
                     </div>
                   </td>
                 </tr>
+
+                <!-- Empty State -->
                 <tr v-if="filteredCallTakers.length === 0">
-                  <td colspan="7" class="py-12 text-center text-slate-400 font-medium">Tidak ada data petugas Peserta Magang yang sesuai.</td>
+                  <td colspan="6" class="py-12 text-center text-[#8a7176]">
+                    <span class="material-symbols-outlined text-4xl block mb-2 opacity-50">person_off</span>
+                    <span class="text-xs font-semibold">Tidak ada data peserta magang yang ditemukan.</span>
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <!-- Mobile Card List View -->
-          <div class="md:hidden flex flex-col gap-3 w-full">
-            <div v-for="ct in filteredCallTakers" :key="ct.id" class="p-4 bg-slate-50 border border-slate-200/60 rounded-2xl flex flex-col gap-3">
-              <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2.5">
-                  <div class="h-9 w-9 rounded-xl font-black text-xs flex items-center justify-center shrink-0 bg-rose-50 text-rose-800 border border-rose-200">
-                    {{ ct.name?.charAt(0).toUpperCase() }}
-                  </div>
-                  <div>
-                    <div class="font-bold text-slate-900 text-xs leading-tight">{{ ct.name }}</div>
-                    <div class="font-mono text-[10px] text-rose-700 font-semibold">NIP. {{ ct.nip || '-' }}</div>
-                  </div>
-                </div>
-                <span :class="['inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border',
-                  ct.totp_enabled ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-amber-50 border-amber-200 text-amber-700']">
-                  {{ ct.totp_enabled ? '2FA Aktif' : 'Belum 2FA' }}
-                </span>
-              </div>
-
-              <div class="flex flex-col gap-1 text-[11px] border-t border-slate-200/60 pt-2">
-                <div class="flex justify-between">
-                  <span class="text-[10px] text-slate-400 font-semibold">Email:</span>
-                  <span class="font-mono text-slate-600">{{ ct.email }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-[10px] text-slate-400 font-semibold">Unit Kerja:</span>
-                  <span class="text-slate-700 font-bold text-right max-w-[170px] truncate">{{ ct.unit_kerja || 'Diskominfo' }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-[10px] text-slate-400 font-semibold">Jabatan:</span>
-                  <span class="text-slate-600 text-right max-w-[170px] truncate">{{ ct.jabatan || '-' }}</span>
-                </div>
-              </div>
-
-              <div class="flex items-center justify-between border-t border-slate-200/60 pt-3">
-                <div class="flex items-center gap-2">
-                  <button
-                    type="button"
-                    @click="handleToggleActive(ct)"
-                    :disabled="!authStore.isAdmin || togglingId === ct.id"
-                    :class="[ct.is_active ? 'bg-emerald-500' : 'bg-slate-200', 'relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed']"
-                  >
-                    <span :class="[ct.is_active ? 'translate-x-4' : 'translate-x-0', 'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200']"></span>
-                  </button>
-                  <span :class="['text-[10px] font-bold', ct.is_active ? 'text-emerald-600' : 'text-slate-400']">
-                    {{ ct.is_active ? 'Aktif' : 'Nonaktif' }}
-                  </span>
-                </div>
-                <div class="flex items-center gap-1.5">
-                  <button @click="openEditDialog(ct)"
-                    class="p-2 text-amber-600 hover:bg-amber-50 rounded-xl transition-all cursor-pointer border border-amber-200/40 bg-white"
-                    title="Edit"
-                  ><span class="material-symbols-outlined text-[16px]">edit</span></button>
-                  <button v-if="authStore.isAdmin && ct.totp_enabled" @click="handleReset2FA(ct)"
-                    class="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-all cursor-pointer border border-rose-200/40 bg-white flex items-center justify-center"
-                    title="Reset 2FA"
-                  ><span class="material-symbols-outlined text-[16px]">lock_reset</span></button>
-                </div>
-              </div>
+          <!-- Pagination Container -->
+          <div class="bg-white border-t border-[#F8BBD0] px-6 py-4 flex items-center justify-between">
+            <span class="text-xs text-[#574146] font-medium">
+              Menampilkan 1-{{ filteredCallTakers.length }} dari {{ callTakers.length }} pengguna
+            </span>
+            <div class="flex gap-2">
+              <button disabled class="px-3 py-1.5 rounded border border-[#F8BBD0] text-[#574146] opacity-50 cursor-not-allowed bg-white">
+                <span class="material-symbols-outlined text-sm">chevron_left</span>
+              </button>
+              <button class="px-3 py-1.5 rounded border border-[#F06292] bg-[#FCE4EC] text-[#ab2c5d] font-bold text-xs">1</button>
+              <button disabled class="px-3 py-1.5 rounded border border-[#F8BBD0] text-[#574146] opacity-50 cursor-not-allowed bg-white">
+                <span class="material-symbols-outlined text-sm">chevron_right</span>
+              </button>
             </div>
-            <div v-if="filteredCallTakers.length === 0" class="py-12 text-center text-slate-400 font-medium text-xs">Tidak ada data Peserta Magang.</div>
           </div>
         </div>
+
       </div>
+
     </div>
 
-    <!-- ===== ADD / EDIT MODAL ===== -->
+    <!-- ===== ADD / EDIT DIALOG MODAL ===== -->
     <transition name="fade">
-      <div v-if="dialogOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" @click.self="closeDialog">
-        <div class="w-full max-w-lg bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 flex flex-col gap-5 max-h-[90vh] overflow-y-auto">
-
-          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-            <h3 class="font-display font-black text-slate-900 text-base flex items-center gap-2">
-              <span class="material-symbols-outlined text-rose-700">{{ isEdit ? 'edit_square' : 'person_add' }}</span>
-              {{ isEdit ? 'Edit Data Peserta Magang' : 'Tambah Peserta Magang Baru' }}
+      <div v-if="dialogOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs" @click.self="closeDialog">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 border border-[#ddbfc5] shadow-2xl space-y-4">
+          <div class="flex justify-between items-center border-b border-[#ddbfc5]/60 pb-3">
+            <h3 class="font-bold text-base text-[#1b1c1c] flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#ab2c5d]">{{ isEdit ? 'edit' : 'person_add' }}</span>
+              <span>{{ isEdit ? 'Edit Data Peserta Magang' : 'Tambah Peserta Magang Baru' }}</span>
             </h3>
-            <button @click="closeDialog" class="p-1 rounded-full hover:bg-slate-100 text-slate-400 border-0 bg-transparent cursor-pointer">
-              <span class="material-symbols-outlined text-[18px]">close</span>
+            <button @click="closeDialog" class="text-slate-400 hover:text-slate-600 border-0 bg-transparent cursor-pointer">
+              <span class="material-symbols-outlined text-xl">close</span>
             </button>
           </div>
 
-          <div v-if="errorMessage" class="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-start gap-2.5">
-            <span class="material-symbols-outlined text-[16px] shrink-0 mt-0.5">error</span>
-            <span>{{ errorMessage }}</span>
+          <!-- Error Alert -->
+          <div v-if="errorMessage" class="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold">
+            {{ errorMessage }}
           </div>
 
-          <form @submit.prevent="submitForm" class="flex flex-col gap-4">
-
-            <!-- Nama -->
-            <div class="flex flex-col gap-1">
-              <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Nama Lengkap <span class="text-rose-500">*</span></label>
-              <input type="text" v-model="form.name" required placeholder="Contoh: A.Mappalua, S.Pd"
-                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 rounded-xl focus:outline-none transition-all text-xs"
-              />
+          <form @submit.prevent="submitForm" class="space-y-4 text-xs">
+            <!-- Nama Lengkap -->
+            <div class="space-y-1">
+              <label class="font-bold text-[#574146] uppercase text-[10px]">Nama Lengkap <span class="text-rose-500">*</span></label>
+              <input v-model="form.name" type="text" placeholder="Contoh: Sarah Jenkins" required class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292]" />
             </div>
 
-            <!-- NIP -->
-            <div class="flex flex-col gap-1">
-              <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">NIP <span class="text-rose-500">*</span></label>
-              <input type="text" v-model="form.nip" required placeholder="Contoh: 199405032025211138"
-                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 rounded-xl focus:outline-none transition-all text-xs"
-              />
+            <!-- NISN / NIM -->
+            <div class="space-y-1">
+              <label class="font-bold text-[#574146] uppercase text-[10px]">NISN / NIM <span class="text-rose-500">*</span></label>
+              <input v-model="form.nip" type="text" placeholder="Contoh: 0051234567 atau 2024001" required class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292]" />
             </div>
 
-            <!-- Email -->
-            <div class="flex flex-col gap-1">
-              <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Email Dinas <span class="text-rose-500">*</span></label>
-              <input type="email" v-model="form.email" required placeholder="Contoh: mappalua@bulukumbakab.go.id"
-                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 rounded-xl focus:outline-none transition-all text-xs"
-              />
+            <!-- Gmail / Email -->
+            <div class="space-y-1">
+              <label class="font-bold text-[#574146] uppercase text-[10px]">Gmail / Email Akses <span class="text-rose-500">*</span></label>
+              <input v-model="form.email" type="email" placeholder="sarah.j@gmail.com" required :disabled="isEdit" class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292] disabled:bg-slate-100" />
             </div>
 
-            <!-- Unit Kerja / Instansi -->
-            <div class="flex flex-col gap-1">
-              <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Unit Kerja / Instansi <span class="text-rose-500">*</span></label>
-              <select v-model="form.unit_kerja" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 rounded-xl text-xs font-semibold focus:outline-none">
-                <option value="" disabled>Pilih Unit Kerja / Instansi</option>
-                <option v-for="unit in availableUnits" :key="unit" :value="unit">{{ unit }}</option>
-              </select>
+            <!-- Jurusan -->
+            <div class="space-y-1">
+              <label class="font-bold text-[#574146] uppercase text-[10px]">Jurusan <span class="text-rose-500">*</span></label>
+              <input v-model="form.unit_kerja" type="text" placeholder="Contoh: Rekayasa Perangkat Lunak / Teknik Informatika" required class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292]" />
             </div>
 
-            <!-- Jabatan -->
-            <div class="flex flex-col gap-1">
-              <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Jabatan</label>
-              <input type="text" v-model="form.jabatan" placeholder="Contoh: PENATA LAYANAN OPERASIONAL"
-                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 rounded-xl focus:outline-none transition-all text-xs"
-              />
+            <!-- Asal Sekolah / University -->
+            <div class="space-y-1">
+              <label class="font-bold text-[#574146] uppercase text-[10px]">Asal Sekolah / University <span class="text-rose-500">*</span></label>
+              <input v-model="form.jabatan" type="text" placeholder="Contoh: SMK Negeri 1 Bulukumba / Universitas Negeri Makassar" required class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292]" />
             </div>
 
-            <!-- Password Field -->
-            <div class="flex flex-col gap-1.5">
-              <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">
-                {{ isEdit ? 'Reset Password Baru' : 'Password Akses' }}
-                <span v-if="!isEdit" class="text-rose-500">*</span>
+            <!-- Password Akses -->
+            <div class="space-y-1">
+              <label class="font-bold text-[#574146] uppercase text-[10px]">
+                {{ isEdit ? 'Reset Password (Opsional)' : 'Password Akses' }} <span v-if="!isEdit" class="text-rose-500">*</span>
               </label>
               <div class="flex gap-2">
-                <div class="relative flex-grow">
-                  <input
-                    :type="showPassword ? 'text' : 'password'"
-                    v-model="form.password"
-                    :required="!isEdit"
-                    :placeholder="isEdit ? 'Biarkan kosong jika tidak ingin diubah' : 'Minimal 6 karakter'"
-                    class="w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 rounded-xl focus:outline-none transition-all text-xs"
-                  />
-                  <button type="button" @click="showPassword = !showPassword"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-600 border-0 bg-transparent cursor-pointer"
-                  >
-                    <span class="material-symbols-outlined text-[18px]">{{ showPassword ? 'visibility' : 'visibility_off' }}</span>
-                  </button>
-                </div>
-                <button type="button" @click="generatePassword"
-                  class="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shrink-0 text-rose-700"
-                >
-                  <span class="material-symbols-outlined text-[16px]">vpn_key</span>
-                  <span>Acak</span>
-                </button>
+                <input :type="showPassword ? 'text' : 'password'" v-model="form.password" :required="!isEdit" placeholder="Minimal 6 karakter" class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292]" />
+                <button type="button" @click="generatePassword" class="px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg font-bold text-xs text-[#ab2c5d] shrink-0 cursor-pointer">Acak</button>
               </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="flex gap-3 justify-end mt-2 pt-3 border-t border-slate-100">
-              <button type="button" @click="closeDialog"
-                class="py-2.5 px-5 border border-slate-200 hover:bg-slate-50 transition-colors text-xs rounded-xl cursor-pointer bg-white font-semibold text-slate-600"
-              >Batal</button>
-              <button type="submit" :disabled="submitLoading"
-                class="py-2.5 px-5 bg-gradient-to-r from-rose-700 to-amber-600 hover:from-rose-800 hover:to-amber-700 text-white text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border-0 font-bold shadow-md disabled:opacity-60"
-              >
-                <span v-if="submitLoading" class="animate-spin material-symbols-outlined text-[16px]">sync</span>
-                <span>{{ isEdit ? 'Simpan Perubahan' : 'Tambah Peserta Magang' }}</span>
+            <div class="flex justify-end gap-3 pt-3 border-t border-[#ddbfc5]/60">
+              <button type="button" @click="closeDialog" class="px-4 py-2 border border-[#ddbfc5] text-[#574146] rounded-lg font-bold bg-white cursor-pointer">Batal</button>
+              <button type="submit" :disabled="submitLoading" class="px-5 py-2 bg-[#F06292] hover:bg-[#ab2c5d] text-white rounded-lg font-bold cursor-pointer border-0 shadow-xs">
+                {{ isEdit ? 'Simpan Perubahan' : 'Tambah Peserta Magang' }}
               </button>
             </div>
           </form>
@@ -350,30 +249,21 @@
     </transition>
 
     <!-- ===== CONFIRM MODAL (Reset 2FA) ===== -->
-    <div v-if="confirmModal.show"
-      class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
-      @click.self="confirmModal.show = false"
-    >
-      <div class="bg-white rounded-[28px] max-w-[360px] w-full p-6 text-center border border-slate-100 shadow-2xl relative overflow-hidden flex flex-col items-center">
-        <div class="relative flex items-center justify-center w-16 h-16 rounded-2xl bg-rose-50 border border-rose-100 mb-4 shadow-sm">
-          <span class="material-symbols-outlined text-[28px] text-rose-500">lock_reset</span>
-        </div>
-        <h3 class="font-display text-base font-black text-slate-900 mb-2 tracking-tight">{{ confirmModal.title }}</h3>
-        <p class="text-xs text-slate-500 leading-relaxed px-2 mb-6">{{ confirmModal.description }}</p>
-        <div class="flex gap-3 w-full">
-          <button type="button" @click="confirmModal.show = false"
-            class="flex-grow py-3 px-4 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-bold transition-all cursor-pointer bg-white flex items-center justify-center gap-1.5"
-          >
-            <span class="material-symbols-outlined text-[15px]">arrow_back</span>Batal
-          </button>
-          <button type="button" @click="confirmModal.onConfirm"
-            class="flex-grow py-3 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all cursor-pointer border-0 shadow-sm flex items-center justify-center gap-1.5"
-          >
-            <span class="material-symbols-outlined text-[15px]">lock_reset</span>Reset 2FA
-          </button>
+    <transition name="fade">
+      <div v-if="confirmModal.show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs" @click.self="confirmModal.show = false">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center border border-[#ddbfc5] shadow-2xl space-y-4">
+          <div class="w-14 h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-100">
+            <span class="material-symbols-outlined text-2xl">lock_reset</span>
+          </div>
+          <h3 class="font-bold text-base text-[#1b1c1c]">{{ confirmModal.title }}</h3>
+          <p class="text-xs text-[#574146] leading-relaxed">{{ confirmModal.description }}</p>
+          <div class="flex gap-3 pt-2">
+            <button type="button" @click="confirmModal.show = false" class="flex-1 py-2.5 border border-[#ddbfc5] rounded-lg text-xs font-bold text-[#574146] bg-white cursor-pointer">Batal</button>
+            <button type="button" @click="confirmModal.onConfirm" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold border-0 cursor-pointer shadow-xs">Reset 2FA</button>
+          </div>
         </div>
       </div>
-    </div>
+    </transition>
   </AdminLayout>
 </template>
 
@@ -395,7 +285,6 @@ const editUserId = ref<number | null>(null)
 const errorMessage = ref('')
 const showPassword = ref(false)
 const searchQuery = ref('')
-const selectedUnit = ref('')
 
 const form = ref({
   name: '',
@@ -415,27 +304,18 @@ const confirmModal = ref({
   onConfirm: () => {}
 })
 
-// ===== UNITS LIST =====
-const availableUnits = [
-  'Dinas Sosial',
-  'Badan Penanggulangan Bencana Daerah',
-  'Dinas Kesehatan',
-  'Dinas Perhubungan',
-  'Satpol, Pemadam Kebakaran dan Penyelamatan',
-  'Diskominfo Kab. Bulukumba'
-]
-
 // ===== FILTERED COMPUTED =====
 const filteredCallTakers = computed(() => {
+  if (!searchQuery.value) return callTakers.value
+  const q = searchQuery.value.toLowerCase()
   return callTakers.value.filter((ct: any) => {
-    const matchesSearch = !searchQuery.value || 
-      ct.name?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      ct.nip?.includes(searchQuery.value) ||
-      ct.email?.toLowerCase().includes(searchQuery.value.toLowerCase())
-    
-    const matchesUnit = !selectedUnit.value || ct.unit_kerja === selectedUnit.value
-
-    return matchesSearch && matchesUnit
+    return (
+      ct.name?.toLowerCase().includes(q) ||
+      ct.nip?.toLowerCase().includes(q) ||
+      ct.email?.toLowerCase().includes(q) ||
+      ct.unit_kerja?.toLowerCase().includes(q) ||
+      ct.jabatan?.toLowerCase().includes(q)
+    )
   })
 })
 
@@ -467,7 +347,7 @@ const loadCallTakers = async () => {
       .filter((u: any) => u.role === 'intern')
       .sort((a: any, b: any) => a.name.localeCompare(b.name))
   } catch (err) {
-    showToast(false, 'Gagal memuat data petugas Peserta Magang.')
+    showToast(false, 'Gagal memuat data peserta magang.')
   } finally {
     loading.value = false
   }
@@ -482,8 +362,11 @@ const openAddDialog = () => {
   errorMessage.value = ''
   showPassword.value = false
   form.value = {
-    name: '', nip: '', email: '',
-    unit_kerja: 'Dinas Sosial', jabatan: 'PENATA LAYANAN OPERASIONAL',
+    name: '',
+    nip: '',
+    email: '',
+    unit_kerja: 'Rekayasa Perangkat Lunak',
+    jabatan: 'SMK Negeri 1 Bulukumba',
     password: ''
   }
   dialogOpen.value = true
@@ -498,8 +381,8 @@ const openEditDialog = (ct: any) => {
     name: ct.name,
     nip: ct.nip || '',
     email: ct.email,
-    unit_kerja: ct.unit_kerja || 'Diskominfo Kab. Bulukumba',
-    jabatan: ct.jabatan || '',
+    unit_kerja: ct.unit_kerja || 'Rekayasa Perangkat Lunak',
+    jabatan: ct.jabatan || 'SMK Negeri 1 Bulukumba',
     password: ''
   }
   dialogOpen.value = true
@@ -539,7 +422,7 @@ const handleToggleActive = async (ct: any) => {
 const handleReset2FA = (ct: any) => {
   triggerConfirm(
     'Reset Keamanan 2FA?',
-    `Apakah Anda yakin ingin menonaktifkan Google Authenticator (2FA) untuk petugas Peserta Magang ${ct.name}? Petugas harus melakukan scan ulang QR 2FA saat login berikutnya.`,
+    `Apakah Anda yakin ingin menonaktifkan Google Authenticator (2FA) untuk peserta magang ${ct.name}? Petugas harus melakukan scan ulang QR 2FA saat login berikutnya.`,
     async () => {
       submitLoading.value = true
       try {
@@ -561,9 +444,9 @@ const submitForm = async () => {
   errorMessage.value = ''
 
   if (!form.value.name.trim()) { errorMessage.value = 'Nama lengkap wajib diisi.'; return }
-  if (!form.value.nip.trim()) { errorMessage.value = 'NIP wajib diisi.'; return }
+  if (!form.value.nip.trim()) { errorMessage.value = 'NISN / NIM wajib diisi.'; return }
   if (!isEdit.value) {
-    if (!form.value.email || !form.value.password) { errorMessage.value = 'Email dan Password wajib diisi.'; return }
+    if (!form.value.email || !form.value.password) { errorMessage.value = 'Gmail dan Password wajib diisi.'; return }
     if (form.value.password.length < 6) { errorMessage.value = 'Password minimal 6 karakter.'; return }
   }
 
