@@ -11,7 +11,7 @@ import (
 	"api-gateway/internal/utils"
 )
 
-func NewRouter(authHandler *httpHandler.AuthHTTPHandler, userHandler *httpHandler.UserHTTPHandler, attendanceHandler *httpHandler.AttendanceHTTPHandler) *http.ServeMux {
+func NewRouter(authHandler *httpHandler.AuthHTTPHandler, userHandler *httpHandler.UserHTTPHandler, attendanceHandler *httpHandler.AttendanceHTTPHandler, activityHandler *httpHandler.ActivityHTTPHandler) *http.ServeMux {
 	mux := http.NewServeMux()
 	cors := middleware.CORSHandler
 	authMw := middleware.AuthenticateMiddleware
@@ -35,7 +35,10 @@ func NewRouter(authHandler *httpHandler.AuthHTTPHandler, userHandler *httpHandle
 	mux.HandleFunc("/api/admin/presensi/manual-entry", cors(authMw(attendanceHandler.HandleAdminManualEntry)))
 	mux.HandleFunc("/api/admin/presensi/records/", cors(authMw(attendanceHandler.HandleDeleteRecord)))
 	mux.HandleFunc("/api/admin/activity-logs", cors(authMw(userHandler.HandleAdminActivityLogs)))
+	mux.HandleFunc("/api/admin/activities", cors(authMw(activityHandler.HandleActivities)))
 
+	// DAILY ACTIVITY LOGBOOK ENDPOINTS
+	mux.HandleFunc("/api/activities", cors(authMw(activityHandler.HandleActivities)))
 
 	// ATTENDANCE ENDPOINTS
 	mux.HandleFunc("/api/presensi/posko-qr", cors(attendanceHandler.HandleGetPoskoQR))

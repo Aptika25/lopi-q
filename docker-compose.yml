@@ -79,6 +79,42 @@ services:
       - lopiq-network
       - app-global-net
 
+  activity-migrate:
+    image: migrate/migrate
+    container_name: lopiq-activity-migrate
+    volumes:
+      - ./services/activity-service/migrations:/migrations
+    command: ["-path=/migrations", "-database=postgres://user_lopiq_activity:lopiqactivityPassword%402k26%23@postgres_apps:5432/db_lopiq_activity?sslmode=disable", "up"]
+    restart: on-failure
+    networks:
+      - lopiq-network
+      - app-global-net
+
+  activity-service:
+    build:
+      context: .
+      dockerfile: deployments/docker/activity-service/Dockerfile
+    container_name: lopiq-activity-service
+    depends_on:
+      - activity-migrate
+    ports:
+      - "50053:50053"
+    env_file:
+      - ./services/activity-service/.env
+    environment:
+      - PORT=50053
+      - DB_TYPE=postgres
+      - DB_HOST=postgres_apps
+      - DB_PORT=5432
+      - DB_USER=user_lopiq_activity
+      - DB_PASSWORD=lopiqactivityPassword@2k26#
+      - DB_NAME=db_lopiq_activity
+      - DB_SSLMODE=disable
+    restart: unless-stopped
+    networks:
+      - lopiq-network
+      - app-global-net
+
   # ==============================
   # REST API GATEWAY
   # ==============================
@@ -90,6 +126,7 @@ services:
     depends_on:
       - auth-service
       - user-service
+      - activity-service
     ports:
       - "5000:5000"
     env_file:
@@ -99,6 +136,7 @@ services:
       - JWT_SECRET=lopiq_super_secret_jwt_key_2026
       - AUTH_SERVICE_ADDR=lopiq-auth-service:50051
       - USER_SERVICE_ADDR=lopiq-user-service:50052
+      - ACTIVITY_SERVICE_ADDR=lopiq-activity-service:50053
     restart: unless-stopped
     networks:
       - lopiq-network

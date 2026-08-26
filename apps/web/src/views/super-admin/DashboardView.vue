@@ -1,227 +1,328 @@
 <template>
   <AdminLayout>
-    <div class="space-y-6 select-none font-sans">
-      <!-- Page Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
+    <div class="space-y-6 select-none font-sans text-slate-800">
+      
+      <!-- Dashboard Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/70 pb-4">
         <div>
-          <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Dashboard Overview Utama</h2>
-          <p class="font-sans text-slate-500 mt-1 text-xs">Monitoring presensi Peserta Magang secara real-time, radar Geofence Posko Siaga 112, dan kontrol sistem.</p>
-        </div>
-      </div>
-      <div class="bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden border border-rose-900/40">
-        <!-- Decorative Glow Blur -->
-        <div class="absolute -top-12 -right-12 w-64 h-64 bg-rose-600/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-12 -left-12 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div class="relative z-10 space-y-2">
-          <div class="inline-flex items-center gap-2 px-3 py-1 bg-rose-500/20 text-rose-300 rounded-full text-xs font-bold border border-rose-500/30">
-            <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
-            <span>PUSAT KONTROL UTAMA LOPI-Q</span>
-          </div>
-          <h1 class="text-2xl sm:text-3xl font-display font-black tracking-tight text-white">
-            Dashboard Super Admin Posko 112
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-[#1b1c1c] tracking-tight flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#ab2c5d] text-[32px] fill">shield_person</span>
+            Welcome back, Admin.
           </h1>
-          <p class="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-            Monitoring presensi Peserta Magang secara real-time, pantau radar Geofence Posko Siaga 112 Kabupaten Bulukumba, dan kelola otentikasi dua langkah (2FA).
-          </p>
+          <p class="text-sm text-[#574146] mt-1">Here's what's happening today in the LOPI-Q system (Posko Siaga 112).</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#fec1d6]/30 text-[#ab2c5d] rounded-full text-xs font-bold border border-[#fec1d6]">
+            <span class="w-2 h-2 rounded-full bg-[#ab2c5d] animate-ping"></span>
+            <span>SYSTEM OPTIMAL</span>
+          </span>
         </div>
       </div>
 
-      <!-- KPI Summary Stat Cards Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <!-- Stat Card 1 -->
-        <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-3 hover:shadow-md transition-shadow">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Total Peserta Magang</span>
-            <div class="w-10 h-10 bg-rose-50 text-rose-700 rounded-2xl flex items-center justify-center border border-rose-100">
-              <span class="material-symbols-outlined text-[22px]">headphones</span>
+      <!-- Stats Bento Grid (4 Cards) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Card 1: Interns / Petugas -->
+        <div class="bg-gradient-to-br from-white to-[#fec1d6]/10 p-6 rounded-xl border border-[#ddbfc5] hover:shadow-lg hover:shadow-[#f06292]/10 transition-all flex flex-col justify-between">
+          <div class="flex justify-between items-start mb-4">
+            <div class="p-3 bg-[#f06292]/10 rounded-lg text-[#ab2c5d]">
+              <span class="material-symbols-outlined fill text-2xl">school</span>
             </div>
+            <span class="text-[11px] font-bold uppercase text-[#574146] bg-slate-100 px-2.5 py-1 rounded-full">Active</span>
           </div>
           <div>
-            <div class="text-2xl font-display font-black text-slate-900">10 Petugas</div>
-            <div class="text-xs text-slate-500 mt-0.5">Terdaftar dari 5 Instansi OPD</div>
+            <h3 class="text-3xl font-extrabold text-[#1b1c1c] mb-1">10 Petugas</h3>
+            <p class="text-xs text-[#574146]">Total Peserta Magang Terdaftar</p>
           </div>
         </div>
 
-        <!-- Stat Card 2 -->
-        <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-3 hover:shadow-md transition-shadow">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Presensi Siaga Hari Ini</span>
-            <div class="w-10 h-10 bg-emerald-50 text-emerald-700 rounded-2xl flex items-center justify-center border border-emerald-100">
-              <span class="material-symbols-outlined text-[22px]">how_to_reg</span>
+        <!-- Card 2: Visitors / Presensi -->
+        <div class="bg-gradient-to-br from-white to-[#fec1d6]/10 p-6 rounded-xl border border-[#ddbfc5] hover:shadow-lg hover:shadow-[#f06292]/10 transition-all flex flex-col justify-between">
+          <div class="flex justify-between items-start mb-4">
+            <div class="p-3 bg-[#fec1d6]/30 rounded-lg text-[#805062]">
+              <span class="material-symbols-outlined fill text-2xl">group</span>
             </div>
+            <span class="text-[11px] font-bold uppercase text-[#ab2c5d] bg-[#f06292]/20 px-2.5 py-1 rounded-full">100% Valid</span>
           </div>
           <div>
-            <div class="text-2xl font-display font-black text-emerald-700">100% Valid</div>
-            <div class="text-xs text-slate-500 mt-0.5">Verifikasi Geofence &amp; Kamera</div>
+            <h3 class="text-3xl font-extrabold text-[#1b1c1c] mb-1">Presensi Hari Ini</h3>
+            <p class="text-xs text-[#574146]">Verifikasi Geofence &amp; Kamera</p>
           </div>
         </div>
 
-        <!-- Stat Card 3 -->
-        <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-3 hover:shadow-md transition-shadow">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Geofence Posko 112</span>
-            <div class="w-10 h-10 bg-sky-50 text-sky-700 rounded-2xl flex items-center justify-center border border-sky-100">
-              <span class="material-symbols-outlined text-[22px]">radar</span>
+        <!-- Card 3: Geofence Posko -->
+        <div class="bg-gradient-to-br from-white to-[#fec1d6]/10 p-6 rounded-xl border border-[#ddbfc5] hover:shadow-lg hover:shadow-[#f06292]/10 transition-all flex flex-col justify-between">
+          <div class="flex justify-between items-start mb-4">
+            <div class="p-3 bg-[#f06292]/10 rounded-lg text-[#ab2c5d]">
+              <span class="material-symbols-outlined fill text-2xl">radar</span>
             </div>
+            <span class="text-[11px] font-bold uppercase text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">Secure</span>
           </div>
           <div>
-            <div class="text-2xl font-display font-black text-slate-900">Radius {{ poskoInfo.radius }}m</div>
-            <div class="text-xs text-slate-500 mt-0.5 font-mono truncate">{{ poskoInfo.lat.toFixed(4) }}, {{ poskoInfo.lng.toFixed(4) }}</div>
+            <h3 class="text-xl font-bold text-[#1b1c1c] mb-1">Radius {{ poskoInfo.radius }}m</h3>
+            <p class="text-xs font-mono text-[#574146] truncate">{{ poskoInfo.lat.toFixed(4) }}, {{ poskoInfo.lng.toFixed(4) }}</p>
           </div>
         </div>
 
-        <!-- Stat Card 4 -->
-        <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-3 hover:shadow-md transition-shadow">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Keamanan 2FA Google</span>
-            <div class="w-10 h-10 bg-indigo-50 text-indigo-700 rounded-2xl flex items-center justify-center border border-indigo-100">
-              <span class="material-symbols-outlined text-[22px]">verified_user</span>
+        <!-- Card 4: Logbook / Leave Requests -->
+        <div class="bg-gradient-to-br from-white to-[#fec1d6]/10 p-6 rounded-xl border border-[#ddbfc5] hover:shadow-lg hover:shadow-[#f06292]/10 transition-all flex flex-col justify-between">
+          <div class="flex justify-between items-start mb-4">
+            <div class="p-3 bg-[#fec1d6]/30 rounded-lg text-[#805062]">
+              <span class="material-symbols-outlined fill text-2xl">library_books</span>
             </div>
+            <span class="text-[11px] font-bold uppercase text-[#574146] bg-slate-100 px-2.5 py-1 rounded-full">Pending</span>
           </div>
           <div>
-            <div class="text-2xl font-display font-black text-indigo-900">Terproteksi</div>
-            <div class="text-xs text-slate-500 mt-0.5">Otentikasi TOTP Aktif</div>
+            <h3 class="text-3xl font-extrabold text-[#1b1c1c] mb-1">{{ leaveRequests.length }}</h3>
+            <p class="text-xs text-[#574146]">Pengajuan Sakit &amp; Tukar Shift</p>
           </div>
         </div>
       </div>
 
-      <!-- Quick Shortcuts Nav Cards -->
-      <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
-        <h3 class="text-base font-display font-black text-slate-900 flex items-center gap-2">
-          <span class="material-symbols-outlined text-rose-700">grid_view</span>
+      <!-- Quick Shortcuts Grid -->
+      <div class="bg-white rounded-xl border border-[#ddbfc5] p-6 shadow-xs space-y-4">
+        <h3 class="text-base font-bold text-[#1b1c1c] flex items-center gap-2">
+          <span class="material-symbols-outlined text-[#ab2c5d]">grid_view</span>
           <span>Akses Cepat Pengelolaan Sistem</span>
         </h3>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <router-link to="/admin/interns" class="p-4 bg-slate-50 hover:bg-rose-50/60 border border-slate-200 hover:border-rose-300 rounded-2xl text-center space-y-2 transition-all group decoration-none">
-            <div class="w-10 h-10 bg-white text-rose-700 rounded-xl flex items-center justify-center mx-auto shadow-2xs group-hover:scale-110 transition-transform">
-              <span class="material-symbols-outlined text-[20px]">badge</span>
+          <router-link to="/admin/interns" class="p-4 bg-slate-50 hover:bg-[#fec1d6]/20 border border-[#ddbfc5] hover:border-[#ab2c5d] rounded-lg text-center space-y-2 transition-all group decoration-none">
+            <div class="w-10 h-10 bg-white text-[#ab2c5d] rounded-lg flex items-center justify-center mx-auto shadow-xs group-hover:scale-105 transition-transform">
+              <span class="material-symbols-outlined text-[22px]">badge</span>
             </div>
-            <div class="text-xs font-bold text-slate-800 group-hover:text-rose-900">Peserta Magangs</div>
+            <div class="text-xs font-bold text-[#1b1c1c] group-hover:text-[#ab2c5d]">Peserta Magang</div>
           </router-link>
 
-          <router-link to="/admin/admins" class="p-4 bg-slate-50 hover:bg-rose-50/60 border border-slate-200 hover:border-rose-300 rounded-2xl text-center space-y-2 transition-all group decoration-none">
-            <div class="w-10 h-10 bg-white text-rose-700 rounded-xl flex items-center justify-center mx-auto shadow-2xs group-hover:scale-110 transition-transform">
-              <span class="material-symbols-outlined text-[20px]">shield_person</span>
+          <router-link to="/admin/admins" class="p-4 bg-slate-50 hover:bg-[#fec1d6]/20 border border-[#ddbfc5] hover:border-[#ab2c5d] rounded-lg text-center space-y-2 transition-all group decoration-none">
+            <div class="w-10 h-10 bg-white text-[#ab2c5d] rounded-lg flex items-center justify-center mx-auto shadow-xs group-hover:scale-105 transition-transform">
+              <span class="material-symbols-outlined text-[22px]">manage_accounts</span>
             </div>
-            <div class="text-xs font-bold text-slate-800 group-hover:text-rose-900">Admin User</div>
+            <div class="text-xs font-bold text-[#1b1c1c] group-hover:text-[#ab2c5d]">Admin Management</div>
           </router-link>
 
-          <router-link to="/admin/attendance-recap" class="p-4 bg-slate-50 hover:bg-rose-50/60 border border-slate-200 hover:border-rose-300 rounded-2xl text-center space-y-2 transition-all group decoration-none">
-            <div class="w-10 h-10 bg-white text-rose-700 rounded-xl flex items-center justify-center mx-auto shadow-2xs group-hover:scale-110 transition-transform">
-              <span class="material-symbols-outlined text-[20px]">assessment</span>
+          <router-link to="/admin/attendance-recap" class="p-4 bg-slate-50 hover:bg-[#fec1d6]/20 border border-[#ddbfc5] hover:border-[#ab2c5d] rounded-lg text-center space-y-2 transition-all group decoration-none">
+            <div class="w-10 h-10 bg-white text-[#ab2c5d] rounded-lg flex items-center justify-center mx-auto shadow-xs group-hover:scale-105 transition-transform">
+              <span class="material-symbols-outlined text-[22px]">assessment</span>
             </div>
-            <div class="text-xs font-bold text-slate-800 group-hover:text-rose-900">Rekap Presensi</div>
+            <div class="text-xs font-bold text-[#1b1c1c] group-hover:text-[#ab2c5d]">Rekap Presensi</div>
           </router-link>
 
-          <router-link to="/admin/location" class="p-4 bg-slate-50 hover:bg-rose-50/60 border border-slate-200 hover:border-rose-300 rounded-2xl text-center space-y-2 transition-all group decoration-none">
-            <div class="w-10 h-10 bg-white text-rose-700 rounded-xl flex items-center justify-center mx-auto shadow-2xs group-hover:scale-110 transition-transform">
-              <span class="material-symbols-outlined text-[20px]">pin_drop</span>
+          <router-link to="/admin/location" class="p-4 bg-slate-50 hover:bg-[#fec1d6]/20 border border-[#ddbfc5] hover:border-[#ab2c5d] rounded-lg text-center space-y-2 transition-all group decoration-none">
+            <div class="w-10 h-10 bg-white text-[#ab2c5d] rounded-lg flex items-center justify-center mx-auto shadow-xs group-hover:scale-105 transition-transform">
+              <span class="material-symbols-outlined text-[22px]">pin_drop</span>
             </div>
-            <div class="text-xs font-bold text-slate-800 group-hover:text-rose-900">Lokasi Posko</div>
+            <div class="text-xs font-bold text-[#1b1c1c] group-hover:text-[#ab2c5d]">Lokasi Posko</div>
           </router-link>
 
-          <router-link to="/admin/schedules" class="p-4 bg-slate-50 hover:bg-rose-50/60 border border-slate-200 hover:border-rose-300 rounded-2xl text-center space-y-2 transition-all group decoration-none">
-            <div class="w-10 h-10 bg-white text-rose-700 rounded-xl flex items-center justify-center mx-auto shadow-2xs group-hover:scale-110 transition-transform">
-              <span class="material-symbols-outlined text-[20px]">calendar_month</span>
+          <router-link to="/admin/schedules" class="p-4 bg-slate-50 hover:bg-[#fec1d6]/20 border border-[#ddbfc5] hover:border-[#ab2c5d] rounded-lg text-center space-y-2 transition-all group decoration-none">
+            <div class="w-10 h-10 bg-white text-[#ab2c5d] rounded-lg flex items-center justify-center mx-auto shadow-xs group-hover:scale-105 transition-transform">
+              <span class="material-symbols-outlined text-[22px]">calendar_month</span>
             </div>
-            <div class="text-xs font-bold text-slate-800 group-hover:text-rose-900">Jadwal Shift</div>
+            <div class="text-xs font-bold text-[#1b1c1c] group-hover:text-[#ab2c5d]">Jadwal Shift</div>
           </router-link>
 
-          <router-link to="/admin/security" class="p-4 bg-slate-50 hover:bg-rose-50/60 border border-slate-200 hover:border-rose-300 rounded-2xl text-center space-y-2 transition-all group decoration-none">
-            <div class="w-10 h-10 bg-white text-rose-700 rounded-xl flex items-center justify-center mx-auto shadow-2xs group-hover:scale-110 transition-transform">
-              <span class="material-symbols-outlined text-[20px]">lock_reset</span>
+          <router-link to="/admin/security" class="p-4 bg-slate-50 hover:bg-[#fec1d6]/20 border border-[#ddbfc5] hover:border-[#ab2c5d] rounded-lg text-center space-y-2 transition-all group decoration-none">
+            <div class="w-10 h-10 bg-white text-[#ab2c5d] rounded-lg flex items-center justify-center mx-auto shadow-xs group-hover:scale-105 transition-transform">
+              <span class="material-symbols-outlined text-[22px]">security</span>
             </div>
-            <div class="text-xs font-bold text-slate-800 group-hover:text-rose-900">Keamanan 2FA</div>
+            <div class="text-xs font-bold text-[#1b1c1c] group-hover:text-[#ab2c5d]">Keamanan 2FA</div>
           </router-link>
         </div>
       </div>
 
-      <!-- Pending Leave & Shift Requests Section + Geofence Posko Monitor Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <!-- Content Split Area -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
-        <!-- Left: Leave & Shift Replacement Approval Widget (7 cols) -->
-        <div class="lg:col-span-7 bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="text-base font-display font-black text-slate-900 flex items-center gap-2">
-              <span class="material-symbols-outlined text-rose-700">assignment_ind</span>
-              <span>Pengajuan Sakit &amp; Tukar Shift Peserta Magang</span>
-            </h3>
-            <span class="px-2.5 py-0.5 bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-bold rounded-full">
-              {{ leaveRequests.length }} Pengajuan
+        <!-- Recent Activity Table / Leave Requests (lg:col-span-2) -->
+        <div class="lg:col-span-2 bg-white rounded-xl border border-[#ddbfc5] overflow-hidden flex flex-col shadow-xs">
+          <div class="p-6 border-b border-[#ddbfc5]/50 flex justify-between items-center bg-gradient-to-r from-white to-[#fec1d6]/10">
+            <div>
+              <h3 class="font-bold text-lg text-[#1b1c1c]">Pengajuan Sakit &amp; Tukar Shift</h3>
+              <p class="text-xs text-[#574146] mt-0.5">Daftar pengajuan izin dan pergantian piket petugas magang</p>
+            </div>
+            <span class="px-3 py-1 bg-[#fec1d6]/30 text-[#ab2c5d] text-xs font-bold rounded-full border border-[#fec1d6]">
+              {{ leaveRequests.length }} Total
             </span>
           </div>
 
-          <div v-if="leaveRequests.length === 0" class="text-center py-8 text-xs text-slate-400 space-y-2">
-            <span class="material-symbols-outlined text-3xl text-slate-300">task_alt</span>
+          <div v-if="leaveRequests.length === 0" class="text-center py-12 text-sm text-[#574146] space-y-2">
+            <span class="material-symbols-outlined text-4xl text-[#8a7176]">task_alt</span>
             <p>Belum ada pengajuan sakit atau tukar shift baru dari Peserta Magang.</p>
           </div>
 
-          <div v-else class="space-y-3">
-            <div v-for="req in leaveRequests" :key="req.id" class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
-              <div class="flex items-center justify-between text-xs">
-                <div class="font-bold text-slate-900">{{ req.user_name }} <span class="font-normal text-slate-500">({{ req.category }})</span></div>
-                <span 
-                  class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase"
-                  :class="{
-                    'bg-amber-100 text-amber-800 border border-amber-200': req.status === 'PENDING',
-                    'bg-emerald-100 text-emerald-800 border border-emerald-200': req.status === 'APPROVED',
-                    'bg-rose-100 text-rose-800 border border-rose-200': req.status === 'REJECTED'
-                  }"
-                >
-                  {{ req.status }}
-                </span>
-              </div>
-              <p class="text-xs text-slate-600 font-medium">
-                Alasan: "{{ req.reason }}"
-              </p>
-              <div class="text-[11px] text-slate-500 flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-200">
-                <span>Tanggal: <strong>{{ req.shift_date }}</strong> &bull; Pengganti: <strong>{{ req.replacement_name || '-' }}</strong></span>
-                
-                <div v-if="req.status === 'PENDING'" class="flex items-center gap-1.5">
-                  <button @click="updateLeaveStatus(req.id, 'APPROVED')" class="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-[10px] font-bold border-0 cursor-pointer">Setujui</button>
-                  <button @click="updateLeaveStatus(req.id, 'REJECTED')" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg text-[10px] font-bold border-0 cursor-pointer">Tolak</button>
-                </div>
-              </div>
-            </div>
+          <div v-else class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-[#f4dce4]/40 border-b border-[#ddbfc5]/50 text-xs uppercase text-[#574146] font-semibold">
+                  <th class="py-3.5 px-5">Peserta / Modul</th>
+                  <th class="py-3.5 px-5">Alasan</th>
+                  <th class="py-3.5 px-5">Tanggal Shift</th>
+                  <th class="py-3.5 px-5">Status / Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="text-xs divide-y divide-[#ddbfc5]/30">
+                <tr v-for="req in leaveRequests" :key="req.id" class="hover:bg-[#fec1d6]/10 transition-colors">
+                  <td class="py-4 px-5">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-full bg-[#e4e2e2] flex items-center justify-center text-[#574146]">
+                        <span class="material-symbols-outlined text-sm">person</span>
+                      </div>
+                      <div>
+                        <p class="font-bold text-[#1b1c1c]">{{ req.user_name }}</p>
+                        <p class="text-[11px] text-[#574146]">{{ req.category }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-4 px-5 text-[#1b1c1c] max-w-xs truncate">
+                    "{{ req.reason }}"
+                  </td>
+                  <td class="py-4 px-5 text-[#574146]">
+                    <div>{{ req.shift_date }}</div>
+                    <div class="text-[10px] text-[#8a7176]">Pengganti: {{ req.replacement_name || '-' }}</div>
+                  </td>
+                  <td class="py-4 px-5">
+                    <div class="flex items-center gap-2">
+                      <span 
+                        class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase"
+                        :class="{
+                          'bg-[#FFF8E1] text-[#F57F17]': req.status === 'PENDING',
+                          'bg-[#E8F5E9] text-[#1B5E20]': req.status === 'APPROVED',
+                          'bg-[#FFEBEE] text-[#C62828]': req.status === 'REJECTED'
+                        }"
+                      >
+                        {{ req.status }}
+                      </span>
+                      <div v-if="req.status === 'PENDING'" class="flex items-center gap-1">
+                        <button @click="updateLeaveStatus(req.id, 'APPROVED')" class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold border-0 cursor-pointer">Setujui</button>
+                        <button @click="updateLeaveStatus(req.id, 'REJECTED')" class="px-2 py-0.5 bg-rose-600 hover:bg-rose-700 text-white rounded text-[10px] font-bold border-0 cursor-pointer">Tolak</button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <!-- Right: Posko 112 Information Card (5 cols) -->
-        <div class="lg:col-span-5 bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="text-base font-display font-black text-slate-900 flex items-center gap-2">
-              <span class="material-symbols-outlined text-rose-700">emergency</span>
-              <span>Informasi Posko Siaga 112</span>
+        <!-- Quick Actions & Posko Info (lg:col-span-1) -->
+        <div class="flex flex-col gap-6">
+          <!-- Quick Actions Card -->
+          <div class="bg-white rounded-xl border border-[#ddbfc5] p-6 flex flex-col shadow-xs">
+            <h3 class="font-bold text-base text-[#1b1c1c] mb-4">Aksi Cepat Admin</h3>
+            <div class="space-y-3">
+              <router-link to="/admin/interns" class="w-full bg-[#f06292] text-white py-2.5 px-4 rounded-lg font-semibold text-xs flex items-center justify-center gap-2 hover:bg-[#ab2c5d] transition-colors shadow-xs decoration-none">
+                <span class="material-symbols-outlined text-sm">person_add</span>
+                Kelola Peserta Magang
+              </router-link>
+              <router-link to="/admin/schedules" class="w-full bg-[#fec1d6]/30 text-[#ab2c5d] py-2.5 px-4 rounded-lg font-semibold text-xs flex items-center justify-center gap-2 hover:bg-[#fec1d6]/60 transition-colors decoration-none">
+                <span class="material-symbols-outlined text-sm">calendar_month</span>
+                Jadwal Shift &amp; Presensi
+              </router-link>
+              <router-link to="/admin/attendance-recap" class="w-full border border-[#ddbfc5] text-[#574146] py-2.5 px-4 rounded-lg font-semibold text-xs flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors decoration-none">
+                <span class="material-symbols-outlined text-sm">download</span>
+                Export Rekap Laporan
+              </router-link>
+            </div>
+          </div>
+
+          <!-- Posko Info Banner Card -->
+          <div class="bg-white rounded-xl border border-[#ddbfc5] p-5 space-y-3 shadow-xs">
+            <div class="flex items-center justify-between border-b border-[#ddbfc5]/50 pb-2.5">
+              <h4 class="font-bold text-xs uppercase text-[#574146] flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[#ab2c5d] text-base">emergency</span>
+                Informasi Posko 112
+              </h4>
+              <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">TERHUBUNG</span>
+            </div>
+            <div class="text-xs space-y-2">
+              <div>
+                <span class="text-[10px] uppercase font-bold text-[#8a7176]">Nama Posko</span>
+                <p class="font-bold text-[#1b1c1c] mt-0.5">{{ poskoInfo.name }}</p>
+              </div>
+              <div>
+                <span class="text-[10px] uppercase font-bold text-[#8a7176]">Alamat</span>
+                <p class="text-[#574146] leading-relaxed mt-0.5">{{ poskoInfo.address }}</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Microservices & System Infrastructure Status Section -->
+      <div class="bg-white rounded-xl border border-[#ddbfc5] p-6 shadow-xs space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#ddbfc5]/50 pb-3">
+          <div>
+            <h3 class="text-base font-bold text-[#1b1c1c] flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#ab2c5d]">dns</span>
+              <span>Status Layanan Microservices LOPI-Q</span>
             </h3>
-            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-extrabold rounded-full">TERHUBUNG</span>
+            <p class="text-xs text-[#574146] mt-0.5">Monitoring kesehatan container backend, API gateway, &amp; database PostgreSQL</p>
           </div>
-
-          <div class="space-y-3 text-xs">
-            <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
-              <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Nama Posko Siaga</div>
-              <div class="font-bold text-slate-900 text-sm">{{ poskoInfo.name }}</div>
-            </div>
-
-            <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
-              <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Alamat Posko</div>
-              <div class="font-medium text-slate-700">{{ poskoInfo.address }}</div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">Latitude</div>
-                <div class="font-mono font-bold text-rose-700 text-xs">{{ poskoInfo.lat.toFixed(6) }}</div>
-              </div>
-              <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">Longitude</div>
-                <div class="font-mono font-bold text-rose-700 text-xs">{{ poskoInfo.lng.toFixed(6) }}</div>
-              </div>
-            </div>
-          </div>
+          <span class="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full flex items-center gap-1.5 w-fit">
+            <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+            <span>Semua Layanan Berjalan</span>
+          </span>
         </div>
 
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Service 1: API Gateway -->
+          <div class="p-4 bg-slate-50 border border-[#ddbfc5] rounded-xl flex items-center justify-between hover:border-[#ab2c5d] transition-all">
+            <div class="flex items-center gap-3">
+              <div class="p-2.5 bg-[#f06292]/10 rounded-lg text-[#ab2c5d]">
+                <span class="material-symbols-outlined text-xl">api</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-xs text-[#1b1c1c]">API Gateway</h4>
+                <p class="text-[11px] text-[#574146] font-mono">Port: 5000 &bull; REST</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">ACTIVE</span>
+          </div>
+
+          <!-- Service 2: Auth Service -->
+          <div class="p-4 bg-slate-50 border border-[#ddbfc5] rounded-xl flex items-center justify-between hover:border-[#ab2c5d] transition-all">
+            <div class="flex items-center gap-3">
+              <div class="p-2.5 bg-[#f06292]/10 rounded-lg text-[#ab2c5d]">
+                <span class="material-symbols-outlined text-xl">vpn_key</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-xs text-[#1b1c1c]">Auth Service</h4>
+                <p class="text-[11px] text-[#574146] font-mono">Port: 50051 &bull; gRPC</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">ACTIVE</span>
+          </div>
+
+          <!-- Service 3: User Service -->
+          <div class="p-4 bg-slate-50 border border-[#ddbfc5] rounded-xl flex items-center justify-between hover:border-[#ab2c5d] transition-all">
+            <div class="flex items-center gap-3">
+              <div class="p-2.5 bg-[#f06292]/10 rounded-lg text-[#ab2c5d]">
+                <span class="material-symbols-outlined text-xl">group_work</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-xs text-[#1b1c1c]">User Service</h4>
+                <p class="text-[11px] text-[#574146] font-mono">Port: 50052 &bull; gRPC</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">ACTIVE</span>
+          </div>
+
+          <!-- Service 4: PostgreSQL Database -->
+          <div class="p-4 bg-slate-50 border border-[#ddbfc5] rounded-xl flex items-center justify-between hover:border-[#ab2c5d] transition-all">
+            <div class="flex items-center gap-3">
+              <div class="p-2.5 bg-[#fec1d6]/30 rounded-lg text-[#805062]">
+                <span class="material-symbols-outlined text-xl">database</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-xs text-[#1b1c1c]">PostgreSQL DB</h4>
+                <p class="text-[11px] text-[#574146] font-mono">Port: 5432 &bull; Apps</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">ONLINE</span>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -283,4 +384,5 @@ onMounted(() => {
 
 <style scoped>
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+.material-symbols-outlined.fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 </style>
