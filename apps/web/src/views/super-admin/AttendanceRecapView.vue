@@ -32,7 +32,7 @@
           </div>
           <div>
             <p class="text-[11px] font-bold text-[#574146] uppercase tracking-wider mb-1">Total Hadir</p>
-            <p class="text-2xl font-extrabold text-[#1b1c1c] font-mono">4,821</p>
+            <p class="text-2xl font-extrabold text-[#1b1c1c] font-mono">{{ stats.totalHadir }}</p>
           </div>
         </div>
 
@@ -43,7 +43,7 @@
           </div>
           <div>
             <p class="text-[11px] font-bold text-[#574146] uppercase tracking-wider mb-1">Persentase Tepat Waktu</p>
-            <p class="text-2xl font-extrabold text-[#1b1c1c] font-mono">92%</p>
+            <p class="text-2xl font-extrabold text-[#1b1c1c] font-mono">{{ stats.pctTepatWaktu }}%</p>
           </div>
         </div>
 
@@ -54,7 +54,7 @@
           </div>
           <div>
             <p class="text-[11px] font-bold text-[#574146] uppercase tracking-wider mb-1">Total Terlambat</p>
-            <p class="text-2xl font-extrabold text-[#1b1c1c] font-mono">312</p>
+            <p class="text-2xl font-extrabold text-[#1b1c1c] font-mono">{{ stats.totalTerlambat }}</p>
           </div>
         </div>
 
@@ -65,7 +65,7 @@
           </div>
           <div>
             <p class="text-[11px] font-bold text-[#574146] uppercase tracking-wider mb-1">Total Absen</p>
-            <p class="text-2xl font-extrabold text-[#1b1c1c] font-mono">84</p>
+            <p class="text-2xl font-extrabold text-[#1b1c1c] font-mono">{{ stats.totalAbsen }}</p>
           </div>
         </div>
       </div>
@@ -163,6 +163,14 @@
                   </span>
                 </td>
               </tr>
+
+              <!-- Empty State -->
+              <tr v-if="filteredRecords.length === 0">
+                <td colspan="6" class="py-12 text-center text-[#8a7176]">
+                  <span class="material-symbols-outlined text-4xl block mb-2 opacity-50">event_busy</span>
+                  <span class="text-xs font-semibold">Belum ada data rekapitulasi presensi.</span>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -170,7 +178,7 @@
         <!-- Pagination Container -->
         <div class="flex items-center justify-between px-6 py-4 bg-white border-t border-[#F8BBD0]">
           <div class="text-xs text-[#574146] font-medium">
-            Menampilkan 1-{{ filteredRecords.length }} dari {{ records.length }} data
+            Menampilkan {{ filteredRecords.length > 0 ? '1' : '0' }}-{{ filteredRecords.length }} dari {{ records.length }} data
           </div>
           <div class="flex gap-2">
             <button disabled class="p-1 rounded border border-[#F8BBD0] text-[#574146] opacity-50 cursor-not-allowed bg-white">
@@ -196,12 +204,29 @@ const filterMonth = ref('2026-08');
 const filterDept = ref('');
 const searchQuery = ref('');
 
-const records = ref([
-  { id: 1, name: 'Budi Santoso', date: '24 Okt 2023', clockIn: '08:50 AM', clockOut: '05:15 PM', totalHours: '8h 25m', status: 'HADIR', dept: 'Engineering' },
-  { id: 2, name: 'Siti Aminah', date: '24 Okt 2023', clockIn: '09:15 AM', clockOut: '06:00 PM', totalHours: '8h 45m', status: 'TERLAMBAT', dept: 'Design' },
-  { id: 3, name: 'Andi Wijaya', date: '24 Okt 2023', clockIn: '--:--', clockOut: '--:--', totalHours: '0h 0m', status: 'ABSEN', dept: 'Marketing' },
-  { id: 4, name: 'Rina Permata', date: '24 Okt 2023', clockIn: '--:--', clockOut: '--:--', totalHours: '0h 0m', status: 'CUTI', dept: 'Engineering' }
-]);
+// Removed dummy names (Budi Santoso, Siti Aminah, Andi Wijaya, Rina Permata)
+const records = ref([]);
+
+const stats = computed(() => {
+  if (records.value.length === 0) {
+    return {
+      totalHadir: 0,
+      pctTepatWaktu: 0,
+      totalTerlambat: 0,
+      totalAbsen: 0
+    };
+  }
+  const hadir = records.value.filter(r => r.status === 'HADIR').length;
+  const terlambat = records.value.filter(r => r.status === 'TERLAMBAT').length;
+  const absen = records.value.filter(r => r.status === 'ABSEN').length;
+  const pct = Math.round((hadir / records.value.length) * 100);
+  return {
+    totalHadir: hadir,
+    pctTepatWaktu: pct,
+    totalTerlambat: terlambat,
+    totalAbsen: absen
+  };
+});
 
 const filteredRecords = computed(() => {
   return records.value.filter(r => {
