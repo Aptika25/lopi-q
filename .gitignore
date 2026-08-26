@@ -22,8 +22,8 @@ data/
 *.out
 cmd.exe
 
-# Environment files
-.env
+# Environment files (Allowed for development testing)
+#.env
 !.env.example
 
 # OS files
