@@ -7,4 +7,5 @@ use (
 	./services/auth-service
 	./services/user-service
 	./services/activity-service
+	./services/reporting-service
 )
