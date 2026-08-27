@@ -246,7 +246,8 @@ const menuGroups = [
     icon: 'how_to_reg',
     items: [
       { to: '/admin/attendance-recap', label: 'Rekapan Kehadiran', icon: 'description' },
-      { to: '/admin/location', label: 'Manajemen Lokasi & QR', icon: 'location_on' }
+      { to: '/admin/location', label: 'Manajemen Lokasi & QR', icon: 'location_on' },
+      { to: '/admin/activities', label: 'Aktivitas', icon: 'history_edu' }
     ]
   },
   {
@@ -290,6 +291,7 @@ const pageTitle = computed(() => {
   if (path === '/admin/interns') return 'Manajemen Peserta Magang';
   if (path === '/admin/attendance-recap') return 'Rekapan Kehadiran';
   if (path === '/admin/location') return 'Manajemen Lokasi & QR';
+  if (path === '/admin/activities') return 'Jurnal Aktivitas Intern';
   if (path === '/admin/activity-logs') return 'Log Aktivitas';
   if (path === '/admin/security') return 'Pengaturan Keamanan';
   return 'Dashboard Utama';
@@ -301,6 +303,7 @@ const breadcrumbSub = computed(() => {
   if (path === '/admin/interns') return 'Peserta Magang';
   if (path === '/admin/attendance-recap') return 'Presensi';
   if (path === '/admin/location') return 'Geofence';
+  if (path === '/admin/activities') return 'Aktivitas';
   if (path === '/admin/activity-logs') return 'Audit Trail';
   if (path === '/admin/security') return 'Keamanan';
   return 'Dashboard';
