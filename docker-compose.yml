@@ -208,6 +208,7 @@ services:
     environment:
       - PORT=5000
       - JWT_SECRET=lopiq_super_secret_jwt_key_2026
+      - DB_HOST=postgres_apps
       - AUTH_SERVICE_ADDR=lopiq-auth-service:50051
       - USER_SERVICE_ADDR=lopiq-user-service:50052
       - ACTIVITY_SERVICE_ADDR=lopiq-activity-service:50053
