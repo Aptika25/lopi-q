@@ -85,7 +85,7 @@
           </div>
         </div>
 
-        <!-- Activity Table Section (No Status, No Duration) -->
+        <!-- Activity Table Section (Waktu Upload Otomatis Saat Diunggah) -->
         <div class="flex flex-col gap-4">
           <h3 class="font-bold text-sm text-[#1b1c1c] uppercase tracking-wider">Log Aktivitas Harian</h3>
           
@@ -93,7 +93,7 @@
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="bg-[#FCE4EC] border-b border-[#F8BBD0] text-[11px] font-bold text-[#574146] uppercase tracking-wider">
-                  <th class="py-3 px-4 w-36">Waktu</th>
+                  <th class="py-3 px-4 w-36">Waktu Upload</th>
                   <th class="py-3 px-4">Deskripsi Aktivitas</th>
                 </tr>
               </thead>
@@ -103,7 +103,10 @@
                   :key="act.id"
                   class="hover:bg-[#FCE4EC]/30 transition-colors"
                 >
-                  <td class="py-4 px-4 font-mono font-bold text-[#574146] whitespace-nowrap align-top">{{ act.time }}</td>
+                  <td class="py-4 px-4 font-mono font-bold text-[#574146] whitespace-nowrap align-top flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-xs text-[#f06292]">schedule</span>
+                    <span>{{ act.time }}</span>
+                  </td>
                   <td class="py-4 px-4">
                     <div class="flex items-start gap-3">
                       <div class="w-8 h-8 rounded-lg bg-[#ffd9e4] text-[#ab2c5d] flex items-center justify-center shrink-0 border border-[#F8BBD0]">
@@ -120,7 +123,7 @@
                 <tr v-if="selectedInternActivities.length === 0">
                   <td colspan="2" class="py-12 text-center text-[#8a7176]">
                     <span class="material-symbols-outlined text-4xl block mb-2 opacity-50">pending_actions</span>
-                    <span class="text-xs font-semibold">Belum ada aktivitas yang dicatat hari ini.</span>
+                    <span class="text-xs font-semibold">Belum ada aktivitas yang diunggah hari ini.</span>
                   </td>
                 </tr>
               </tbody>
@@ -152,8 +155,9 @@
                   <span class="material-symbols-outlined text-xl">zoom_in</span>
                 </div>
               </div>
-              <div class="text-[10px] font-bold text-[#574146] text-center bg-[#FCE4EC]/50 p-1.5 rounded border border-[#F8BBD0]">
-                {{ photo.caption }}
+              <div class="text-[10px] font-bold text-[#574146] text-center bg-[#FCE4EC]/50 p-1.5 rounded border border-[#F8BBD0] flex items-center justify-center gap-1">
+                <span class="material-symbols-outlined text-[12px] text-[#f06292]">schedule</span>
+                <span>{{ photo.caption }}</span>
               </div>
             </div>
 
@@ -167,7 +171,7 @@
 
     </div>
 
-    <!-- ===== MODAL TAMBAH AKTIVITAS (Tanpa Durasi & Status) ===== -->
+    <!-- ===== MODAL TAMBAH AKTIVITAS (Waktu Terdeteksi Otomatis Saat Diunggah) ===== -->
     <transition name="fade">
       <div v-if="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" @click.self="addModalOpen = false">
         <div class="w-full max-w-lg bg-white rounded-xl border border-[#F8BBD0] shadow-2xl p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
@@ -182,31 +186,37 @@
           </div>
 
           <form @submit.prevent="saveNewActivity" class="flex flex-col gap-4">
-            <div class="flex flex-col gap-1">
-              <label class="text-[10px] font-bold text-[#574146] uppercase">Waktu Aktivitas</label>
-              <input type="text" v-model="newAct.time" required placeholder="Contoh: 09:00 - 11:30" class="w-full px-3.5 py-2 border border-[#F8BBD0] rounded-lg text-xs font-semibold" />
+            <!-- Automated Upload Time Info Badge -->
+            <div class="flex items-center justify-between p-3 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+              <div class="flex items-center gap-2 text-xs font-bold text-[#ab2c5d]">
+                <span class="material-symbols-outlined text-base">schedule</span>
+                <span>Waktu Upload (Otomatis):</span>
+              </div>
+              <span class="text-xs font-mono font-bold text-[#1b1c1c] bg-white px-2.5 py-1 rounded border border-[#F8BBD0]">
+                {{ liveUploadTime }}
+              </span>
             </div>
 
             <div class="flex flex-col gap-1">
-              <label class="text-[10px] font-bold text-[#574146] uppercase">Judul Aktivitas</label>
-              <input type="text" v-model="newAct.title" required placeholder="Contoh: Research Design System" class="w-full px-3.5 py-2 border border-[#F8BBD0] rounded-lg text-xs font-semibold" />
+              <label class="text-[10px] font-bold text-[#574146] uppercase">Judul Aktivitas <span class="text-[#f06292]">*</span></label>
+              <input type="text" v-model="newAct.title" required placeholder="Contoh: Research Design System" class="w-full px-3.5 py-2 border border-[#F8BBD0] rounded-lg text-xs font-semibold focus:outline-none focus:border-[#f06292]" />
             </div>
 
             <div class="flex flex-col gap-1">
               <label class="text-[10px] font-bold text-[#574146] uppercase">Deskripsi Detail</label>
-              <textarea v-model="newAct.description" rows="3" placeholder="Jelaskan detail tugas/kegiatan yang dilakukan..." class="w-full px-3.5 py-2 border border-[#F8BBD0] rounded-lg text-xs font-medium resize-none"></textarea>
+              <textarea v-model="newAct.description" rows="3" placeholder="Jelaskan detail tugas/kegiatan yang diunggah..." class="w-full px-3.5 py-2 border border-[#F8BBD0] rounded-lg text-xs font-medium resize-none focus:outline-none focus:border-[#f06292]"></textarea>
             </div>
 
             <div class="flex gap-3 justify-end pt-3 border-t border-[#F8BBD0]">
               <button type="button" @click="addModalOpen = false" class="py-2 px-4 border border-[#F8BBD0] hover:bg-[#FCE4EC] text-xs font-bold text-[#574146] rounded-lg cursor-pointer bg-white">Batal</button>
-              <button type="submit" class="py-2 px-5 bg-[#ab2c5d] hover:bg-[#8b0e45] text-white text-xs font-bold rounded-lg cursor-pointer border-0 shadow-xs">Simpan Aktivitas</button>
+              <button type="submit" class="py-2 px-5 bg-[#ab2c5d] hover:bg-[#8b0e45] text-white text-xs font-bold rounded-lg cursor-pointer border-0 shadow-xs">Unggah Aktivitas</button>
             </div>
           </form>
         </div>
       </div>
     </transition>
 
-    <!-- ===== MODAL UPLOAD FILE BARU (Hanya Upload Foto Baru & Keterangan) ===== -->
+    <!-- ===== MODAL UPLOAD FILE BARU (Waktu Deteksi Otomatis Saat Upload) ===== -->
     <transition name="fade">
       <div v-if="addPhotoModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" @click.self="addPhotoModalOpen = false">
         <div class="w-full max-w-md bg-white rounded-xl border border-[#F8BBD0] shadow-2xl p-6 flex flex-col gap-4">
@@ -221,6 +231,17 @@
           </div>
 
           <form @submit.prevent="saveNewPhoto" class="flex flex-col gap-4">
+            <!-- Automated Upload Time Info Badge -->
+            <div class="flex items-center justify-between p-3 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+              <div class="flex items-center gap-2 text-xs font-bold text-[#ab2c5d]">
+                <span class="material-symbols-outlined text-base">schedule</span>
+                <span>Waktu Unggah File:</span>
+              </div>
+              <span class="text-xs font-mono font-bold text-[#1b1c1c] bg-white px-2.5 py-1 rounded border border-[#F8BBD0]">
+                {{ liveFullUploadTime }}
+              </span>
+            </div>
+
             <div class="flex flex-col gap-1.5">
               <label class="text-[10px] font-bold text-[#574146] uppercase">Pilih Foto / Dokumen</label>
               <div class="border-2 border-dashed border-[#F8BBD0] rounded-xl p-6 text-center bg-[#FCE4EC]/20 hover:bg-[#FCE4EC]/40 transition-colors cursor-pointer relative">
@@ -229,11 +250,6 @@
                 <span class="text-xs font-bold text-[#ab2c5d] block">Klik untuk memilih foto</span>
                 <span class="text-[10px] text-[#8a7176] block mt-0.5">Format JPG, PNG, WEBP (Maks 5MB)</span>
               </div>
-            </div>
-
-            <div class="flex flex-col gap-1">
-              <label class="text-[10px] font-bold text-[#574146] uppercase">Keterangan / Waktu</label>
-              <input type="text" v-model="newPhotoCaption" required placeholder="Contoh: 24 Okt 2026 - 16:00" class="w-full px-3.5 py-2 border border-[#F8BBD0] rounded-lg text-xs font-semibold" />
             </div>
 
             <div class="flex gap-3 justify-end pt-3 border-t border-[#F8BBD0]">
@@ -269,8 +285,25 @@ const internSearchQuery = ref('')
 const addModalOpen = ref(false)
 const addPhotoModalOpen = ref(false)
 const previewPhotoUrl = ref('')
-const newPhotoCaption = ref('24 Okt 2026 - 15:30')
 const tempPhotoUrl = ref('')
+
+const getFormattedTimeNow = () => {
+  const now = new Date()
+  const hours = String(now.getHours()).padStart(2, '0')
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  return `${hours}:${minutes} WITA`
+}
+
+const getFormattedDateTimeNow = () => {
+  const now = new Date()
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des']
+  const hours = String(now.getHours()).padStart(2, '0')
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  return `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()} - ${hours}:${minutes} WITA`
+}
+
+const liveUploadTime = ref(getFormattedTimeNow())
+const liveFullUploadTime = ref(getFormattedDateTimeNow())
 
 const internsList = ref([
   {
@@ -305,22 +338,22 @@ const filteredInterns = computed(() => {
 
 const activitiesMap = ref<Record<number, any[]>>({
   1: [
-    { id: 101, time: '09:00 - 11:30', title: 'Research Design System', description: 'Mempelajari dan menyusun pedoman untuk Design System LOPI-Q yang baru.', icon: 'design_services' },
-    { id: 102, time: '13:00 - 14:30', title: 'Meeting Coordination', description: 'Sinkronisasi progres mingguan dengan tim developer terkait implementasi UI.', icon: 'groups' },
-    { id: 103, time: '15:00 - 17:00', title: 'Prototyping Jurnal Intern', description: 'Membuat high-fidelity prototype untuk halaman log aktivitas & presensi.', icon: 'pending_actions' }
+    { id: 101, time: '11:30 WITA', title: 'Research Design System', description: 'Mempelajari dan menyusun pedoman untuk Design System LOPI-Q yang baru.', icon: 'design_services' },
+    { id: 102, time: '14:30 WITA', title: 'Meeting Coordination', description: 'Sinkronisasi progres mingguan dengan tim developer terkait implementasi UI.', icon: 'groups' },
+    { id: 103, time: '16:15 WITA', title: 'Prototyping Jurnal Intern', description: 'Membuat high-fidelity prototype untuk halaman log aktivitas & presensi.', icon: 'pending_actions' }
   ],
   2: [
-    { id: 201, time: '08:30 - 12:00', title: 'Slicing UI Vue 3', description: 'Menerapkan komponen Tailwind CSS & AdminLayout pada tampilan baru.', icon: 'code' }
+    { id: 201, time: '10:45 WITA', title: 'Slicing UI Vue 3', description: 'Menerapkan komponen Tailwind CSS & AdminLayout pada tampilan baru.', icon: 'code' }
   ],
   3: [
-    { id: 301, time: '09:00 - 11:00', title: 'gRPC Endpoint Refactoring', description: 'Optimalisasi mikroservis activity-service & reporting-service.', icon: 'dns' }
+    { id: 301, time: '09:15 WITA', title: 'gRPC Endpoint Refactoring', description: 'Optimalisasi mikroservis activity-service & reporting-service.', icon: 'dns' }
   ]
 })
 
 const photosMap = ref<Record<number, any[]>>({
   1: [
-    { url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDjG60y_Co42fGoabvcXy2ugA2BJ-BSKF3ZJu9k704bDXK1N4OX2YqDsOq8e7qQ68P6ICXDJ1kNHDX00gFrsmK3fwxQYzyv4eBHyam89DD4SavDZO2YrJyQFWBWx6ApLwcCHAUG13IQRQdDW5Xe0LqcVVppU_xOJgA0wzczjvJcBcfPDkQ4VjWe2Tj3nh-kNuNvqfxwfX-2icocII3EB2dV1c0GbJg40kGTualtnyWnS55v9VlbOUuX', caption: '24 Okt 2026 - 11:30' },
-    { url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB2wcXtyQwXG8NimOcG925_9hwHR_t4sqUAIjA_F-RpfN_Suippiv7F3xptV5rqtbrZA3rR8Grjur9-lCqbL5Sti5hMdFRHGvl2S9-apvjW9MXwPz9ANKpQNWHlK7eSBD3QKZ2mAObgGZANyxfmmALhEU_E40kZLtXA1AZp5lqOEb5tSerlbnAgQ98JOdNfE8kcZpeSRggFXKgqu4cGuufVhhWb1i6Bq0tkYTaasIqQ-7jE4pKNSGTT', caption: '24 Okt 2026 - 14:30' }
+    { url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDjG60y_Co42fGoabvcXy2ugA2BJ-BSKF3ZJu9k704bDXK1N4OX2YqDsOq8e7qQ68P6ICXDJ1kNHDX00gFrsmK3fwxQYzyv4eBHyam89DD4SavDZO2YrJyQFWBWx6ApLwcCHAUG13IQRQdDW5Xe0LqcVVppU_xOJgA0wzczjvJcBcfPDkQ4VjWe2Tj3nh-kNuNvqfxwfX-2icocII3EB2dV1c0GbJg40kGTualtnyWnS55v9VlbOUuX', caption: '24 Okt 2026 - 11:30 WITA' },
+    { url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB2wcXtyQwXG8NimOcG925_9hwHR_t4sqUAIjA_F-RpfN_Suippiv7F3xptV5rqtbrZA3rR8Grjur9-lCqbL5Sti5hMdFRHGvl2S9-apvjW9MXwPz9ANKpQNWHlK7eSBD3QKZ2mAObgGZANyxfmmALhEU_E40kZLtXA1AZp5lqOEb5tSerlbnAgQ98JOdNfE8kcZpeSRggFXKgqu4cGuufVhhWb1i6Bq0tkYTaasIqQ-7jE4pKNSGTT', caption: '24 Okt 2026 - 14:30 WITA' }
   ],
   2: [],
   3: []
@@ -343,14 +376,13 @@ const previewPhoto = (url: string) => {
 }
 
 const newAct = ref({
-  time: '09:00 - 11:30',
   title: '',
   description: ''
 })
 
 const openAddActivityModal = () => {
+  liveUploadTime.value = getFormattedTimeNow()
   newAct.value = {
-    time: '09:00 - 11:30',
     title: '',
     description: ''
   }
@@ -361,7 +393,7 @@ const saveNewActivity = () => {
   const currentList = activitiesMap.value[selectedIntern.value.id] || []
   currentList.push({
     id: Date.now(),
-    time: newAct.value.time,
+    time: getFormattedTimeNow(),
     title: newAct.value.title,
     description: newAct.value.description,
     icon: 'task'
@@ -371,7 +403,7 @@ const saveNewActivity = () => {
 }
 
 const openAddPhotoModal = () => {
-  newPhotoCaption.value = '24 Okt 2026 - 15:30'
+  liveFullUploadTime.value = getFormattedDateTimeNow()
   tempPhotoUrl.value = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDjG60y_Co42fGoabvcXy2ugA2BJ-BSKF3ZJu9k704bDXK1N4OX2YqDsOq8e7qQ68P6ICXDJ1kNHDX00gFrsmK3fwxQYzyv4eBHyam89DD4SavDZO2YrJyQFWBWx6ApLwcCHAUG13IQRQdDW5Xe0LqcVVppU_xOJgA0wzczjvJcBcfPDkQ4VjWe2Tj3nh-kNuNvqfxwfX-2icocII3EB2dV1c0GbJg40kGTualtnyWnS55v9VlbOUuX'
   addPhotoModalOpen.value = true
 }
@@ -387,7 +419,7 @@ const saveNewPhoto = () => {
   const currentPhotos = photosMap.value[selectedIntern.value.id] || []
   currentPhotos.push({
     url: tempPhotoUrl.value || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDjG60y_Co42fGoabvcXy2ugA2BJ-BSKF3ZJu9k704bDXK1N4OX2YqDsOq8e7qQ68P6ICXDJ1kNHDX00gFrsmK3fwxQYzyv4eBHyam89DD4SavDZO2YrJyQFWBWx6ApLwcCHAUG13IQRQdDW5Xe0LqcVVppU_xOJgA0wzczjvJcBcfPDkQ4VjWe2Tj3nh-kNuNvqfxwfX-2icocII3EB2dV1c0GbJg40kGTualtnyWnS55v9VlbOUuX',
-    caption: newPhotoCaption.value
+    caption: getFormattedDateTimeNow()
   })
   photosMap.value[selectedIntern.value.id] = currentPhotos
   addPhotoModalOpen.value = false
