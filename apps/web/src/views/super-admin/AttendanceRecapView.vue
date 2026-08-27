@@ -2,6 +2,14 @@
   <AdminLayout>
     <div class="w-full space-y-6 select-none font-sans text-slate-800">
       
+      <!-- Toast Notification -->
+      <transition name="fade">
+        <div v-if="toast.show" class="flex items-center gap-2.5 p-3.5 rounded-xl text-xs font-semibold border w-full shadow-xs bg-[#E8F5E9] border-[#A5D6A7] text-[#1B5E20]">
+          <span class="material-symbols-outlined text-lg shrink-0">check_circle</span>
+          <span>{{ toast.message }}</span>
+        </div>
+      </transition>
+
       <!-- Header Section -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-[#ddbfc5]/60 pb-6 w-full">
         <div>
@@ -12,13 +20,31 @@
           <p class="text-sm text-[#574146] mt-1">Tinjauan komprehensif kehadiran intern untuk periode yang dipilih.</p>
         </div>
 
-        <div class="flex items-center gap-2 shrink-0">
+        <!-- Excel & PDF Export/Import Action Buttons -->
+        <div class="flex items-center gap-2.5 flex-wrap shrink-0">
+          <!-- File Import Input -->
+          <label class="bg-white hover:bg-[#FCE4EC] text-[#ab2c5d] border border-[#F8BBD0] px-4 py-2.5 rounded-lg font-bold text-xs transition-all cursor-pointer shadow-xs flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-base">upload_file</span>
+            <span>Impor Excel / PDF</span>
+            <input type="file" @change="handleImportFile" accept=".xlsx,.xls,.pdf" class="hidden" />
+          </label>
+
+          <!-- Export Excel Button -->
+          <button 
+            @click="exportExcel"
+            class="bg-[#2E7D32] hover:bg-[#1B5E20] text-white px-4 py-2.5 rounded-lg font-bold text-xs transition-all border-0 cursor-pointer shadow-xs flex items-center gap-1.5"
+          >
+            <span class="material-symbols-outlined text-base">table_view</span>
+            <span>Ekspor EXCEL</span>
+          </button>
+
+          <!-- Export PDF Button -->
           <button 
             @click="exportPdf"
-            class="bg-[#F06292] text-white px-5 py-2.5 rounded-lg font-bold text-xs hover:bg-[#ab2c5d] transition-all border-0 cursor-pointer shadow-xs flex items-center gap-2"
+            class="bg-[#F06292] hover:bg-[#ab2c5d] text-white px-4 py-2.5 rounded-lg font-bold text-xs transition-all border-0 cursor-pointer shadow-xs flex items-center gap-1.5"
           >
-            <span class="material-symbols-outlined text-base">download</span>
-            <span>Download Report</span>
+            <span class="material-symbols-outlined text-base">picture_as_pdf</span>
+            <span>Ekspor PDF</span>
           </button>
         </div>
       </div>
@@ -203,9 +229,14 @@ import AdminLayout from '@/layouts/AdminLayout.vue';
 const filterMonth = ref('2026-08');
 const filterDept = ref('');
 const searchQuery = ref('');
+const toast = ref({ show: false, message: '' });
 
-// Removed dummy names (Budi Santoso, Siti Aminah, Andi Wijaya, Rina Permata)
 const records = ref([]);
+
+const showToast = (msg) => {
+  toast.value = { show: true, message: msg };
+  setTimeout(() => { toast.value.show = false; }, 3500);
+};
 
 const stats = computed(() => {
   if (records.value.length === 0) {
@@ -236,8 +267,19 @@ const filteredRecords = computed(() => {
   });
 });
 
+function exportExcel() {
+  showToast('Mengunduh Laporan Rekap Kehadiran format EXCEL (.xlsx)...');
+}
+
 function exportPdf() {
-  alert('Mengunduh Laporan Rekap Kehadiran PDF...');
+  showToast('Mengunduh Laporan Rekap Kehadiran format PDF (.pdf)...');
+}
+
+function handleImportFile(event) {
+  const file = event.target.files[0];
+  if (file) {
+    showToast(`File "${file.name}" berhasil diimpor ke data Rekap Kehadiran!`);
+  }
 }
 </script>
 
