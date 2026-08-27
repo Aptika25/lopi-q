@@ -121,12 +121,7 @@ const downloadBackupCodes = () => {
 
 const handleLogin = async () => {
   if (!email.value || !password.value) {
-    errorMessage.value = 'Alamat email dan kata sandi wajib diisi.'
-    return
-  }
-
-  if (!email.value.includes('@')) {
-    errorMessage.value = 'Login hanya dapat menggunakan alamat email yang valid (contoh: aswan@bulukumbakab.go.id).'
+    errorMessage.value = 'NIP/Email dan Password wajib diisi.'
     return
   }
 
