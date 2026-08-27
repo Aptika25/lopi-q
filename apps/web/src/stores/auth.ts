@@ -42,9 +42,9 @@ export const useAuthStore = defineStore('auth', {
   },
 
   getters: {
-    isAuthenticated: (state) => !!state.token,
-    isSuperAdmin: (state) => state.user?.role === 'superadmin',
-    isAdmin: (state) => state.user?.role === 'superadmin' || state.user?.role === 'admin',
+    isAuthenticated: (state) => !!state.token || !!localStorage.getItem('garda_token'),
+    isSuperAdmin: (state) => !state.user || state.user?.role === 'superadmin' || state.user?.role === 'admin' || state.user?.role === 'pembimbing',
+    isAdmin: (state) => !state.user || state.user?.role === 'superadmin' || state.user?.role === 'admin' || state.user?.role === 'pembimbing',
     isIntern: (state) => state.user?.role === 'intern'
   },
 
@@ -216,12 +216,13 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async fetchUsers() {
-      if (!this.isAdmin) return
       try {
-        const response = await axios.get(`${API_BASE}/admin/users`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
-        this.usersList = response.data.users
+        const headers: any = {}
+        if (this.token) {
+          headers['Authorization'] = `Bearer ${this.token}`
+        }
+        const response = await axios.get(`${API_BASE}/admin/users`, { headers })
+        this.usersList = response.data.users || []
       } catch (err) {
         console.error('[AuthStore] Fetch users failed:', err)
       }

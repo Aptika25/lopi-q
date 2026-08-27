@@ -42,7 +42,6 @@
 
         <!-- Add User Button -->
         <button 
-          v-if="authStore.isAdmin"
           @click="openAddDialog"
           class="bg-[#F06292] hover:bg-[#ab2c5d] text-white font-bold text-xs px-6 py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 shadow-[0px_10px_30px_rgba(240,98,146,0.15)] w-full sm:w-auto shrink-0 border-0 cursor-pointer active:scale-95"
         >
