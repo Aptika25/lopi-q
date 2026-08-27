@@ -242,7 +242,7 @@ const menuGroups = [
   },
   {
     key: 'attendance',
-    title: 'Presensi & Posko 112',
+    title: 'Kehadiran',
     icon: 'how_to_reg',
     items: [
       { to: '/admin/attendance-recap', label: 'Rekapan Kehadiran', icon: 'description' },
