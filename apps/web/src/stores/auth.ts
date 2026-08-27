@@ -276,27 +276,7 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async updateUser(id: number, payload: any) {
-      try {
-        const response = await axios.put(`${API_BASE}/admin/users/${id}`, {
-          nip: payload.nip || '',
-          email: payload.email || '',
-          name: payload.name || '',
-          jabatan: payload.jabatan || '',
-          unit_kerja: payload.unit_kerja || '',
-          role: payload.role || 'admin',
-          permissions: payload.permissions || [],
-          password: payload.password || ''
-        }, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
-        await this.fetchUsers()
-        return response.data
-      } catch (err: any) {
-        this.error = err.response?.data?.error || 'Gagal memperbarui user.'
-        throw err
-      }
-    },
+
 
     async toggleUserActive(id: number, isActive: boolean) {
       try {
