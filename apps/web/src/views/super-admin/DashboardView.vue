@@ -114,13 +114,6 @@
             <div class="text-xs font-bold text-[#1b1c1c] group-hover:text-[#ab2c5d]">Lokasi Posko</div>
           </router-link>
 
-          <router-link to="/admin/schedules" class="p-4 bg-slate-50 hover:bg-[#fec1d6]/20 border border-[#ddbfc5] hover:border-[#ab2c5d] rounded-lg text-center space-y-2 transition-all group decoration-none">
-            <div class="w-10 h-10 bg-white text-[#ab2c5d] rounded-lg flex items-center justify-center mx-auto shadow-xs group-hover:scale-105 transition-transform">
-              <span class="material-symbols-outlined text-[22px]">calendar_month</span>
-            </div>
-            <div class="text-xs font-bold text-[#1b1c1c] group-hover:text-[#ab2c5d]">Jadwal Shift</div>
-          </router-link>
-
           <router-link to="/admin/security" class="p-4 bg-slate-50 hover:bg-[#fec1d6]/20 border border-[#ddbfc5] hover:border-[#ab2c5d] rounded-lg text-center space-y-2 transition-all group decoration-none">
             <div class="w-10 h-10 bg-white text-[#ab2c5d] rounded-lg flex items-center justify-center mx-auto shadow-xs group-hover:scale-105 transition-transform">
               <span class="material-symbols-outlined text-[22px]">security</span>
@@ -213,10 +206,6 @@
               <router-link to="/admin/interns" class="w-full bg-[#f06292] text-white py-2.5 px-4 rounded-lg font-semibold text-xs flex items-center justify-center gap-2 hover:bg-[#ab2c5d] transition-colors shadow-xs decoration-none">
                 <span class="material-symbols-outlined text-sm">person_add</span>
                 Kelola Peserta Magang
-              </router-link>
-              <router-link to="/admin/schedules" class="w-full bg-[#fec1d6]/30 text-[#ab2c5d] py-2.5 px-4 rounded-lg font-semibold text-xs flex items-center justify-center gap-2 hover:bg-[#fec1d6]/60 transition-colors decoration-none">
-                <span class="material-symbols-outlined text-sm">calendar_month</span>
-                Jadwal Shift &amp; Presensi
               </router-link>
               <router-link to="/admin/attendance-recap" class="w-full border border-[#ddbfc5] text-[#574146] py-2.5 px-4 rounded-lg font-semibold text-xs flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors decoration-none">
                 <span class="material-symbols-outlined text-sm">download</span>
