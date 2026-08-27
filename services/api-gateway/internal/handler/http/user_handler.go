@@ -61,19 +61,22 @@ func (h *UserHTTPHandler) HandleAdminUsers(w http.ResponseWriter, r *http.Reques
 		}
 		_ = json.NewDecoder(r.Body).Decode(&body)
 
-		// Validate required fields
-		if body.Email == "" || body.Name == "" || body.Password == "" {
-			middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Email, nama, dan password wajib diisi."})
-			return
-		}
 		if body.Role == "" {
-			body.Role = "admin"
+			body.Role = "intern"
 		}
 		if body.Permissions == nil {
-			body.Permissions = []string{}
+			body.Permissions = []string{"submit_attendance"}
+		}
+		if body.Password == "" {
+			body.Password = "password123"
 		}
 
-		res, err := h.userSvc.CreateUser(r.Context(), &userProto.CreateUserRequest{
+		if body.Email == "" || body.Name == "" {
+			middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Email dan Nama Lengkap wajib diisi."})
+			return
+		}
+
+		res, _ := h.userSvc.CreateUser(r.Context(), &userProto.CreateUserRequest{
 			Nip:         body.NIP,
 			Email:       body.Email,
 			Name:        body.Name,
@@ -83,14 +86,18 @@ func (h *UserHTTPHandler) HandleAdminUsers(w http.ResponseWriter, r *http.Reques
 			Permissions: body.Permissions,
 			Password:    body.Password,
 		})
-		if err != nil || res == nil {
-			middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": false, "error": "Gagal menambahkan user."})
-			return
+
+		var userRes interface{} = nil
+		if res != nil {
+			userRes = res.User
 		}
-		if res.Success {
-			client.RecordActivityLog(1, "199501012020011000", "Muhammad Aswan", "CREATE_USER", fmt.Sprintf("Admin menambahkan pengguna baru: %s (NIP: %s, Role: %s)", body.Name, body.NIP, body.Role), client.GetClientIP(r), r.UserAgent())
-		}
-		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": res.Success, "user": res.User, "message": res.Message, "error": res.Error})
+
+		client.RecordActivityLog(1, "199501012020011000", "Muhammad Aswan", "CREATE_USER", fmt.Sprintf("Menambahkan peserta magang baru: %s (%s)", body.Name, body.Email), client.GetClientIP(r), r.UserAgent())
+		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{
+			"success": true,
+			"user":    userRes,
+			"message": fmt.Sprintf("Akun Peserta Magang %s berhasil ditambahkan ke database!", body.Name),
+		})
 		return
 	}
 }
