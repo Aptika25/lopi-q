@@ -7,7 +7,7 @@
         <div>
           <h1 class="text-2xl md:text-3xl font-extrabold text-[#1b1c1c] tracking-tight flex items-center gap-2">
             <span class="material-symbols-outlined text-[#ab2c5d] text-[32px] fill" style="font-variation-settings: 'FILL' 1;">admin_panel_settings</span>
-            Manajemen Akun Administrator &amp; Pembimbing
+            Manajemen Akun Administrator
           </h1>
           <p class="text-sm text-[#574146] mt-1 font-medium">LOPI-Q (Logbook, Online Presence, and Internship Quality Management System)</p>
         </div>
