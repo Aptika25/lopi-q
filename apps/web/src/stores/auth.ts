@@ -230,6 +230,10 @@ export const useAuthStore = defineStore('auth', {
 
     async createUser(payload: any) {
       try {
+        const headers: any = {}
+        if (this.token) {
+          headers['Authorization'] = `Bearer ${this.token}`
+        }
         const response = await axios.post(`${API_BASE}/admin/users`, {
           nip: payload.nip || '',
           email: payload.email,
@@ -237,16 +241,38 @@ export const useAuthStore = defineStore('auth', {
           name: payload.name,
           jabatan: payload.jabatan || '',
           unit_kerja: payload.unit_kerja || '',
-          role: payload.role || 'admin',
+          role: payload.role || 'intern',
           permissions: payload.permissions || []
-        }, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+        }, { headers })
         await this.fetchUsers()
         return response.data
       } catch (err: any) {
-        this.error = err.response?.data?.error || 'Gagal menambahkan user.'
-        throw err
+        this.error = err.response?.data?.error || err.message || 'Gagal menambahkan user.'
+        return { success: false, error: this.error }
+      }
+    },
+
+    async updateUser(id: number, payload: any) {
+      try {
+        const headers: any = {}
+        if (this.token) {
+          headers['Authorization'] = `Bearer ${this.token}`
+        }
+        const response = await axios.put(`${API_BASE}/admin/users/${id}`, {
+          nip: payload.nip || '',
+          email: payload.email,
+          name: payload.name,
+          jabatan: payload.jabatan || '',
+          unit_kerja: payload.unit_kerja || '',
+          role: payload.role || 'intern',
+          permissions: payload.permissions || [],
+          password: payload.password || ''
+        }, { headers })
+        await this.fetchUsers()
+        return response.data
+      } catch (err: any) {
+        this.error = err.response?.data?.error || err.message || 'Gagal memperbarui user.'
+        return { success: false, error: this.error }
       }
     },
 

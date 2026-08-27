@@ -439,7 +439,6 @@ const handleReset2FA = (ct: any) => {
 
 // ===== SUBMIT FORM =====
 const submitForm = async () => {
-  submitLoading.value = false
   errorMessage.value = ''
 
   if (!form.value.name.trim()) { errorMessage.value = 'Nama lengkap wajib diisi.'; return }
@@ -453,41 +452,41 @@ const submitForm = async () => {
   try {
     if (isEdit.value && editUserId.value !== null) {
       const res = await authStore.updateUser(editUserId.value, {
-        name: form.value.name,
-        nip: form.value.nip,
-        email: form.value.email,
-        unit_kerja: form.value.unit_kerja,
-        jabatan: form.value.jabatan,
+        name: form.value.name.trim(),
+        nip: form.value.nip.trim(),
+        email: form.value.email.trim(),
+        unit_kerja: form.value.unit_kerja.trim() || 'Rekayasa Perangkat Lunak',
+        jabatan: form.value.jabatan.trim() || 'SMK Negeri 1 Bulukumba',
         role: 'intern',
         password: form.value.password
       })
-      if (res.success) {
-        showToast(true, 'Data Peserta Magang berhasil diperbarui.')
+      if (res && res.success !== false) {
+        showToast(true, `Data Peserta Magang ${form.value.name} berhasil diperbarui.`)
         closeDialog()
         await loadCallTakers()
       } else {
-        errorMessage.value = res.error || 'Gagal memperbarui data Peserta Magang.'
+        errorMessage.value = res?.error || authStore.error || 'Gagal memperbarui data Peserta Magang.'
       }
     } else {
       const res = await authStore.createUser({
-        name: form.value.name,
-        nip: form.value.nip,
-        email: form.value.email,
+        name: form.value.name.trim(),
+        nip: form.value.nip.trim(),
+        email: form.value.email.trim(),
         password: form.value.password,
-        unit_kerja: form.value.unit_kerja,
-        jabatan: form.value.jabatan,
+        unit_kerja: form.value.unit_kerja.trim() || 'Rekayasa Perangkat Lunak',
+        jabatan: form.value.jabatan.trim() || 'SMK Negeri 1 Bulukumba',
         role: 'intern'
       })
-      if (res.success) {
-        showToast(true, 'Peserta Magang baru berhasil ditambahkan!')
+      if (res && res.success !== false) {
+        showToast(true, `Peserta Magang ${form.value.name} berhasil ditambahkan!`)
         closeDialog()
         await loadCallTakers()
       } else {
-        errorMessage.value = res.error || 'Gagal menambahkan Peserta Magang.'
+        errorMessage.value = res?.error || authStore.error || 'Gagal menambahkan Peserta Magang.'
       }
     }
   } catch (err: any) {
-    errorMessage.value = authStore.error || 'Terjadi kesalahan saat memproses permintaan.'
+    errorMessage.value = err.message || authStore.error || 'Terjadi kesalahan saat menambahkan peserta magang.'
   } finally {
     submitLoading.value = false
   }

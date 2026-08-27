@@ -60,12 +60,18 @@ func syncPostgresCreateUser(req *userProto.CreateUserRequest, passwordHash strin
 		defer dbAuth.Close()
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
-		_, _ = dbAuth.ExecContext(ctx,
+		_, errExec := dbAuth.ExecContext(ctx,
 			`INSERT INTO auth_users (nip, email, name, role, jabatan, unit_kerja, password, is_active)
 			 VALUES ($1, $2, $3, $4, $5, $6, $7, true)
-			 ON CONFLICT (email) DO UPDATE SET password=$7, role=$4, name=$3, jabatan=$5, unit_kerja=$6;`,
+			 ON CONFLICT (email) DO UPDATE SET nip=$1, password=$7, role=$4, name=$3, jabatan=$5, unit_kerja=$6;`,
 			req.Nip, req.Email, req.Name, req.Role, req.Jabatan, req.UnitKerja, passwordHash,
 		)
+		if errExec != nil {
+			_, _ = dbAuth.ExecContext(ctx,
+				`UPDATE auth_users SET email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6, password=$7, is_active=true WHERE email=$2 OR (nip <> '' AND nip=$1);`,
+				req.Nip, req.Email, req.Name, req.Role, req.Jabatan, req.UnitKerja, passwordHash,
+			)
+		}
 	}
 
 	// 2. Insert into users in db_lopiq_user
@@ -74,12 +80,18 @@ func syncPostgresCreateUser(req *userProto.CreateUserRequest, passwordHash strin
 		defer dbUser.Close()
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
-		_, _ = dbUser.ExecContext(ctx,
+		_, errExec := dbUser.ExecContext(ctx,
 			`INSERT INTO users (nip, email, name, role, jabatan, unit_kerja, password_hash, is_active)
 			 VALUES ($1, $2, $3, $4, $5, $6, $7, true)
 			 ON CONFLICT (email) DO UPDATE SET password_hash=$7, role=$4, name=$3, jabatan=$5, unit_kerja=$6;`,
 			req.Nip, req.Email, req.Name, req.Role, req.Jabatan, req.UnitKerja, passwordHash,
 		)
+		if errExec != nil {
+			_, _ = dbUser.ExecContext(ctx,
+				`UPDATE users SET email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6, password_hash=$7, is_active=true WHERE email=$2 OR (nip <> '' AND nip=$1);`,
+				req.Nip, req.Email, req.Name, req.Role, req.Jabatan, req.UnitKerja, passwordHash,
+			)
+		}
 	}
 }
 
