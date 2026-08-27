@@ -48,15 +48,51 @@ func (s *UserClientDirectStub) toProtoUser(u *UserDataJSON) *userProto.User {
 	}
 }
 
-func syncPostgresCreateUser(req *userProto.CreateUserRequest, passwordHash string) {
-	dbHost := os.Getenv("DB_HOST")
-	if dbHost == "" {
-		dbHost = "postgres_apps"
+func openDBAuthClient() *sql.DB {
+	hosts := []string{os.Getenv("DB_HOST"), "postgres_apps", "localhost", "127.0.0.1", "host.docker.internal"}
+	for _, h := range hosts {
+		if h == "" {
+			continue
+		}
+		conn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_auth password=lopiqauthPassword@2k26# dbname=db_lopiq_auth sslmode=disable", h)
+		db, err := sql.Open("postgres", conn)
+		if err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+			errPing := db.PingContext(ctx)
+			cancel()
+			if errPing == nil {
+				return db
+			}
+			db.Close()
+		}
 	}
+	return nil
+}
 
+func openDBUserClient() *sql.DB {
+	hosts := []string{os.Getenv("DB_HOST"), "postgres_apps", "localhost", "127.0.0.1", "host.docker.internal"}
+	for _, h := range hosts {
+		if h == "" {
+			continue
+		}
+		conn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_user password=lopiquserPassword@2k26# dbname=db_lopiq_user sslmode=disable", h)
+		db, err := sql.Open("postgres", conn)
+		if err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+			errPing := db.PingContext(ctx)
+			cancel()
+			if errPing == nil {
+				return db
+			}
+			db.Close()
+		}
+	}
+	return nil
+}
+
+func syncPostgresCreateUser(req *userProto.CreateUserRequest, passwordHash string) {
 	// 1. Insert into auth_users in db_lopiq_auth
-	authConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_auth password=lopiqauthPassword@2k26# dbname=db_lopiq_auth sslmode=disable", dbHost)
-	if dbAuth, err := sql.Open("postgres", authConn); err == nil {
+	if dbAuth := openDBAuthClient(); dbAuth != nil {
 		defer dbAuth.Close()
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
@@ -75,8 +111,7 @@ func syncPostgresCreateUser(req *userProto.CreateUserRequest, passwordHash strin
 	}
 
 	// 2. Insert into users in db_lopiq_user
-	userConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_user password=lopiquserPassword@2k26# dbname=db_lopiq_user sslmode=disable", dbHost)
-	if dbUser, err := sql.Open("postgres", userConn); err == nil {
+	if dbUser := openDBUserClient(); dbUser != nil {
 		defer dbUser.Close()
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()

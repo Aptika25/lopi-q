@@ -148,15 +148,9 @@ func getSeedUsersJSON() []UserDataJSON {
 }
 
 func fetchPostgresUsers() ([]UserDataJSON, bool) {
-	dbHost := os.Getenv("DB_HOST")
-	if dbHost == "" {
-		dbHost = "postgres_apps"
-	}
-
 	// 1. Fetch profile info (jabatan, unit_kerja, name, nip) from db_lopiq_user
 	userProfileMap := make(map[string]UserDataJSON)
-	userConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_user password=lopiquserPassword@2k26# dbname=db_lopiq_user sslmode=disable", dbHost)
-	if dbUser, err := sql.Open("postgres", userConn); err == nil {
+	if dbUser := openDBUserClient(); dbUser != nil {
 		defer dbUser.Close()
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
@@ -189,9 +183,8 @@ func fetchPostgresUsers() ([]UserDataJSON, bool) {
 	}
 
 	// 3. Query auth_users from db_lopiq_auth
-	conn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_auth password=lopiqauthPassword@2k26# dbname=db_lopiq_auth sslmode=disable", dbHost)
-	db, err := sql.Open("postgres", conn)
-	if err != nil {
+	db := openDBAuthClient()
+	if db == nil {
 		return nil, false
 	}
 	defer db.Close()
