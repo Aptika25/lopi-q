@@ -93,6 +93,7 @@ func findUsersJSONPath() string {
 
 func getSeedUsersJSON() []UserDataJSON {
 	aswanHash, _ := bcrypt.GenerateFromPassword([]byte("Asw&a198"), bcrypt.DefaultCost)
+	defaultInternHash, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
 
 	return []UserDataJSON{
 		{
@@ -105,6 +106,42 @@ func getSeedUsersJSON() []UserDataJSON {
 			UnitKerja:    "Diskominfo Kab. Bulukumba",
 			PasswordHash: string(aswanHash),
 			Permissions:  []string{"manage_users", "manage_attendance", "manage_locations", "view_reports"},
+			IsActive:     true,
+		},
+		{
+			ID:           101,
+			NIP:          "0051234567",
+			Email:        "admin@example.com",
+			Name:         "Sarah Jenkins",
+			Role:         "intern",
+			Jabatan:      "SMK Negeri 1 Bulukumba",
+			UnitKerja:    "Rekayasa Perangkat Lunak",
+			PasswordHash: string(defaultInternHash),
+			Permissions:  []string{"submit_attendance"},
+			IsActive:     true,
+		},
+		{
+			ID:           102,
+			NIP:          "2024001",
+			Email:        "hikma@gmail.com",
+			Name:         "Hikma",
+			Role:         "intern",
+			Jabatan:      "Universitas Negeri Makassar",
+			UnitKerja:    "Product Design",
+			PasswordHash: string(defaultInternHash),
+			Permissions:  []string{"submit_attendance"},
+			IsActive:     true,
+		},
+		{
+			ID:           103,
+			NIP:          "2024002",
+			Email:        "budi@gmail.com",
+			Name:         "Budi Santoso",
+			Role:         "intern",
+			Jabatan:      "SMK Negeri 1 Bulukumba",
+			UnitKerja:    "Frontend Dev",
+			PasswordHash: string(defaultInternHash),
+			Permissions:  []string{"submit_attendance"},
 			IsActive:     true,
 		},
 	}
@@ -302,10 +339,23 @@ func (s *AuthClientDirectStub) Login(ctx context.Context, req *authProto.LoginRe
 		}
 	}
 
+	// Direct Login for Interns without mandatory 2FA OTP
+	if matchedUser.Role == "intern" && !matchedUser.TotpEnabled {
+		token, _ := jwt.GenerateToken(matchedUser.ID, matchedUser.NIP, matchedUser.Role, 24*time.Hour)
+		return &authProto.LoginResponse{
+			Success:          true,
+			OtpRequired:      false,
+			OtpSetupRequired: false,
+			Token:            token,
+			UserId:           int32(matchedUser.ID),
+			Role:             matchedUser.Role,
+			Nip:              matchedUser.NIP,
+			Name:             matchedUser.Name,
+		}, nil
+	}
+
 	tempToken, _ := jwt.GenerateTempToken(matchedUser.ID, 15*time.Minute)
 
-	// If totp_enabled is false in data/users.json -> OtpSetupRequired = true
-	// If totp_enabled is true in data/users.json -> OtpSetupRequired = false (Verify OTP)
 	return &authProto.LoginResponse{
 		Success:          true,
 		OtpRequired:      true,

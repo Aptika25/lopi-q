@@ -50,6 +50,20 @@ func (h *AuthHandler) Login(ctx context.Context, req *auth.LoginRequest) (*auth.
 		return &auth.LoginResponse{Success: false, Error: "Email atau password salah."}, nil
 	}
 
+	if u.Role == "intern" && !u.TotpEnabled {
+		token, _ := jwt.GenerateToken(u.ID, u.NIP, u.Role, 24*time.Hour)
+		return &auth.LoginResponse{
+			Success:          true,
+			OtpRequired:      false,
+			OtpSetupRequired: false,
+			Token:            token,
+			UserId:           int32(u.ID),
+			Role:             u.Role,
+			Nip:              u.NIP,
+			Name:             u.Name,
+		}, nil
+	}
+
 	tempToken, _ := jwt.GenerateTempToken(u.ID, 15*time.Minute)
 
 	if u.TotpEnabled && u.TotpSecret != "" {
