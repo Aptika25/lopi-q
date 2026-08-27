@@ -73,7 +73,7 @@ func (h *UserHTTPHandler) HandleAdminUsers(w http.ResponseWriter, r *http.Reques
 			body.Permissions = []string{}
 		}
 
-		res, _ := h.userSvc.CreateUser(r.Context(), &userProto.CreateUserRequest{
+		res, err := h.userSvc.CreateUser(r.Context(), &userProto.CreateUserRequest{
 			Nip:         body.NIP,
 			Email:       body.Email,
 			Name:        body.Name,
@@ -83,7 +83,11 @@ func (h *UserHTTPHandler) HandleAdminUsers(w http.ResponseWriter, r *http.Reques
 			Permissions: body.Permissions,
 			Password:    body.Password,
 		})
-		if res != nil && res.Success {
+		if err != nil || res == nil {
+			middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": false, "error": "Gagal menambahkan user."})
+			return
+		}
+		if res.Success {
 			client.RecordActivityLog(1, "199501012020011000", "Muhammad Aswan", "CREATE_USER", fmt.Sprintf("Admin menambahkan pengguna baru: %s (NIP: %s, Role: %s)", body.Name, body.NIP, body.Role), client.GetClientIP(r), r.UserAgent())
 		}
 		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": res.Success, "user": res.User, "message": res.Message, "error": res.Error})

@@ -277,7 +277,7 @@ func (s *UserClientDirectStub) CreateUser(ctx context.Context, req *userProto.Cr
 	users = append(users, newUser)
 	saveUsersJSON(users, path)
 
-	go syncPostgresCreateUser(req, string(hash))
+	syncPostgresCreateUser(req, string(hash))
 
 	return &userProto.UserResponse{
 		Success: true,
@@ -320,7 +320,7 @@ func (s *UserClientDirectStub) UpdateUser(ctx context.Context, req *userProto.Up
 			}
 
 			saveUsersJSON(users, path)
-			go syncPostgresUpdateUser(&users[i])
+			syncPostgresUpdateUser(&users[i])
 
 			return &userProto.UserResponse{
 				Success: true,
@@ -342,7 +342,7 @@ func (s *UserClientDirectStub) ToggleActive(ctx context.Context, req *userProto.
 		if users[i].ID == int(req.Id) {
 			users[i].IsActive = req.IsActive
 			saveUsersJSON(users, path)
-			go syncPostgresToggleActive(users[i].Email, users[i].NIP, req.IsActive)
+			syncPostgresToggleActive(users[i].Email, users[i].NIP, req.IsActive)
 
 			return &userProto.UserResponse{
 				Success: true,
