@@ -151,6 +151,42 @@ services:
       - lopiq-network
       - app-global-net
 
+  attendance-migrate:
+    image: migrate/migrate
+    container_name: lopiq-attendance-migrate
+    volumes:
+      - ./services/attendance-service/migrations:/migrations
+    command: ["-path=/migrations", "-database=postgres://user_lopiq_attendance:lopiqattendancePassword%402k26%23@postgres_apps:5432/db_lopiq_attendance?sslmode=disable", "up"]
+    restart: on-failure
+    networks:
+      - lopiq-network
+      - app-global-net
+
+  attendance-service:
+    build:
+      context: .
+      dockerfile: deployments/docker/attendance-service/Dockerfile
+    container_name: lopiq-attendance-service
+    depends_on:
+      - attendance-migrate
+    ports:
+      - "50055:50055"
+    env_file:
+      - ./services/attendance-service/.env
+    environment:
+      - PORT=50055
+      - DB_TYPE=postgres
+      - DB_HOST=postgres_apps
+      - DB_PORT=5432
+      - DB_USER=user_lopiq_attendance
+      - DB_PASSWORD=lopiqattendancePassword@2k26#
+      - DB_NAME=db_lopiq_attendance
+      - DB_SSLMODE=disable
+    restart: unless-stopped
+    networks:
+      - lopiq-network
+      - app-global-net
+
   # ==============================
   # REST API GATEWAY
   # ==============================
@@ -164,6 +200,7 @@ services:
       - user-service
       - activity-service
       - reporting-service
+      - attendance-service
     ports:
       - "5000:5000"
     env_file:
@@ -175,6 +212,7 @@ services:
       - USER_SERVICE_ADDR=lopiq-user-service:50052
       - ACTIVITY_SERVICE_ADDR=lopiq-activity-service:50053
       - REPORTING_SERVICE_ADDR=lopiq-reporting-service:50054
+      - ATTENDANCE_SERVICE_ADDR=lopiq-attendance-service:50055
     restart: unless-stopped
     networks:
       - lopiq-network
