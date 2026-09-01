@@ -216,13 +216,14 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async fetchUsers() {
-      if (!this.token) return
+      const token = this.token || localStorage.getItem('garda_token') || ''
       try {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`
-        const response = await axios.get(`${API_BASE}/admin/users`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
-        if (response.data && response.data.users) {
+        const headers: any = {}
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`
+        }
+        const response = await axios.get(`${API_BASE}/admin/users`, { headers })
+        if (response.data && Array.isArray(response.data.users)) {
           this.usersList = response.data.users
         }
       } catch (err: any) {
@@ -235,9 +236,10 @@ export const useAuthStore = defineStore('auth', {
 
     async createUser(payload: any) {
       try {
+        const token = this.token || localStorage.getItem('garda_token') || ''
         const headers: any = {}
-        if (this.token) {
-          headers['Authorization'] = `Bearer ${this.token}`
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`
         }
         const response = await axios.post(`${API_BASE}/admin/users`, {
           nip: payload.nip || '',
@@ -250,6 +252,15 @@ export const useAuthStore = defineStore('auth', {
           permissions: payload.permissions || ['submit_attendance']
         }, { headers })
 
+        if (response.data && response.data.user) {
+          const newUser = response.data.user
+          const idx = this.usersList.findIndex((u: any) => u.email === newUser.email || (u.nip && u.nip === newUser.nip))
+          if (idx >= 0) {
+            this.usersList[idx] = newUser
+          } else {
+            this.usersList.unshift(newUser)
+          }
+        }
         await this.fetchUsers()
         return response.data || { success: true }
       } catch (err: any) {

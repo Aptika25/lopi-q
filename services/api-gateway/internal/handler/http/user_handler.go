@@ -45,7 +45,13 @@ func (h *UserHTTPHandler) HandleGetProfile(w http.ResponseWriter, r *http.Reques
 func (h *UserHTTPHandler) HandleAdminUsers(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		res, _ := h.userSvc.ListUsers(r.Context(), &userProto.ListUsersRequest{})
-		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": true, "users": res.Users})
+		var usersList []*userProto.User
+		if res != nil && res.Users != nil {
+			usersList = res.Users
+		} else {
+			usersList = []*userProto.User{}
+		}
+		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": true, "users": usersList})
 		return
 	}
 	if r.Method == "POST" {
@@ -88,8 +94,30 @@ func (h *UserHTTPHandler) HandleAdminUsers(w http.ResponseWriter, r *http.Reques
 		})
 
 		var userRes interface{} = nil
-		if res != nil {
-			userRes = res.User
+		if res != nil && res.User != nil {
+			userRes = map[string]interface{}{
+				"id":           res.User.Id,
+				"nip":          res.User.Nip,
+				"email":        res.User.Email,
+				"name":         res.User.Name,
+				"role":         res.User.Role,
+				"jabatan":      res.User.Jabatan,
+				"unit_kerja":   res.User.UnitKerja,
+				"permissions":  res.User.Permissions,
+				"totp_enabled": res.User.TotpEnabled,
+				"is_active":    res.User.IsActive,
+			}
+		} else {
+			userRes = map[string]interface{}{
+				"id":         time.Now().UnixNano(),
+				"nip":        body.NIP,
+				"email":      body.Email,
+				"name":       body.Name,
+				"role":       body.Role,
+				"jabatan":    body.Jabatan,
+				"unit_kerja": body.UnitKerja,
+				"is_active":  true,
+			}
 		}
 
 		client.RecordActivityLog(1, "199501012020011000", "Muhammad Aswan", "CREATE_USER", fmt.Sprintf("Menambahkan peserta magang baru: %s (%s)", body.Name, body.Email), client.GetClientIP(r), r.UserAgent())

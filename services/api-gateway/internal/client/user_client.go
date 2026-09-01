@@ -246,6 +246,51 @@ func (s *UserClientDirectStub) ListUsers(ctx context.Context, req *userProto.Lis
 	defer s.mu.Unlock()
 
 	users, _ := loadUsersJSON()
+
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		dbHost = "postgres_apps"
+	}
+
+	existingEmails := make(map[string]bool)
+	for _, u := range users {
+		existingEmails[strings.ToLower(u.Email)] = true
+	}
+
+	for _, conn := range getUserConnStrings(dbHost) {
+		if dbUser, err := sql.Open("postgres", conn); err == nil {
+			ctxQ, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			rows, errQ := dbUser.QueryContext(ctxQ, `SELECT id, nip, email, name, role, jabatan, unit_kerja, is_active FROM users;`)
+			if errQ == nil {
+				for rows.Next() {
+					var id int32
+					var nip, email, name, role, jabatan, unitKerja string
+					var isActive bool
+					if errS := rows.Scan(&id, &nip, &email, &name, &role, &jabatan, &unitKerja, &isActive); errS == nil {
+						cleanE := strings.ToLower(email)
+						if !existingEmails[cleanE] {
+							existingEmails[cleanE] = true
+							users = append(users, UserDataJSON{
+								ID:          int(id),
+								NIP:         nip,
+								Email:       email,
+								Name:        name,
+								Role:        role,
+								Jabatan:     jabatan,
+								UnitKerja:   unitKerja,
+								Permissions: []string{"submit_attendance"},
+								IsActive:    isActive,
+							})
+						}
+					}
+				}
+				rows.Close()
+			}
+			cancel()
+			dbUser.Close()
+		}
+	}
+
 	result := make([]*userProto.User, 0, len(users))
 	for i := range users {
 		result = append(result, s.toProtoUser(&users[i]))
@@ -262,17 +307,49 @@ func (s *UserClientDirectStub) CreateUser(ctx context.Context, req *userProto.Cr
 	defer s.mu.Unlock()
 
 	users, path := loadUsersJSON()
-	nextID := 1
-	for _, u := range users {
-		if u.ID >= nextID {
-			nextID = u.ID + 1
+
+	cleanEmail := strings.ToLower(strings.TrimSpace(req.Email))
+	cleanNIP := strings.ReplaceAll(req.Nip, " ", "")
+
+	var existingIdx = -1
+	for i := range users {
+		if strings.ToLower(users[i].Email) == cleanEmail || (cleanNIP != "" && strings.ReplaceAll(users[i].NIP, " ", "") == cleanNIP) {
+			existingIdx = i
+			break
 		}
 	}
 
 	hash, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	perms := req.Permissions
 	if perms == nil {
-		perms = []string{}
+		perms = []string{"submit_attendance"}
+	}
+
+	if existingIdx >= 0 {
+		users[existingIdx].Name = req.Name
+		users[existingIdx].NIP = req.Nip
+		users[existingIdx].Email = req.Email
+		users[existingIdx].Role = req.Role
+		users[existingIdx].Jabatan = req.Jabatan
+		users[existingIdx].UnitKerja = req.UnitKerja
+		users[existingIdx].PasswordHash = string(hash)
+		users[existingIdx].IsActive = true
+		saveUsersJSON(users, path)
+
+		syncPostgresCreateUser(req, string(hash))
+
+		return &userProto.UserResponse{
+			Success: true,
+			User:    s.toProtoUser(&users[existingIdx]),
+			Message: "Data akun peserta magang berhasil diperbarui.",
+		}, nil
+	}
+
+	nextID := 1
+	for _, u := range users {
+		if u.ID >= nextID {
+			nextID = u.ID + 1
+		}
 	}
 
 	newUser := UserDataJSON{
@@ -296,7 +373,7 @@ func (s *UserClientDirectStub) CreateUser(ctx context.Context, req *userProto.Cr
 	return &userProto.UserResponse{
 		Success: true,
 		User:    s.toProtoUser(&newUser),
-		Message: "User berhasil ditambahkan.",
+		Message: "Peserta magang berhasil ditambahkan.",
 	}, nil
 }
 
