@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AdminLayout>
     <div class="w-full space-y-6 select-none font-sans text-slate-800">
       
@@ -348,7 +348,7 @@ const initLeafletMap = () => {
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
-    attribution: '© OpenStreetMap'
+    attribution: 'Â© OpenStreetMap'
   }).addTo(mapInstance)
 
   markerInstance = L.marker([latitude.value, longitude.value], { draggable: true }).addTo(mapInstance)
@@ -476,3 +476,4 @@ onMounted(async () => {
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 .material-symbols-outlined.fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 </style>
+

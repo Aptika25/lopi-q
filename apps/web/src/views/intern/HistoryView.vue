@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <InternLayout>
     <div class="space-y-6 select-none font-sans w-full pb-28 sm:pb-8">
       <!-- Page Header -->
@@ -135,7 +135,7 @@
 
                 <div>
                   <span v-if="item.clockIn !== '--:--:--'" class="text-[10px] font-bold text-emerald-800 bg-white/90 px-2 py-0.5 rounded-md border border-emerald-200/70 inline-flex items-center gap-1 shadow-2xs">
-                    📍 {{ item.masukDistance }}
+                    ðŸ“ {{ item.masukDistance }}
                   </span>
                   <span v-else class="text-[10px] font-semibold text-slate-400 italic">
                     --
@@ -163,20 +163,20 @@
 
                 <div>
                   <span v-if="item.clockOut !== '--:--:--'" class="text-[10px] font-bold text-amber-800 bg-white/90 px-2 py-0.5 rounded-md border border-amber-200/70 inline-flex items-center gap-1 shadow-2xs">
-                    📍 {{ item.pulangDistance }}
+                    ðŸ“ {{ item.pulangDistance }}
                   </span>
                   <span v-else class="text-[10px] font-medium text-slate-400 bg-white/70 px-2 py-0.5 rounded-md border border-slate-200/60 inline-flex items-center gap-1">
-                    ⏳ Belum Scan
+                    â³ Belum Scan
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div v-if="filteredHistoryList.length === 0" class="py-10 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-            <div class="flex flex-col items-center gap-2">
-              <span class="material-symbols-outlined text-[36px] text-slate-300">history</span>
-              <span class="text-xs font-semibold">Tidak ada riwayat presensi yang sesuai dengan filter.</span>
+          <div v-if="filteredHistoryList.length === 0" class="py-6 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+            <div class="inline-flex items-center justify-center gap-1.5 text-xs text-slate-500 font-medium">
+              <span class="material-symbols-outlined text-slate-400" style="font-size: 14px !important;">info</span>
+              <span>Tidak ada riwayat presensi yang sesuai dengan filter.</span>
             </div>
           </div>
         </div>
@@ -203,21 +203,21 @@
                 <td class="py-3.5 px-4 font-mono whitespace-nowrap">
                   <div class="font-extrabold text-emerald-700">{{ item.clockIn }}</div>
                   <div v-if="item.clockIn !== '--:--:--'" class="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 inline-block mt-0.5">
-                    📍 {{ item.masukDistance }}
+                    ðŸ“ {{ item.masukDistance }}
                   </div>
                 </td>
                 <td class="py-3.5 px-4 font-mono whitespace-nowrap">
                   <div class="font-extrabold text-amber-700">{{ item.clockOut }}</div>
                   <div v-if="item.clockOut !== '--:--:--'" class="text-[10px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 inline-block mt-0.5">
-                    📍 {{ item.pulangDistance }}
+                    ðŸ“ {{ item.pulangDistance }}
                   </div>
                 </td>
               </tr>
               <tr v-if="filteredHistoryList.length === 0">
-                <td colspan="5" class="py-12 text-center text-slate-400">
-                  <div class="flex flex-col items-center gap-2">
-                    <span class="material-symbols-outlined text-[36px] text-slate-300">history</span>
-                    <span class="text-xs font-semibold">Tidak ada riwayat presensi yang sesuai dengan filter.</span>
+                <td colspan="5" class="py-6 text-center">
+                  <div class="inline-flex items-center justify-center gap-1.5 text-xs text-slate-500 font-medium">
+                    <span class="material-symbols-outlined text-slate-400" style="font-size: 14px !important;">info</span>
+                    <span>Tidak ada riwayat presensi yang sesuai dengan filter.</span>
                   </div>
                 </td>
               </tr>
@@ -565,3 +565,8 @@ onMounted(async () => {
 <style scoped>
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 </style>
+
+
+
+
+

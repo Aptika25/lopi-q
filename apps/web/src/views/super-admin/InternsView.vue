@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AdminLayout>
     <div class="w-full space-y-6 select-none font-sans text-slate-800">
       
@@ -145,9 +145,11 @@
 
                 <!-- Empty State -->
                 <tr v-if="filteredCallTakers.length === 0">
-                  <td colspan="6" class="py-12 text-center text-[#8a7176]">
-                    <span class="material-symbols-outlined text-4xl block mb-2 opacity-50">person_off</span>
-                    <span class="text-xs font-semibold">Tidak ada data peserta magang yang ditemukan.</span>
+                  <td colspan="6" class="py-6 text-center">
+                    <div class="inline-flex items-center justify-center gap-1.5 text-xs text-slate-500 font-medium">
+                      <span class="material-symbols-outlined text-slate-400" style="font-size: 14px !important;">info</span>
+                      <span>Tidak ada data peserta magang yang ditemukan.</span>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -499,3 +501,9 @@ const submitForm = async () => {
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 .material-symbols-outlined.fill { font-variation-settings: 'FILL' 1; }
 </style>
+
+
+
+
+
+

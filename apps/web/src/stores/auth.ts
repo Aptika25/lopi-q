@@ -42,10 +42,10 @@ export const useAuthStore = defineStore('auth', {
   },
 
   getters: {
-    isAuthenticated: (state) => !!state.token || !!localStorage.getItem('garda_token'),
-    isSuperAdmin: (state) => !state.user || state.user?.role === 'superadmin' || state.user?.role === 'admin' || state.user?.role === 'pembimbing',
-    isAdmin: (state) => !state.user || state.user?.role === 'superadmin' || state.user?.role === 'admin' || state.user?.role === 'pembimbing',
-    isIntern: (state) => state.user?.role === 'intern'
+    isAuthenticated: (state) => !!state.token,
+    isSuperAdmin: (state) => state.user?.role === 'superadmin',
+    isAdmin: (state) => state.user?.role === 'superadmin' || state.user?.role === 'admin',
+    isCallTaker: (state) => state.user?.role === 'call_taker'
   },
 
   actions: {
@@ -216,24 +216,25 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async fetchUsers() {
+      if (!this.token) return
       try {
-        const headers: any = {}
-        if (this.token) {
-          headers['Authorization'] = `Bearer ${this.token}`
+        axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`
+        const response = await axios.get(`${API_BASE}/admin/users`, {
+          headers: { Authorization: `Bearer ${this.token}` }
+        })
+        if (response.data && response.data.users) {
+          this.usersList = response.data.users
         }
-        const response = await axios.get(`${API_BASE}/admin/users`, { headers })
-        this.usersList = response.data.users || []
-      } catch (err) {
+      } catch (err: any) {
         console.error('[AuthStore] Fetch users failed:', err)
+        if (err.response && err.response.status === 401) {
+          this.logout()
+        }
       }
     },
 
     async createUser(payload: any) {
       try {
-        const headers: any = {}
-        if (this.token) {
-          headers['Authorization'] = `Bearer ${this.token}`
-        }
         const response = await axios.post(`${API_BASE}/admin/users`, {
           nip: payload.nip || '',
           email: payload.email,
@@ -241,42 +242,40 @@ export const useAuthStore = defineStore('auth', {
           name: payload.name,
           jabatan: payload.jabatan || '',
           unit_kerja: payload.unit_kerja || '',
-          role: payload.role || 'intern',
+          role: payload.role || 'admin',
           permissions: payload.permissions || []
-        }, { headers })
+        }, {
+          headers: { Authorization: `Bearer ${this.token}` }
+        })
         await this.fetchUsers()
         return response.data
       } catch (err: any) {
-        this.error = err.response?.data?.error || err.message || 'Gagal menambahkan user.'
-        return { success: false, error: this.error }
+        this.error = err.response?.data?.error || 'Gagal menambahkan user.'
+        throw err
       }
     },
 
     async updateUser(id: number, payload: any) {
       try {
-        const headers: any = {}
-        if (this.token) {
-          headers['Authorization'] = `Bearer ${this.token}`
-        }
         const response = await axios.put(`${API_BASE}/admin/users/${id}`, {
           nip: payload.nip || '',
-          email: payload.email,
-          name: payload.name,
+          email: payload.email || '',
+          name: payload.name || '',
           jabatan: payload.jabatan || '',
           unit_kerja: payload.unit_kerja || '',
-          role: payload.role || 'intern',
+          role: payload.role || 'admin',
           permissions: payload.permissions || [],
           password: payload.password || ''
-        }, { headers })
+        }, {
+          headers: { Authorization: `Bearer ${this.token}` }
+        })
         await this.fetchUsers()
         return response.data
       } catch (err: any) {
-        this.error = err.response?.data?.error || err.message || 'Gagal memperbarui user.'
-        return { success: false, error: this.error }
+        this.error = err.response?.data?.error || 'Gagal memperbarui user.'
+        throw err
       }
     },
-
-
 
     async toggleUserActive(id: number, isActive: boolean) {
       try {

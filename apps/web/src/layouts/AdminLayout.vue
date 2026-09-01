@@ -1,11 +1,11 @@
-<template>
-  <div class="min-h-screen bg-slate-50 text-slate-800 antialiased font-body flex select-none relative overflow-x-hidden">
+﻿<template>
+  <div class="min-h-screen bg-background text-on-surface antialiased font-body flex select-none relative overflow-x-hidden">
     
     <!-- Mobile Sidebar Backdrop Overlay -->
     <transition name="fade">
       <div 
         v-if="mobileMenuOpen" 
-        class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden" 
+        class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 lg:hidden" 
         @click="mobileMenuOpen = false"
       ></div>
     </transition>
@@ -14,22 +14,22 @@
     <aside 
       :class="[
         mobileMenuOpen ? 'translate-x-0' : '-translate-x-full',
-        'fixed inset-y-0 left-0 w-64 h-screen bg-white border-r border-slate-200/80 z-50 flex flex-col justify-between py-5 px-3 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:relative lg:inset-auto shrink-0'
+        'fixed inset-y-0 left-0 w-64 h-screen bg-surface border-r border-outline-variant/30 z-50 flex flex-col justify-between py-5 px-3 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:relative lg:inset-auto shrink-0'
       ]"
     >
       <!-- Branding with LOPI-Q Logo Icon -->
       <div class="px-3 mb-6">
         <router-link to="/admin" class="flex items-center space-x-3 text-on-surface decoration-none">
-          <div class="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-primary-container text-on-primary font-display font-black text-xl shadow-md shrink-0">
+          <div class="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-tr from-primary via-primary-container to-secondary text-on-primary font-display font-black text-xl shadow-md shrink-0">
             <span class="tracking-tighter">LQ</span>
             <span class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-fixed-dim opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-primary border-2 border-white"></span>
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white"></span>
             </span>
           </div>
           <div>
-            <h1 class="text-base font-display font-black text-on-surface tracking-tight leading-none">LOPI-<span class="text-primary">Q</span></h1>
-            <p class="text-[9px] font-bold text-primary tracking-wider uppercase mt-1">KABUPATEN BULUKUMBA</p>
+            <h1 class="text-base font-display font-black text-on-surface tracking-tight leading-none">LOPI<span class="text-primary">-Q</span></h1>
+            <p class="text-[9px] font-bold text-primary tracking-wider uppercase mt-1">PRESENSI MAGANG BULUKUMBA</p>
           </div>
         </router-link>
       </div>
@@ -54,7 +54,7 @@
             ]"
           >
             <span :class="['material-symbols-outlined text-[18px]', $route.path === '/admin' ? 'fill text-primary' : '']">dashboard</span>
-            <span>Dashboard Overview</span>
+            <span>Dashboard Utama</span>
           </router-link>
         </div>
 
@@ -113,7 +113,7 @@
       <!-- Bottom User Section & Logout -->
       <div class="border-t border-outline-variant/40 pt-3.5 flex flex-col gap-3">
         <div class="flex items-center gap-2.5 px-3">
-          <div class="h-9 w-9 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
+          <div class="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-primary-container text-on-primary flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
             {{ authStore.user?.name ? authStore.user.name.charAt(0).toUpperCase() : 'M' }}
           </div>
           <div class="flex flex-col justify-center min-w-0 text-left">
@@ -124,7 +124,7 @@
 
         <button 
           @click="handleLogout"
-          class="w-full py-2 px-3 bg-error-container/30 hover:bg-error text-error hover:text-on-error text-xs rounded-xl border border-error-container transition-all active:scale-[0.96] flex items-center justify-center gap-2 cursor-pointer duration-200 font-semibold"
+          class="w-full py-2 px-3 bg-red-500/10 hover:bg-red-600 text-red-600 hover:text-white text-xs rounded-xl border border-red-500/20 hover:border-red-600 transition-all active:scale-[0.96] flex items-center justify-center gap-2 cursor-pointer duration-200 font-semibold"
         >
           <span>Keluar Sesi</span>
           <span class="material-symbols-outlined text-[16px]">logout</span>
@@ -133,25 +133,25 @@
     </aside>
 
     <!-- Right Side: Header + Content Wrapper -->
-    <div class="flex-grow flex flex-col min-w-0 h-screen overflow-y-auto relative bg-slate-50">
+    <div class="flex-grow flex flex-col min-w-0 h-screen overflow-y-auto relative bg-background">
       
       <!-- Top Navbar -->
-      <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/60 py-3 px-6 flex items-center justify-between shadow-xs min-h-16">
+      <header class="sticky top-0 z-30 bg-surface/95 backdrop-blur-md border-b border-outline-variant/30 py-3 px-6 flex items-center justify-between shadow-xs min-h-16">
         
         <!-- Left side: Hamburger Toggle & Title -->
         <div class="flex items-center gap-3 text-left">
           <button 
             @click="mobileMenuOpen = !mobileMenuOpen" 
-            class="lg:hidden p-2 rounded-xl hover:bg-slate-100 transition-all active:scale-95 text-slate-600 cursor-pointer flex items-center justify-center border-0 bg-transparent"
+            class="lg:hidden p-2 rounded-xl hover:bg-surface-container-low transition-all active:scale-95 text-on-surface-variant cursor-pointer flex items-center justify-center border-0 bg-transparent"
           >
             <span class="material-symbols-outlined text-[22px]">menu</span>
           </button>
           
           <div>
-            <h2 class="text-sm md:text-base font-bold text-slate-900 capitalize leading-tight">
+            <h2 class="text-sm md:text-base font-bold text-on-surface capitalize leading-tight">
               {{ pageTitle }}
             </h2>
-            <div class="hidden md:flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+            <div class="hidden md:flex items-center gap-1 text-[10px] text-on-surface-variant font-medium">
               <span>Portal Admin</span>
               <span class="material-symbols-outlined text-[10px]">chevron_right</span>
               <span class="capitalize">{{ breadcrumbSub }}</span>
@@ -174,11 +174,11 @@
       </main>
 
       <!-- Footer -->
-      <footer class="mt-20 border-t border-slate-200/60 bg-white/80 backdrop-blur-md py-6">
+      <footer class="mt-20 border-t border-outline-variant/30 bg-surface/80 backdrop-blur-md py-6">
         <div class="max-w-7xl mx-auto px-4 md:px-10 xl:px-16 text-center text-xs">
-          <p class="text-slate-400 font-medium">
-            &copy; {{ new Date().getFullYear() }} <span class="font-semibold text-slate-800">LOPI-Q Kabupaten Bulukumba</span>. Developed by 
-            <a href="https://diskominfo.bulukumbakab.go.id" target="_blank" rel="noopener noreferrer" class="font-semibold text-rose-700 hover:underline">Diskominfo dan Persandian Kab. Bulukumba</a>.
+          <p class="text-on-surface-variant font-medium">
+            &copy; {{ new Date().getFullYear() }} <span class="font-semibold text-on-surface">LOPI-Q Kabupaten Bulukumba</span>. Developed by 
+            <a href="https://diskominfo.bulukumbakab.go.id" target="_blank" rel="noopener noreferrer" class="font-semibold text-primary hover:underline">Diskominfo dan Persandian Kab. Bulukumba</a>.
           </p>
         </div>
       </footer>
@@ -187,28 +187,28 @@
     <!-- ========== MODAL KONFIRMASI KELUAR SESI ========== -->
     <Teleport to="body">
       <div v-if="showLogoutModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200 select-none">
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 text-center space-y-4 animate-in zoom-in-95 duration-150">
+        <div class="bg-surface rounded-3xl border border-outline-variant/40 shadow-2xl max-w-sm w-full p-6 text-center space-y-4 animate-in zoom-in-95 duration-150">
           <div class="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-inner">
             <span class="material-symbols-outlined text-3xl">logout</span>
           </div>
           
           <div class="space-y-1">
-            <h3 class="text-base font-extrabold text-slate-900">Konfirmasi Keluar Sesi</h3>
-            <p class="text-xs text-slate-500 leading-relaxed">
-              Apakah Anda yakin ingin keluar dari akun <strong class="text-slate-800">{{ authStore.user?.name || 'Admin LOPI-Q' }}</strong>? Anda harus memasukkan kredensial login kembali untuk masuk.
+            <h3 class="text-base font-extrabold text-on-surface">Konfirmasi Keluar Sesi</h3>
+            <p class="text-xs text-on-surface-variant leading-relaxed">
+              Apakah Anda yakin ingin keluar dari akun <strong class="text-on-surface">{{ authStore.user?.name || 'Admin LOPI-Q' }}</strong>? Anda harus memasukkan kredensial login kembali untuk masuk.
             </p>
           </div>
 
           <div class="grid grid-cols-2 gap-2.5 pt-2">
             <button
               @click="showLogoutModal = false"
-              class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer border-0"
+              class="w-full py-2.5 px-4 bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-xs rounded-xl transition-all cursor-pointer border-0"
             >
               Batal
             </button>
             <button
               @click="executeLogout"
-              class="w-full py-2.5 px-4 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-extrabold text-xs rounded-xl shadow-md transition-all cursor-pointer border-0 active:scale-95"
+              class="w-full py-2.5 px-4 bg-gradient-to-r from-primary to-primary-container hover:opacity-90 text-on-primary font-extrabold text-xs rounded-xl shadow-md transition-all cursor-pointer border-0 active:scale-95"
             >
               Ya, Keluar
             </button>
@@ -233,30 +233,30 @@ const showLogoutModal = ref(false);
 const menuGroups = [
   {
     key: 'users',
-    title: 'Manajemen Pengguna',
-    icon: 'group',
+    title: 'Kelola Akun & Pengguna',
+    icon: 'manage_accounts',
     items: [
-      { to: '/admin/admins', label: 'Manajemen Admin', icon: 'admin_panel_settings' },
-      { to: '/admin/interns', label: 'Manajemen Peserta Magang', icon: 'support_agent' }
+      { to: '/admin/admins', label: 'Administrator & Pembimbing', icon: 'admin_panel_settings' },
+      { to: '/admin/interns', label: 'Peserta Magang / Intern', icon: 'groups' }
     ]
   },
   {
     key: 'attendance',
-    title: 'Kehadiran',
-    icon: 'how_to_reg',
+    title: 'Presensi & Aktivitas Magang',
+    icon: 'fact_check',
     items: [
-      { to: '/admin/attendance-recap', label: 'Rekapan Kehadiran', icon: 'description' },
-      { to: '/admin/location', label: 'Manajemen Lokasi & QR', icon: 'location_on' },
-      { to: '/admin/activities', label: 'Aktivitas', icon: 'history_edu' }
+      { to: '/admin/attendance-recap', label: 'Rekapitulasi Kehadiran', icon: 'assignment' },
+      { to: '/admin/location', label: 'Lokasi & QR Code Presensi', icon: 'distance' },
+      { to: '/admin/activities', label: 'Jurnal & Laporan Aktivitas', icon: 'article' }
     ]
   },
   {
     key: 'security',
-    title: 'Keamanan & Audit',
-    icon: 'verified_user',
+    title: 'Keamanan & Audit Sistem',
+    icon: 'security',
     items: [
-      { to: '/admin/activity-logs', label: 'Log Aktivitas', icon: 'history' },
-      { to: '/admin/security', label: 'Pengaturan Keamanan', icon: 'shield' }
+      { to: '/admin/activity-logs', label: 'Log Audit Aktivitas', icon: 'history_toggle_off' },
+      { to: '/admin/security', label: 'Konfigurasi Keamanan & 2FA', icon: 'shield' }
     ]
   }
 ];
@@ -287,24 +287,24 @@ function isGroupActive(group) {
 
 const pageTitle = computed(() => {
   const path = route.path;
-  if (path === '/admin/admins') return 'Manajemen Admin';
-  if (path === '/admin/interns') return 'Manajemen Peserta Magang';
-  if (path === '/admin/attendance-recap') return 'Rekapan Kehadiran';
-  if (path === '/admin/location') return 'Manajemen Lokasi & QR';
-  if (path === '/admin/activities') return 'Jurnal Aktivitas Intern';
-  if (path === '/admin/activity-logs') return 'Log Aktivitas';
-  if (path === '/admin/security') return 'Pengaturan Keamanan';
+  if (path === '/admin/admins') return 'Administrator & Pembimbing';
+  if (path === '/admin/interns') return 'Peserta Magang / Intern';
+  if (path === '/admin/attendance-recap') return 'Rekapitulasi Kehadiran';
+  if (path === '/admin/location') return 'Lokasi & QR Code Presensi';
+  if (path === '/admin/activities') return 'Jurnal & Laporan Aktivitas';
+  if (path === '/admin/activity-logs') return 'Log Audit Aktivitas';
+  if (path === '/admin/security') return 'Konfigurasi Keamanan & 2FA';
   return 'Dashboard Utama';
 });
 
 const breadcrumbSub = computed(() => {
   const path = route.path;
-  if (path === '/admin/admins') return 'Manajemen Admin';
-  if (path === '/admin/interns') return 'Peserta Magang';
+  if (path === '/admin/admins') return 'Admin';
+  if (path === '/admin/interns') return 'Intern';
   if (path === '/admin/attendance-recap') return 'Presensi';
   if (path === '/admin/location') return 'Geofence';
-  if (path === '/admin/activities') return 'Aktivitas';
-  if (path === '/admin/activity-logs') return 'Audit Trail';
+  if (path === '/admin/activities') return 'Jurnal';
+  if (path === '/admin/activity-logs') return 'Audit';
   if (path === '/admin/security') return 'Keamanan';
   return 'Dashboard';
 });
@@ -321,20 +321,20 @@ function executeLogout() {
 </script>
 
 <style scoped>
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+}
+.material-symbols-outlined.fill {
+  font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;
 }
+
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-
-.material-symbols-outlined.fill {
-  font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
 }
 </style>

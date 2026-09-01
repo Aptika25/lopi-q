@@ -2,8 +2,9 @@ package client
 
 import (
 	"context"
-	"crypto/sha256"
+	"crypto/rand"
 	"database/sql"
+	"encoding/base32"
 	_ "encoding/json"
 	"fmt"
 	"net/url"
@@ -92,10 +93,10 @@ func findUsersJSONPath() string {
 }
 
 func getSeedUsersJSON() []UserDataJSON {
-	aswanHash, _ := bcrypt.GenerateFromPassword([]byte("Asw&a198"), bcrypt.DefaultCost)
-	defaultInternHash, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+	superAdminHash := "$2a$10$EwQk2ADnVXXIVSSSueM4sOnO9Py1TQB0l5Bynadgn1Ke7TXT6W/vO"
+	callTakerHash := superAdminHash
 
-	return []UserDataJSON{
+	users := []UserDataJSON{
 		{
 			ID:           1,
 			NIP:          "199708192025061003",
@@ -104,70 +105,102 @@ func getSeedUsersJSON() []UserDataJSON {
 			Role:         "superadmin",
 			Jabatan:      "JF Pranata Komputer Ahli Pertama",
 			UnitKerja:    "Diskominfo Kab. Bulukumba",
-			PasswordHash: string(aswanHash),
+			PasswordHash: superAdminHash,
 			Permissions:  []string{"manage_users", "manage_attendance", "manage_locations", "view_reports"},
 			IsActive:     true,
 		},
-		{
-			ID:           101,
-			NIP:          "0051234567",
-			Email:        "admin@example.com",
-			Name:         "Sarah Jenkins",
-			Role:         "intern",
-			Jabatan:      "SMK Negeri 1 Bulukumba",
-			UnitKerja:    "Rekayasa Perangkat Lunak",
-			PasswordHash: string(defaultInternHash),
-			Permissions:  []string{"submit_attendance"},
-			IsActive:     true,
-		},
-		{
-			ID:           102,
-			NIP:          "2024001",
-			Email:        "hikma@gmail.com",
-			Name:         "Hikma",
-			Role:         "intern",
-			Jabatan:      "Universitas Negeri Makassar",
-			UnitKerja:    "Product Design",
-			PasswordHash: string(defaultInternHash),
-			Permissions:  []string{"submit_attendance"},
-			IsActive:     true,
-		},
-		{
-			ID:           103,
-			NIP:          "2024002",
-			Email:        "budi@gmail.com",
-			Name:         "Budi Santoso",
-			Role:         "intern",
-			Jabatan:      "SMK Negeri 1 Bulukumba",
-			UnitKerja:    "Frontend Dev",
-			PasswordHash: string(defaultInternHash),
-			Permissions:  []string{"submit_attendance"},
-			IsActive:     true,
-		},
 	}
+
+	seeds := []struct {
+		id                              int
+		nip, email, name, jabatan, unit string
+	}{
+		{2, "19940503202521 1 138", "amappalua@bulukumbakab.go.id", "A.Mappalua, S.Pd", "PENATA LAYANAN OPERASIONAL", "Dinas Sosial"},
+		{3, "19870304202521 1 061", "suherman@bulukumbakab.go.id", "Suherman, S.Pd", "PENATA LAYANAN OPERASIONAL", "Badan Penanggulangan Bencana Daerah"},
+		{4, "20000206202521 1 166", "riswandirisman@bulukumbakab.go.id", "Riswandi Risman", "OPERATOR LAYANAN OPERASIONAL", "Dinas Kesehatan"},
+		{5, "19900215202521 1 114", "abilkizri@bulukumbakab.go.id", "Abil Kizri", "OPERATOR LAYANAN OPERASIONAL", "Dinas Perhubungan"},
+		{6, "19911005202521 1 087", "imamardiyansah@bulukumbakab.go.id", "Imam Ardiyansah", "OPERATOR LAYANAN OPERASIONAL", "Satpol, Pemadam Kebakaran dan Penyelamatan"},
+		{7, "19861130202521 1 101", "abdrahim@bulukumbakab.go.id", "Abd.Rahim", "OPERATOR LAYANAN OPERASIONAL", "Dinas Sosial"},
+		{8, "19860304202521 1 147", "munawir@bulukumbakab.go.id", "Munawir Syadzali", "PENATA LAYANAN OPERASIONAL", "Badan Penanggulangan Bencana Daerah"},
+		{9, "19760802200604 1 017", "abdullah@bulukumbakab.go.id", "Abdullah, S.Kep., Ns", "PERENCANA", "Dinas Kesehatan"},
+		{10, "19860712202521 1 089", "ismail@bulukumbakab.go.id", "Ismail, S.Sos", "PENATA LAYANAN OPERASIONAL", "Dinas Perhubungan"},
+		{11, "19960328202521 1 050", "aldiafdal@bulukumbakab.go.id", "Aldi Afdali Saputra", "OPERATOR LAYANAN OPERASIONAL", "Satpol, Pemadam Kebakaran dan Penyelamatan"},
+	}
+
+	for _, s := range seeds {
+		users = append(users, UserDataJSON{
+			ID:           s.id,
+			NIP:          s.nip,
+			Email:        s.email,
+			Name:         s.name,
+			Role:         "call_taker",
+			Jabatan:      s.jabatan,
+			UnitKerja:    s.unit,
+			PasswordHash: string(callTakerHash),
+			Permissions:  []string{"submit_attendance"},
+			IsActive:     true,
+		})
+	}
+
+	return users
+}
+
+func getAuthConnStrings(dbHost string) []string {
+	envUser := os.Getenv("DB_USER")
+	envPass := os.Getenv("DB_PASSWORD")
+	envDB := os.Getenv("DB_NAME")
+
+	var conns []string
+	if envUser != "" && envPass != "" && envDB != "" {
+		conns = append(conns, fmt.Sprintf("host=%s port=5432 user=%s password=%s dbname=%s sslmode=disable", dbHost, envUser, envPass, envDB))
+	}
+	conns = append(conns,
+		fmt.Sprintf("host=%s port=5432 user=user_lopiq_auth password=lopiqauthPassword@2k26# dbname=db_lopiq_auth sslmode=disable", dbHost),
+		fmt.Sprintf("host=%s port=5432 user=user_garda112_auth password=garda112authPassword@2k26# dbname=db_garda112_auth sslmode=disable", dbHost),
+	)
+	return conns
+}
+
+func getUserConnStrings(dbHost string) []string {
+	var conns []string
+	conns = append(conns,
+		fmt.Sprintf("host=%s port=5432 user=user_lopiq_user password=lopiquserPassword@2k26# dbname=db_lopiq_user sslmode=disable", dbHost),
+		fmt.Sprintf("host=%s port=5432 user=user_garda112_user password=garda112userPassword@2k26# dbname=db_garda112_user sslmode=disable", dbHost),
+	)
+	return conns
 }
 
 func fetchPostgresUsers() ([]UserDataJSON, bool) {
-	// 1. Fetch profile info (jabatan, unit_kerja, name, nip) from db_lopiq_user
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		dbHost = "postgres_apps"
+	}
+
+	// 1. Fetch profile info (jabatan, unit_kerja, name, nip) from db_lopiq_user / db_garda112_user
 	userProfileMap := make(map[string]UserDataJSON)
-	if dbUser := openDBUserClient(); dbUser != nil {
-		defer dbUser.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-		defer cancel()
-		rows, err := dbUser.QueryContext(ctx, "SELECT id, COALESCE(nip, ''), email, name, role, COALESCE(jabatan, ''), COALESCE(unit_kerja, ''), COALESCE(is_active, true) FROM users;")
-		if err == nil {
-			for rows.Next() {
-				var u UserDataJSON
-				if err := rows.Scan(&u.ID, &u.NIP, &u.Email, &u.Name, &u.Role, &u.Jabatan, &u.UnitKerja, &u.IsActive); err == nil {
-					if u.Email != "" {
-						userProfileMap[strings.ToLower(u.Email)] = u
-					}
-					if u.NIP != "" {
-						userProfileMap[strings.ReplaceAll(u.NIP, " ", "")] = u
+	for _, userConn := range getUserConnStrings(dbHost) {
+		if dbUser, err := sql.Open("postgres", userConn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 600*time.Millisecond)
+			rows, err := dbUser.QueryContext(ctx, "SELECT id, COALESCE(nip, ''), email, name, role, COALESCE(jabatan, ''), COALESCE(unit_kerja, ''), COALESCE(is_active, true) FROM users;")
+			if err == nil {
+				for rows.Next() {
+					var u UserDataJSON
+					if err := rows.Scan(&u.ID, &u.NIP, &u.Email, &u.Name, &u.Role, &u.Jabatan, &u.UnitKerja, &u.IsActive); err == nil {
+						if u.Email != "" {
+							userProfileMap[strings.ToLower(u.Email)] = u
+						}
+						if u.NIP != "" {
+							userProfileMap[strings.ReplaceAll(u.NIP, " ", "")] = u
+						}
 					}
 				}
+				rows.Close()
+				cancel()
+				dbUser.Close()
+				break
 			}
-			rows.Close()
+			cancel()
+			dbUser.Close()
 		}
 	}
 
@@ -182,78 +215,81 @@ func fetchPostgresUsers() ([]UserDataJSON, bool) {
 		}
 	}
 
-	// 3. Query auth_users from db_lopiq_auth
-	db := openDBAuthClient()
-	if db == nil {
-		return nil, false
-	}
-	defer db.Close()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	_, _ = db.ExecContext(ctx, `UPDATE auth_users SET totp_enabled = true WHERE totp_secret IS NOT NULL AND totp_secret <> '' AND (totp_enabled IS FALSE OR totp_enabled IS NULL);`)
-
-	rows, err := db.QueryContext(ctx, "SELECT id, COALESCE(nip, ''), email, name, role, COALESCE(jabatan, ''), COALESCE(unit_kerja, ''), password, COALESCE(totp_secret, ''), (COALESCE(totp_enabled, false) OR (totp_secret IS NOT NULL AND totp_secret <> '')), COALESCE(is_active, true) FROM auth_users ORDER BY id;")
-	if err != nil {
-		return nil, false
-	}
-
+	// 3. Query auth_users from db_lopiq_auth / db_garda112_auth
 	var loaded []UserDataJSON
-	for rows.Next() {
-		var u UserDataJSON
-		if err := rows.Scan(&u.ID, &u.NIP, &u.Email, &u.Name, &u.Role, &u.Jabatan, &u.UnitKerja, &u.PasswordHash, &u.TotpSecret, &u.TotpEnabled, &u.IsActive); err == nil {
-			if u.TotpSecret != "" {
-				u.TotpEnabled = true
-			}
-			emailKey := strings.ToLower(u.Email)
-			nipKey := strings.ReplaceAll(u.NIP, " ", "")
+	for _, conn := range getAuthConnStrings(dbHost) {
+		db, err := sql.Open("postgres", conn)
+		if err != nil {
+			continue
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 600*time.Millisecond)
+		_, _ = db.ExecContext(ctx, `UPDATE auth_users SET totp_enabled = true WHERE totp_secret IS NOT NULL AND totp_secret <> '' AND (totp_enabled IS FALSE OR totp_enabled IS NULL);`)
+		rows, err := db.QueryContext(ctx, "SELECT id, COALESCE(nip, ''), email, name, role, COALESCE(jabatan, ''), COALESCE(unit_kerja, ''), password, COALESCE(totp_secret, ''), (COALESCE(totp_enabled, false) OR (totp_secret IS NOT NULL AND totp_secret <> '')), COALESCE(is_active, true) FROM auth_users ORDER BY id;")
+		if err == nil {
+			for rows.Next() {
+				var u UserDataJSON
+				if err := rows.Scan(&u.ID, &u.NIP, &u.Email, &u.Name, &u.Role, &u.Jabatan, &u.UnitKerja, &u.PasswordHash, &u.TotpSecret, &u.TotpEnabled, &u.IsActive); err == nil {
+					if u.TotpSecret != "" {
+						u.TotpEnabled = true
+					}
+					emailKey := strings.ToLower(u.Email)
+					nipKey := strings.ReplaceAll(u.NIP, " ", "")
 
-			// Merge profile info from db_lopiq_user if available
-			if profile, ok := userProfileMap[emailKey]; ok {
-				if u.Jabatan == "" && profile.Jabatan != "" {
-					u.Jabatan = profile.Jabatan
-				}
-				if u.UnitKerja == "" && profile.UnitKerja != "" {
-					u.UnitKerja = profile.UnitKerja
-				}
-			} else if profile, ok := userProfileMap[nipKey]; ok {
-				if u.Jabatan == "" && profile.Jabatan != "" {
-					u.Jabatan = profile.Jabatan
-				}
-				if u.UnitKerja == "" && profile.UnitKerja != "" {
-					u.UnitKerja = profile.UnitKerja
-				}
-			}
+					// Merge profile info from db_lopiq_user if available
+					if profile, ok := userProfileMap[emailKey]; ok {
+						if u.Jabatan == "" && profile.Jabatan != "" {
+							u.Jabatan = profile.Jabatan
+						}
+						if u.UnitKerja == "" && profile.UnitKerja != "" {
+							u.UnitKerja = profile.UnitKerja
+						}
+					} else if profile, ok := userProfileMap[nipKey]; ok {
+						if u.Jabatan == "" && profile.Jabatan != "" {
+							u.Jabatan = profile.Jabatan
+						}
+						if u.UnitKerja == "" && profile.UnitKerja != "" {
+							u.UnitKerja = profile.UnitKerja
+						}
+					}
 
-			// Merge seed defaults if still empty
-			if seed, ok := seedMap[emailKey]; ok {
-				if u.Jabatan == "" {
-					u.Jabatan = seed.Jabatan
-				}
-				if u.UnitKerja == "" {
-					u.UnitKerja = seed.UnitKerja
-				}
-			} else if seed, ok := seedMap[nipKey]; ok {
-				if u.Jabatan == "" {
-					u.Jabatan = seed.Jabatan
-				}
-				if u.UnitKerja == "" {
-					u.UnitKerja = seed.UnitKerja
-				}
-			}
+					// Merge seed defaults if still empty
+					if seed, ok := seedMap[emailKey]; ok {
+						if u.Jabatan == "" {
+							u.Jabatan = seed.Jabatan
+						}
+						if u.UnitKerja == "" {
+							u.UnitKerja = seed.UnitKerja
+						}
+					} else if seed, ok := seedMap[nipKey]; ok {
+						if u.Jabatan == "" {
+							u.Jabatan = seed.Jabatan
+						}
+						if u.UnitKerja == "" {
+							u.UnitKerja = seed.UnitKerja
+						}
+					}
 
-			if u.Role == "superadmin" {
-				u.Permissions = []string{"manage_users", "manage_attendance", "manage_locations", "view_reports"}
-			} else if u.Role == "admin" {
-				u.Permissions = []string{"manage_attendance", "manage_locations", "view_reports"}
-			} else {
-				u.Permissions = []string{"submit_attendance"}
+					if u.Role == "superadmin" {
+						u.Permissions = []string{"manage_users", "manage_attendance", "manage_locations", "view_reports"}
+					} else if u.Role == "admin" {
+						u.Permissions = []string{"manage_attendance", "manage_locations", "view_reports"}
+					} else {
+						u.Permissions = []string{"submit_attendance"}
+					}
+					loaded = append(loaded, u)
+				}
 			}
-			loaded = append(loaded, u)
+			rows.Close()
+			cancel()
+			db.Close()
+			if len(loaded) > 0 {
+				break
+			}
+		} else {
+			cancel()
+			db.Close()
 		}
 	}
-	rows.Close()
 
 	if len(loaded) == 0 {
 		// Auto-seed PostgreSQL auth_users & users tables if empty
@@ -301,20 +337,6 @@ func (s *AuthClientDirectStub) Login(ctx context.Context, req *authProto.LoginRe
 		}
 	}
 
-	// Direct database query fallback if user is not found in preloaded list
-	if matchedUser == nil {
-		if dbAuth := openDBAuthClient(); dbAuth != nil {
-			defer dbAuth.Close()
-			var u UserDataJSON
-			ctxQuery, cancel := context.WithTimeout(ctx, 3*time.Second)
-			defer cancel()
-			row := dbAuth.QueryRowContext(ctxQuery, "SELECT id, COALESCE(nip,''), email, name, role, COALESCE(jabatan,''), COALESCE(unit_kerja,''), password, COALESCE(totp_secret,''), (COALESCE(totp_enabled, false) OR (totp_secret IS NOT NULL AND totp_secret <> '')), COALESCE(is_active, true) FROM auth_users WHERE LOWER(email)=$1 OR (nip <> '' AND REPLACE(nip,' ','')=$2);", cleanID, cleanNIP)
-			if errScan := row.Scan(&u.ID, &u.NIP, &u.Email, &u.Name, &u.Role, &u.Jabatan, &u.UnitKerja, &u.PasswordHash, &u.TotpSecret, &u.TotpEnabled, &u.IsActive); errScan == nil {
-				matchedUser = &u
-			}
-		}
-	}
-
 	if matchedUser == nil {
 		// Fallback for default superadmin
 		if cleanID == "aswan@bulukumbakab.go.id" || cleanNIP == "199501012020011000" {
@@ -322,7 +344,7 @@ func (s *AuthClientDirectStub) Login(ctx context.Context, req *authProto.LoginRe
 			return &authProto.LoginResponse{
 				Success:          true,
 				OtpRequired:      true,
-				OtpSetupRequired: true,
+				OtpSetupRequired: false,
 				TempToken:        tempToken,
 				UserId:           1,
 				Role:             "superadmin",
@@ -336,39 +358,25 @@ func (s *AuthClientDirectStub) Login(ctx context.Context, req *authProto.LoginRe
 	if !matchedUser.IsActive {
 		return &authProto.LoginResponse{
 			Success: false,
-			Error:   "Akun Anda telah dinonaktifkan oleh Administrator. Silakan hubungi Super Admin.",
+			Error:   "Akun Anda telah dinonaktifkan oleh Administrator Posko 112. Silakan hubungi Super Admin.",
 		}, nil
 	}
 
 	if matchedUser.PasswordHash != "" {
 		if err := bcrypt.CompareHashAndPassword([]byte(matchedUser.PasswordHash), []byte(req.Password)); err != nil {
-			if matchedUser.PasswordHash != req.Password {
-				return &authProto.LoginResponse{Success: false, Error: "NIP / Email Dinas atau password salah."}, nil
-			}
+			return &authProto.LoginResponse{Success: false, Error: "NIP / Email Dinas atau password salah."}, nil
 		}
-	}
-
-	// Direct Login for Interns (and any non-superadmin users without TOTP secret)
-	if (matchedUser.Role == "intern" || !matchedUser.TotpEnabled) && matchedUser.Role != "superadmin" {
-		token, _ := jwt.GenerateToken(matchedUser.ID, matchedUser.NIP, matchedUser.Role, 24*time.Hour)
-		return &authProto.LoginResponse{
-			Success:          true,
-			OtpRequired:      false,
-			OtpSetupRequired: false,
-			Token:            token,
-			UserId:           int32(matchedUser.ID),
-			Role:             matchedUser.Role,
-			Nip:              matchedUser.NIP,
-			Name:             matchedUser.Name,
-		}, nil
 	}
 
 	tempToken, _ := jwt.GenerateTempToken(matchedUser.ID, 15*time.Minute)
 
+	// Require 2FA Setup ONLY if neither totp_enabled nor totp_secret is set
+	is2FASetup := !(matchedUser.TotpEnabled || matchedUser.TotpSecret != "")
+
 	return &authProto.LoginResponse{
 		Success:          true,
 		OtpRequired:      true,
-		OtpSetupRequired: !matchedUser.TotpEnabled,
+		OtpSetupRequired: is2FASetup,
 		TempToken:        tempToken,
 		UserId:           int32(matchedUser.ID),
 		Role:             matchedUser.Role,
@@ -425,14 +433,12 @@ func (s *AuthClientDirectStub) Verify2FA(ctx context.Context, req *authProto.Ver
 }
 
 func generateUniqueBase32Secret(userID int, email string) string {
-	const b32Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
-	hash := sha256.Sum256([]byte(fmt.Sprintf("lopi-q-secret-seed-%d-%s", userID, email)))
-	var sb strings.Builder
-	for i := 0; i < 16; i++ {
-		idx := int(hash[i]) % len(b32Alphabet)
-		sb.WriteByte(b32Alphabet[idx])
+	b := make([]byte, 10)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "JBSWY3DPEHPK3PXP"
 	}
-	return sb.String()
+	return base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(b)
 }
 
 func (s *AuthClientDirectStub) Setup2FA(ctx context.Context, req *authProto.Setup2FARequest) (*authProto.Setup2FAResponse, error) {
@@ -493,20 +499,22 @@ func syncPostgresTotpSecret(email, nip, secret string) {
 		dbHost = "postgres_apps"
 	}
 
-	authConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_auth password=lopiqauthPassword@2k26# dbname=db_lopiq_auth sslmode=disable", dbHost)
-	if dbAuth, err := sql.Open("postgres", authConn); err == nil {
-		defer dbAuth.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		_, _ = dbAuth.ExecContext(ctx, `UPDATE auth_users SET totp_secret=$1 WHERE email=$2 OR nip=$3;`, secret, email, nip)
+	for _, conn := range getAuthConnStrings(dbHost) {
+		if dbAuth, err := sql.Open("postgres", conn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			_, _ = dbAuth.ExecContext(ctx, `UPDATE auth_users SET totp_secret=$1 WHERE LOWER(email)=LOWER($2) OR REPLACE(nip, ' ', '')=REPLACE($3, ' ', '');`, secret, email, nip)
+			cancel()
+			dbAuth.Close()
+		}
 	}
 
-	userConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_user password=lopiquserPassword@2k26# dbname=db_lopiq_user sslmode=disable", dbHost)
-	if dbUser, err := sql.Open("postgres", userConn); err == nil {
-		defer dbUser.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		_, _ = dbUser.ExecContext(ctx, `UPDATE users SET totp_secret=$1 WHERE email=$2 OR nip=$3;`, secret, email, nip)
+	for _, conn := range getUserConnStrings(dbHost) {
+		if dbUser, err := sql.Open("postgres", conn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			_, _ = dbUser.ExecContext(ctx, `UPDATE users SET totp_secret=$1 WHERE LOWER(email)=LOWER($2) OR REPLACE(nip, ' ', '')=REPLACE($3, ' ', '');`, secret, email, nip)
+			cancel()
+			dbUser.Close()
+		}
 	}
 }
 
@@ -559,20 +567,22 @@ func syncPostgres2FAEnabled(email, nip string, enabled bool) {
 		dbHost = "postgres_apps"
 	}
 
-	authConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_auth password=lopiqauthPassword@2k26# dbname=db_lopiq_auth sslmode=disable", dbHost)
-	if dbAuth, err := sql.Open("postgres", authConn); err == nil {
-		defer dbAuth.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		_, _ = dbAuth.ExecContext(ctx, `UPDATE auth_users SET totp_enabled=$1 WHERE email=$2 OR nip=$3;`, enabled, email, nip)
+	for _, conn := range getAuthConnStrings(dbHost) {
+		if dbAuth, err := sql.Open("postgres", conn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			_, _ = dbAuth.ExecContext(ctx, `UPDATE auth_users SET totp_enabled=$1 WHERE LOWER(email)=LOWER($2) OR REPLACE(nip, ' ', '')=REPLACE($3, ' ', '');`, enabled, email, nip)
+			cancel()
+			dbAuth.Close()
+		}
 	}
 
-	userConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_user password=lopiquserPassword@2k26# dbname=db_lopiq_user sslmode=disable", dbHost)
-	if dbUser, err := sql.Open("postgres", userConn); err == nil {
-		defer dbUser.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		_, _ = dbUser.ExecContext(ctx, `UPDATE users SET totp_enabled=$1 WHERE email=$2 OR nip=$3;`, enabled, email, nip)
+	for _, conn := range getUserConnStrings(dbHost) {
+		if dbUser, err := sql.Open("postgres", conn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			_, _ = dbUser.ExecContext(ctx, `UPDATE users SET totp_enabled=$1 WHERE LOWER(email)=LOWER($2) OR REPLACE(nip, ' ', '')=REPLACE($3, ' ', '');`, enabled, email, nip)
+			cancel()
+			dbUser.Close()
+		}
 	}
 }
 

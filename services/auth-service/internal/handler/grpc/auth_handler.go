@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -38,7 +39,7 @@ func generateBackupCodes(count int) []string {
 func (h *AuthHandler) Login(ctx context.Context, req *auth.LoginRequest) (*auth.LoginResponse, error) {
 	u := h.repo.FindByIdentifier(req.Identifier)
 	if u == nil {
-		return &auth.LoginResponse{Success: false, Error: "Email atau password salah."}, nil
+		return &auth.LoginResponse{Success: false, Error: "NIP / Email Dinas atau password salah."}, nil
 	}
 
 	if !u.IsActive {
@@ -47,26 +48,12 @@ func (h *AuthHandler) Login(ctx context.Context, req *auth.LoginRequest) (*auth.
 
 	err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(req.Password))
 	if err != nil {
-		return &auth.LoginResponse{Success: false, Error: "Email atau password salah."}, nil
-	}
-
-	if u.Role == "intern" && !u.TotpEnabled {
-		token, _ := jwt.GenerateToken(u.ID, u.NIP, u.Role, 24*time.Hour)
-		return &auth.LoginResponse{
-			Success:          true,
-			OtpRequired:      false,
-			OtpSetupRequired: false,
-			Token:            token,
-			UserId:           int32(u.ID),
-			Role:             u.Role,
-			Nip:              u.NIP,
-			Name:             u.Name,
-		}, nil
+		return &auth.LoginResponse{Success: false, Error: "NIP / Email Dinas atau password salah."}, nil
 	}
 
 	tempToken, _ := jwt.GenerateTempToken(u.ID, 15*time.Minute)
 
-	if u.TotpEnabled && u.TotpSecret != "" {
+	if u.TotpEnabled || u.TotpSecret != "" {
 		return &auth.LoginResponse{
 			Success:          true,
 			OtpRequired:      true,
@@ -141,21 +128,32 @@ func (h *AuthHandler) Setup2FA(ctx context.Context, req *auth.Setup2FARequest) (
 		return &auth.Setup2FAResponse{Success: false, Error: "User tidak ditemukan."}, nil
 	}
 
-	key, err := totp.Generate(totp.GenerateOpts{
-		Issuer:      "LOPI-Q BULUKUMBA",
-		AccountName: fmt.Sprintf("%s (%s)", user.Name, user.NIP),
-	})
-	if err != nil {
-		return &auth.Setup2FAResponse{Success: false, Error: "Gagal generate secret 2FA."}, nil
+	accountIdentifier := user.Email
+	if accountIdentifier == "" {
+		accountIdentifier = user.NIP
 	}
 
-	user.TotpSecret = key.Secret()
-	h.repo.Save(user)
+	secret := user.TotpSecret
+	if secret == "" {
+		key, err := totp.Generate(totp.GenerateOpts{
+			Issuer:      "LOPI-Q BULUKUMBA",
+			AccountName: accountIdentifier,
+		})
+		if err != nil {
+			return &auth.Setup2FAResponse{Success: false, Error: "Gagal generate secret 2FA."}, nil
+		}
+		secret = key.Secret()
+		user.TotpSecret = secret
+		h.repo.Save(user)
+	}
+
+	escapedAccount := url.QueryEscape(accountIdentifier)
+	otpUrl := fmt.Sprintf("otpauth://totp/LOPI-Q%%20BULUKUMBA:%s?secret=%s&issuer=LOPI-Q%%20BULUKUMBA", escapedAccount, secret)
 
 	return &auth.Setup2FAResponse{
 		Success:    true,
-		Secret:     key.Secret(),
-		OtpauthUrl: key.URL(),
+		Secret:     secret,
+		OtpauthUrl: otpUrl,
 	}, nil
 }
 
