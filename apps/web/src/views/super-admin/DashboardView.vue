@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <AdminLayout>
     <div class="space-y-6 select-none font-sans text-slate-800">
       
@@ -30,7 +30,7 @@
             <span class="text-[11px] font-bold uppercase text-[#574146] bg-slate-100 px-2.5 py-1 rounded-full">Active</span>
           </div>
           <div>
-            <h3 class="text-3xl font-extrabold text-[#1b1c1c] mb-1">10 Petugas</h3>
+            <h3 class="text-3xl font-extrabold text-[#1b1c1c] mb-1">{{ totalInternsCount }} Petugas</h3>
             <p class="text-xs text-[#574146]">Total Peserta Magang Terdaftar</p>
           </div>
         </div>
@@ -123,6 +123,75 @@
         </div>
       </div>
 
+      <!-- Daftar Nama Pengguna / Peserta Magang Card Section -->
+      <div class="bg-white rounded-xl border border-[#ddbfc5] overflow-hidden flex flex-col shadow-xs">
+        <div class="p-6 border-b border-[#ddbfc5]/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-white to-[#fec1d6]/10">
+          <div>
+            <h3 class="font-bold text-lg text-[#1b1c1c] flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#ab2c5d]">group</span>
+              <span>Daftar Nama Pengguna (Peserta Magang)</span>
+            </h3>
+            <p class="text-xs text-[#574146] mt-0.5">Seluruh peserta magang terdaftar yang dapat melakukan login &amp; presensi pada sistem</p>
+          </div>
+          <router-link to="/admin/interns" class="px-4 py-2 bg-[#f06292] hover:bg-[#ab2c5d] text-white text-xs font-bold rounded-lg transition-colors decoration-none flex items-center gap-1.5 shadow-xs border-0 cursor-pointer">
+            <span class="material-symbols-outlined text-base">person_add</span>
+            <span>+ Tambah Peserta Magang Baru</span>
+          </router-link>
+        </div>
+
+        <div v-if="registeredUsers.length === 0" class="text-center py-12 text-sm text-[#574146] space-y-2">
+          <span class="material-symbols-outlined text-4xl text-[#8a7176]">group_off</span>
+          <p>Belum ada nama pengguna peserta magang terdaftar.</p>
+        </div>
+
+        <div v-else class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-[#f4dce4]/40 border-b border-[#ddbfc5]/50 text-xs uppercase text-[#574146] font-semibold">
+                <th class="py-3.5 px-5">Nama Pengguna</th>
+                <th class="py-3.5 px-5">NISN / NIM</th>
+                <th class="py-3.5 px-5">Gmail / Email Akses</th>
+                <th class="py-3.5 px-5">Jurusan / Asal Sekolah</th>
+                <th class="py-3.5 px-5">Status Account</th>
+              </tr>
+            </thead>
+            <tbody class="text-xs divide-y divide-[#ddbfc5]/30">
+              <tr v-for="user in registeredUsers" :key="user.id" class="hover:bg-[#fec1d6]/10 transition-colors">
+                <td class="py-4 px-5">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-[#fec1d6]/40 text-[#ab2c5d] font-bold flex items-center justify-center text-xs border border-[#fec1d6]">
+                      {{ user.name ? user.name.charAt(0).toUpperCase() : 'P' }}
+                    </div>
+                    <div>
+                      <p class="font-bold text-[#1b1c1c]">{{ user.name }}</p>
+                      <p class="text-[10px] text-[#8a7176] uppercase font-semibold">{{ user.role || 'intern' }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-5 font-mono text-[#1b1c1c]">
+                  {{ user.nip || '-' }}
+                </td>
+                <td class="py-4 px-5 text-[#574146]">
+                  {{ user.email }}
+                </td>
+                <td class="py-4 px-5 text-[#574146]">
+                  <div>{{ user.unit_kerja || 'Rekayasa Perangkat Lunak' }}</div>
+                  <div class="text-[10px] text-[#8a7176]">{{ user.jabatan || 'SMK Negeri 1 Bulukumba' }}</div>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase"
+                    :class="user.is_active !== false ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full" :class="user.is_active !== false ? 'bg-emerald-600 animate-pulse' : 'bg-slate-400'"></span>
+                    <span>{{ user.is_active !== false ? 'Aktif (Siap Login)' : 'Nonaktif' }}</span>
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Content Split Area -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
@@ -205,7 +274,7 @@
             <div class="space-y-3">
               <router-link to="/admin/interns" class="w-full bg-[#f06292] text-white py-2.5 px-4 rounded-lg font-semibold text-xs flex items-center justify-center gap-2 hover:bg-[#ab2c5d] transition-colors shadow-xs decoration-none">
                 <span class="material-symbols-outlined text-sm">person_add</span>
-                Kelola Peserta Magang
+                Tambah &amp; Kelola Peserta Magang
               </router-link>
               <router-link to="/admin/attendance-recap" class="w-full border border-[#ddbfc5] text-[#574146] py-2.5 px-4 rounded-lg font-semibold text-xs flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors decoration-none">
                 <span class="material-symbols-outlined text-sm">download</span>
@@ -319,9 +388,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { useAuthStore } from '@/stores/auth';
 import AdminLayout from '@/layouts/AdminLayout.vue';
+
+const authStore = useAuthStore();
 
 const poskoInfo = ref({
   name: 'Posko Siaga NTPD 112 Kabupaten Bulukumba',
@@ -332,6 +404,18 @@ const poskoInfo = ref({
 });
 
 const leaveRequests = ref([]);
+
+const registeredUsers = computed(() => {
+  return (authStore.usersList || []).filter(u => {
+    if (!u.role) return true;
+    const r = u.role.toLowerCase();
+    return r === 'intern' || r === 'call_taker' || r === 'peserta' || (r !== 'admin' && r !== 'superadmin');
+  });
+});
+
+const totalInternsCount = computed(() => {
+  return registeredUsers.value.length;
+});
 
 const fetchPoskoInfo = async () => {
   try {
@@ -365,9 +449,10 @@ const updateLeaveStatus = async (id, newStatus) => {
   } catch (e) {}
 };
 
-onMounted(() => {
+onMounted(async () => {
   fetchPoskoInfo();
   fetchLeaveRequests();
+  await authStore.fetchUsers();
 });
 </script>
 
@@ -375,4 +460,3 @@ onMounted(() => {
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 .material-symbols-outlined.fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 </style>
-
