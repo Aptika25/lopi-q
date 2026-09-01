@@ -235,23 +235,27 @@ export const useAuthStore = defineStore('auth', {
 
     async createUser(payload: any) {
       try {
+        const headers: any = {}
+        if (this.token) {
+          headers['Authorization'] = `Bearer ${this.token}`
+        }
         const response = await axios.post(`${API_BASE}/admin/users`, {
           nip: payload.nip || '',
           email: payload.email,
-          password: payload.password,
+          password: payload.password || 'password123',
           name: payload.name,
-          jabatan: payload.jabatan || '',
-          unit_kerja: payload.unit_kerja || '',
-          role: payload.role || 'admin',
-          permissions: payload.permissions || []
-        }, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+          jabatan: payload.jabatan || 'SMK Negeri 1 Bulukumba',
+          unit_kerja: payload.unit_kerja || 'Rekayasa Perangkat Lunak',
+          role: payload.role || 'intern',
+          permissions: payload.permissions || ['submit_attendance']
+        }, { headers })
+
         await this.fetchUsers()
-        return response.data
+        return response.data || { success: true }
       } catch (err: any) {
-        this.error = err.response?.data?.error || 'Gagal menambahkan user.'
-        throw err
+        console.error('[AuthStore] createUser error:', err)
+        this.error = err.response?.data?.error || err.message || 'Gagal menambahkan user.'
+        return { success: false, error: this.error }
       }
     },
 

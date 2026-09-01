@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <AdminLayout>
     <div class="w-full space-y-6 select-none font-sans text-slate-800">
       
@@ -345,8 +345,8 @@ const loadCallTakers = async () => {
   try {
     await authStore.fetchUsers()
     callTakers.value = (authStore.usersList || [])
-      .filter((u: any) => u.role === 'intern')
-      .sort((a: any, b: any) => a.name.localeCompare(b.name))
+      .filter((u: any) => u.role === 'intern' || u.role === 'call_taker' || u.role === 'peserta')
+      .sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''))
   } catch (err) {
     showToast(false, 'Gagal memuat data peserta magang.')
   } finally {
@@ -411,9 +411,9 @@ const handleToggleActive = async (ct: any) => {
   try {
     await authStore.toggleUserActive(ct.id, newState)
     ct.is_active = newState
-    showToast(true, `Akun ${ct.name} berhasil ${newState ? 'diaktifkan' : 'dinonaktifkan'}.`)
+    showToast(true, `Status peserta magang ${ct.name} berhasil ${newState ? 'diaktifkan' : 'dinonaktifkan'}.`)
   } catch (err) {
-    showToast(false, 'Gagal mengubah status keaktifan akun.')
+    showToast(false, 'Gagal mengubah status peserta magang.')
   } finally {
     togglingId.value = null
   }
@@ -480,6 +480,20 @@ const submitForm = async () => {
         role: 'intern'
       })
       if (res && res.success !== false) {
+        // Instant optimism: push to local array if not already present
+        const createdObj = res.user || {
+          id: Date.now(),
+          name: form.value.name.trim(),
+          nip: form.value.nip.trim(),
+          email: form.value.email.trim(),
+          unit_kerja: form.value.unit_kerja.trim() || 'Rekayasa Perangkat Lunak',
+          jabatan: form.value.jabatan.trim() || 'SMK Negeri 1 Bulukumba',
+          role: 'intern',
+          is_active: true
+        }
+        if (!callTakers.value.some((u: any) => u.email === createdObj.email || (u.nip && u.nip === createdObj.nip))) {
+          callTakers.value.unshift(createdObj)
+        }
         showToast(true, `Peserta Magang ${form.value.name} berhasil ditambahkan!`)
         closeDialog()
         await loadCallTakers()
