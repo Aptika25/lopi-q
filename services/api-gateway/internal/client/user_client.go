@@ -55,7 +55,6 @@ func syncPostgresCreateUser(req *userProto.CreateUserRequest, passwordHash strin
 	}
 
 	cleanEmail := strings.ToLower(strings.TrimSpace(req.Email))
-	cleanNIP := strings.ReplaceAll(req.Nip, " ", "")
 
 	// 1. Insert/Update into auth_users in db_lopiq_auth / db_garda112_auth
 	for _, conn := range getAuthConnStrings(dbHost) {
