@@ -11,13 +11,6 @@
           </h1>
           <p class="text-sm text-[#574146] mt-1">Kelola data peserta magang, akun Gmail, jurusan, dan asal sekolah/universitas.</p>
         </div>
-        <button 
-          @click="openAddDialog"
-          class="bg-[#F06292] hover:bg-[#ab2c5d] text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shrink-0 border-0 cursor-pointer active:scale-95"
-        >
-          <span class="material-symbols-outlined text-base">person_add</span>
-          <span>+ Tambah Peserta Magang Baru</span>
-        </button>
       </div>
 
       <!-- Toast Notification -->
