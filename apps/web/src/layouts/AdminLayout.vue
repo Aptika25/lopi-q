@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="min-h-screen bg-background text-on-surface antialiased font-body flex select-none relative overflow-x-hidden">
     
     <!-- Mobile Sidebar Backdrop Overlay -->
@@ -263,7 +263,7 @@ const menuGroups = [
 
 // Expanded groups state
 const expandedGroups = ref({
-  users: false,
+  users: true,
   attendance: false,
   security: false
 });
