@@ -46,11 +46,25 @@ func (h *UserHTTPHandler) HandleGetProfile(w http.ResponseWriter, r *http.Reques
 func (h *UserHTTPHandler) HandleAdminUsers(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		res, _ := h.userSvc.ListUsers(r.Context(), &userProto.ListUsersRequest{})
-		var usersList []*userProto.User
+		var usersList []map[string]interface{}
 		if res != nil && res.Users != nil {
-			usersList = res.Users
-		} else {
-			usersList = []*userProto.User{}
+			for _, u := range res.Users {
+				usersList = append(usersList, map[string]interface{}{
+					"id":           u.Id,
+					"nip":          u.Nip,
+					"email":        u.Email,
+					"name":         u.Name,
+					"role":         u.Role,
+					"jabatan":      u.Jabatan,
+					"unit_kerja":   u.UnitKerja,
+					"permissions":  u.Permissions,
+					"totp_enabled": u.TotpEnabled,
+					"is_active":    u.IsActive,
+				})
+			}
+		}
+		if usersList == nil {
+			usersList = []map[string]interface{}{}
 		}
 		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": true, "users": usersList})
 		return

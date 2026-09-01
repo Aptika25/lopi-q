@@ -354,9 +354,9 @@ const loadCallTakers = async () => {
     await authStore.fetchUsers()
     const allUsers = authStore.usersList || []
     callTakers.value = allUsers.filter((u: any) => {
-      if (!u.role) return true
-      const r = u.role.toLowerCase()
-      return r === 'intern' || r === 'call_taker' || r === 'peserta' || (r !== 'admin' && r !== 'superadmin')
+      const role = (u.role || u.Role || '').toLowerCase()
+      if (!role) return true
+      return role === 'intern' || role === 'call_taker' || role === 'peserta' || (role !== 'admin' && role !== 'superadmin' && role !== 'super_admin')
     })
   } catch (err) {
     showToast(false, 'Gagal memuat data peserta magang.')
