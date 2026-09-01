@@ -344,8 +344,13 @@ const loadCallTakers = async () => {
   loading.value = true
   try {
     await authStore.fetchUsers()
-    callTakers.value = (authStore.usersList || [])
-      .filter((u: any) => u.role === 'intern' || u.role === 'call_taker' || u.role === 'peserta')
+    const allUsers = authStore.usersList || []
+    callTakers.value = allUsers
+      .filter((u: any) => {
+        if (!u.role) return true
+        const r = u.role.toLowerCase()
+        return r === 'intern' || r === 'call_taker' || r === 'peserta' || (r !== 'admin' && r !== 'superadmin')
+      })
       .sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''))
   } catch (err) {
     showToast(false, 'Gagal memuat data peserta magang.')
