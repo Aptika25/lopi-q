@@ -91,46 +91,48 @@ func syncPostgresUpdateUser(u *UserDataJSON) {
 		dbHost = "postgres_apps"
 	}
 
-	authConn := fmt.Sprintf("host=%s port=5432 user=user_garda112_auth password=garda112authPassword@2k26# dbname=db_garda112_auth sslmode=disable", dbHost)
-	if dbAuth, err := sql.Open("postgres", authConn); err == nil {
-		defer dbAuth.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		if u.PasswordHash != "" {
-			_, _ = dbAuth.ExecContext(ctx,
-				`UPDATE auth_users SET nip=$1, email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6, password=$7 WHERE id=$8 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ','')) OR email=$2;`,
-				u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.PasswordHash, u.ID,
-			)
-		} else {
-			_, _ = dbAuth.ExecContext(ctx,
-				`UPDATE auth_users SET nip=$1, email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6 WHERE id=$7 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ','')) OR email=$2;`,
-				u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.ID,
-			)
+	for _, authConn := range getAuthConnStrings(dbHost) {
+		if dbAuth, err := sql.Open("postgres", authConn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			if u.PasswordHash != "" {
+				_, _ = dbAuth.ExecContext(ctx,
+					`UPDATE auth_users SET nip=$1, email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6, password=$7 WHERE id=$8 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ','')) OR email=$2;`,
+					u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.PasswordHash, u.ID,
+				)
+			} else {
+				_, _ = dbAuth.ExecContext(ctx,
+					`UPDATE auth_users SET nip=$1, email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6 WHERE id=$7 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ','')) OR email=$2;`,
+					u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.ID,
+				)
+			}
+			cancel()
+			dbAuth.Close()
 		}
 	}
 
-	userConn := fmt.Sprintf("host=%s port=5432 user=user_garda112_user password=garda112userPassword@2k26# dbname=db_garda112_user sslmode=disable", dbHost)
-	if dbUser, err := sql.Open("postgres", userConn); err == nil {
-		defer dbUser.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		if u.PasswordHash != "" {
-			_, _ = dbUser.ExecContext(ctx,
-				`UPDATE users SET nip=$1, email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6, password_hash=$7 WHERE id=$8 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ','')) OR email=$2;`,
-				u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.PasswordHash, u.ID,
-			)
-		} else {
-			_, _ = dbUser.ExecContext(ctx,
-				`UPDATE users SET nip=$1, email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6 WHERE id=$7 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ','')) OR email=$2;`,
-				u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.ID,
-			)
-		}
+	for _, userConn := range getUserConnStrings(dbHost) {
+		if dbUser, err := sql.Open("postgres", userConn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			if u.PasswordHash != "" {
+				_, _ = dbUser.ExecContext(ctx,
+					`UPDATE users SET nip=$1, email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6, password_hash=$7 WHERE id=$8 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ','')) OR email=$2;`,
+					u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.PasswordHash, u.ID,
+				)
+			} else {
+				_, _ = dbUser.ExecContext(ctx,
+					`UPDATE users SET nip=$1, email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6 WHERE id=$7 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ','')) OR email=$2;`,
+					u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.ID,
+				)
+			}
 
-		// Also update user_name in presensi_records so past/existing presensi records reflect the updated name!
-		_, _ = dbUser.ExecContext(ctx,
-			`UPDATE presensi_records SET user_name=$1 WHERE user_id=$2 OR (user_nip <> '' AND REPLACE(user_nip,' ','')=REPLACE($3,' ',''));`,
-			u.Name, u.ID, u.NIP,
-		)
+			// Also update user_name in presensi_records so past/existing presensi records reflect the updated name!
+			_, _ = dbUser.ExecContext(ctx,
+				`UPDATE presensi_records SET user_name=$1 WHERE user_id=$2 OR (user_nip <> '' AND REPLACE(user_nip,' ','')=REPLACE($3,' ',''));`,
+				u.Name, u.ID, u.NIP,
+			)
+			cancel()
+			dbUser.Close()
+		}
 	}
 }
 
@@ -141,20 +143,28 @@ func syncPostgresToggleActive(email, nip string, isActive bool) {
 		dbHost = "postgres_apps"
 	}
 
-	authConn := fmt.Sprintf("host=%s port=5432 user=user_garda112_auth password=garda112authPassword@2k26# dbname=db_garda112_auth sslmode=disable", dbHost)
-	if dbAuth, err := sql.Open("postgres", authConn); err == nil {
-		defer dbAuth.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		_, _ = dbAuth.ExecContext(ctx, `UPDATE auth_users SET is_active=$1 WHERE email=$2 OR nip=$3;`, isActive, email, nip)
+	for _, authConn := range getAuthConnStrings(dbHost) {
+		if dbAuth, err := sql.Open("postgres", authConn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			_, _ = dbAuth.ExecContext(ctx,
+				`UPDATE auth_users SET is_active=$1 WHERE email=$2 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($3,' ',''));`,
+				isActive, email, nip,
+			)
+			cancel()
+			dbAuth.Close()
+		}
 	}
 
-	userConn := fmt.Sprintf("host=%s port=5432 user=user_garda112_user password=garda112userPassword@2k26# dbname=db_garda112_user sslmode=disable", dbHost)
-	if dbUser, err := sql.Open("postgres", userConn); err == nil {
-		defer dbUser.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		_, _ = dbUser.ExecContext(ctx, `UPDATE users SET is_active=$1 WHERE email=$2 OR nip=$3;`, isActive, email, nip)
+	for _, userConn := range getUserConnStrings(dbHost) {
+		if dbUser, err := sql.Open("postgres", userConn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			_, _ = dbUser.ExecContext(ctx,
+				`UPDATE users SET is_active=$1 WHERE email=$2 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($3,' ',''));`,
+				isActive, email, nip,
+			)
+			cancel()
+			dbUser.Close()
+		}
 	}
 }
 
@@ -267,7 +277,7 @@ func (s *UserClientDirectStub) CreateUser(ctx context.Context, req *userProto.Cr
 	users = append(users, newUser)
 	saveUsersJSON(users, path)
 
-	go syncPostgresCreateUser(req, string(hash))
+	syncPostgresCreateUser(req, string(hash))
 
 	return &userProto.UserResponse{
 		Success: true,

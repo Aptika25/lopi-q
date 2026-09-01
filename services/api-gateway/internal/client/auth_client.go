@@ -146,27 +146,57 @@ func getSeedUsersJSON() []UserDataJSON {
 }
 
 func getAuthConnStrings(dbHost string) []string {
+	hosts := []string{dbHost, "postgres_apps", "localhost", "127.0.0.1", "host.docker.internal"}
 	envUser := os.Getenv("DB_USER")
 	envPass := os.Getenv("DB_PASSWORD")
 	envDB := os.Getenv("DB_NAME")
 
 	var conns []string
-	if envUser != "" && envPass != "" && envDB != "" {
-		conns = append(conns, fmt.Sprintf("host=%s port=5432 user=%s password=%s dbname=%s sslmode=disable", dbHost, envUser, envPass, envDB))
+	seen := make(map[string]bool)
+	for _, h := range hosts {
+		if strings.TrimSpace(h) == "" {
+			continue
+		}
+		if envUser != "" && envPass != "" && envDB != "" {
+			c := fmt.Sprintf("host=%s port=5432 user=%s password=%s dbname=%s sslmode=disable", h, envUser, envPass, envDB)
+			if !seen[c] {
+				conns = append(conns, c)
+				seen[c] = true
+			}
+		}
+		c1 := fmt.Sprintf("host=%s port=5432 user=user_lopiq_auth password=lopiqauthPassword@2k26# dbname=db_lopiq_auth sslmode=disable", h)
+		if !seen[c1] {
+			conns = append(conns, c1)
+			seen[c1] = true
+		}
+		c2 := fmt.Sprintf("host=%s port=5432 user=user_garda112_auth password=garda112authPassword@2k26# dbname=db_garda112_auth sslmode=disable", h)
+		if !seen[c2] {
+			conns = append(conns, c2)
+			seen[c2] = true
+		}
 	}
-	conns = append(conns,
-		fmt.Sprintf("host=%s port=5432 user=user_lopiq_auth password=lopiqauthPassword@2k26# dbname=db_lopiq_auth sslmode=disable", dbHost),
-		fmt.Sprintf("host=%s port=5432 user=user_garda112_auth password=garda112authPassword@2k26# dbname=db_garda112_auth sslmode=disable", dbHost),
-	)
 	return conns
 }
 
 func getUserConnStrings(dbHost string) []string {
+	hosts := []string{dbHost, "postgres_apps", "localhost", "127.0.0.1", "host.docker.internal"}
 	var conns []string
-	conns = append(conns,
-		fmt.Sprintf("host=%s port=5432 user=user_lopiq_user password=lopiquserPassword@2k26# dbname=db_lopiq_user sslmode=disable", dbHost),
-		fmt.Sprintf("host=%s port=5432 user=user_garda112_user password=garda112userPassword@2k26# dbname=db_garda112_user sslmode=disable", dbHost),
-	)
+	seen := make(map[string]bool)
+	for _, h := range hosts {
+		if strings.TrimSpace(h) == "" {
+			continue
+		}
+		c1 := fmt.Sprintf("host=%s port=5432 user=user_lopiq_user password=lopiquserPassword@2k26# dbname=db_lopiq_user sslmode=disable", h)
+		if !seen[c1] {
+			conns = append(conns, c1)
+			seen[c1] = true
+		}
+		c2 := fmt.Sprintf("host=%s port=5432 user=user_garda112_user password=garda112userPassword@2k26# dbname=db_garda112_user sslmode=disable", h)
+		if !seen[c2] {
+			conns = append(conns, c2)
+			seen[c2] = true
+		}
+	}
 	return conns
 }
 
