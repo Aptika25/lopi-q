@@ -8,9 +8,6 @@
         <!-- ===== 1. HEADER SECTION ===== -->
         <header class="flex justify-between items-center pt-2 pb-2 border-b border-[#ddbfc5]/40">
           <div>
-            <div class="font-display font-black text-[#ab2c5d] text-4xl sm:text-5xl tracking-tight mb-1">
-              LOPI-Q
-            </div>
             <h1 class="text-2xl sm:text-3xl font-bold text-[#ab2c5d] leading-tight">
               Halo, {{ userFirstName }}!
             </h1>
