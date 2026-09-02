@@ -66,9 +66,10 @@
                 <tr class="bg-[#FCE4EC] border-b border-[#F8BBD0]">
                   <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Pengguna (Nama &amp; NISN)</th>
                   <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Gmail / Email</th>
-                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Jurusan &amp; Asal Sekolah / Univ</th>
-                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Peran</th>
-                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Status</th>
+                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Unit Kerja / Instansi</th>
+                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Jabatan / Peran</th>
+                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Status 2FA</th>
+                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Status Akun</th>
                   <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider text-right">Aksi</th>
                 </tr>
               </thead>
@@ -99,13 +100,31 @@
                   <!-- Jurusan & Asal Sekolah/University -->
                   <td class="py-4 px-6 text-[#574146]">
                     <div class="font-bold text-[#1b1c1c]">{{ ct.unit_kerja || 'Rekayasa Perangkat Lunak' }}</div>
-                    <div class="text-[11px] text-[#8a7176]">{{ ct.jabatan || 'SMK Negeri 1 Bulukumba' }}</div>
                   </td>
 
-                  <!-- Role Badge -->
+                  <!-- Role / Jabatan Badge -->
                   <td class="py-4 px-6">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FCE4EC] text-[#F06292] border border-[#F06292]/20">
+                    <div class="font-semibold text-[#1b1c1c] uppercase text-[11px]">{{ ct.jabatan || 'SMK Negeri 1 Bulukumba' }}</div>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[#FCE4EC] text-[#F06292] border border-[#F06292]/20 mt-0.5">
                       INTERN
+                    </span>
+                  </td>
+
+                  <!-- Status 2FA Badge -->
+                  <td class="py-4 px-6 whitespace-nowrap">
+                    <span 
+                      v-if="ct.totp_enabled" 
+                      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    >
+                      <span class="material-symbols-outlined text-[14px] text-emerald-600">verified_user</span>
+                      <span>2FA Terverifikasi</span>
+                    </span>
+                    <span 
+                      v-else 
+                      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200"
+                    >
+                      <span class="material-symbols-outlined text-[14px] text-slate-400">gpp_maybe</span>
+                      <span>Belum 2FA</span>
                     </span>
                   </td>
 
@@ -130,7 +149,7 @@
                     </div>
                   </td>
 
-                  <!-- Action Buttons (Edit & Reset 2FA/Delete) -->
+                  <!-- Action Buttons (Edit & Reset 2FA) -->
                   <td class="py-4 px-6 text-right">
                     <div class="flex justify-end gap-2">
                       <button 
@@ -140,10 +159,12 @@
                       >
                         <span class="material-symbols-outlined text-base">edit</span>
                       </button>
+                      <!-- Tombol reset 2FA hanya muncul jika Status 2FA Terverifikasi (ct.totp_enabled === true) -->
                       <button 
+                        v-if="ct.totp_enabled"
                         @click="handleReset2FA(ct)"
                         class="p-2 text-rose-600 hover:text-rose-800 transition-colors rounded-lg hover:bg-rose-50 border-0 cursor-pointer bg-transparent"
-                        title="Reset 2FA"
+                        title="Reset 2FA Peserta Magang"
                       >
                         <span class="material-symbols-outlined text-base">lock_reset</span>
                       </button>
@@ -153,7 +174,7 @@
 
                 <!-- Empty State -->
                 <tr v-if="filteredCallTakers.length === 0">
-                  <td colspan="6" class="py-6 text-center">
+                  <td colspan="7" class="py-6 text-center">
                     <div class="inline-flex items-center justify-center gap-1.5 text-xs text-slate-500 font-medium">
                       <span class="material-symbols-outlined text-slate-400" style="font-size: 14px !important;">info</span>
                       <span>Tidak ada data peserta magang yang ditemukan.</span>
