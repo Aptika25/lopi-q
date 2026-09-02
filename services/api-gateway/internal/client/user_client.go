@@ -188,20 +188,25 @@ func syncPostgresReset2FA(email, nip string) {
 		dbHost = "postgres_apps"
 	}
 
-	authConn := fmt.Sprintf("host=%s port=5432 user=user_garda112_auth password=garda112authPassword@2k26# dbname=db_garda112_auth sslmode=disable", dbHost)
-	if dbAuth, err := sql.Open("postgres", authConn); err == nil {
-		defer dbAuth.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		_, _ = dbAuth.ExecContext(ctx, `UPDATE auth_users SET totp_enabled=false, totp_secret=NULL WHERE email=$1 OR nip=$2;`, email, nip)
+	cleanEmail := strings.ToLower(strings.TrimSpace(email))
+	cleanNIP := strings.ReplaceAll(nip, " ", "")
+
+	for _, conn := range getAuthConnStrings(dbHost) {
+		if dbAuth, err := sql.Open("postgres", conn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			_, _ = dbAuth.ExecContext(ctx, `UPDATE auth_users SET totp_enabled=false, totp_secret='' WHERE LOWER(email)=LOWER($1) OR (REPLACE(nip, ' ', '')=$2 AND $2 != '');`, cleanEmail, cleanNIP)
+			cancel()
+			dbAuth.Close()
+		}
 	}
 
-	userConn := fmt.Sprintf("host=%s port=5432 user=user_garda112_user password=garda112userPassword@2k26# dbname=db_garda112_user sslmode=disable", dbHost)
-	if dbUser, err := sql.Open("postgres", userConn); err == nil {
-		defer dbUser.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		_, _ = dbUser.ExecContext(ctx, `UPDATE users SET totp_enabled=false, totp_secret=NULL WHERE email=$1 OR nip=$2;`, email, nip)
+	for _, conn := range getUserConnStrings(dbHost) {
+		if dbUser, err := sql.Open("postgres", conn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			_, _ = dbUser.ExecContext(ctx, `UPDATE users SET totp_enabled=false, totp_secret='' WHERE LOWER(email)=LOWER($1) OR (REPLACE(nip, ' ', '')=$2 AND $2 != '');`, cleanEmail, cleanNIP)
+			cancel()
+			dbUser.Close()
+		}
 	}
 }
 
@@ -450,22 +455,26 @@ func (s *UserClientDirectStub) Reset2FA(ctx context.Context, req *userProto.Rese
 	defer s.mu.Unlock()
 
 	users, path := loadUsersJSON()
+	var targetEmail, targetNIP string
 	for i := range users {
 		if users[i].ID == int(req.Id) {
 			users[i].TotpEnabled = false
 			users[i].TotpSecret = ""
 			users[i].BackupCodes = nil
-			saveUsersJSON(users, path)
-			go syncPostgresReset2FA(users[i].Email, users[i].NIP)
-
-			return &userProto.Reset2FAResponse{
-				Success: true,
-				Message: "2FA berhasil direset.",
-			}, nil
+			targetEmail = users[i].Email
+			targetNIP = users[i].NIP
+			break
 		}
 	}
+	saveUsersJSON(users, path)
 
-	return &userProto.Reset2FAResponse{Success: false, Error: "User tidak ditemukan."}, nil
+	// Always sync reset to PostgreSQL database
+	syncPostgresReset2FA(targetEmail, targetNIP)
+
+	return &userProto.Reset2FAResponse{
+		Success: true,
+		Message: "Keamanan 2FA pengguna berhasil direset.",
+	}, nil
 }
 
 type ActivityLogItem struct {

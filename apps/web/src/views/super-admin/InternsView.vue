@@ -66,8 +66,8 @@
                 <tr class="bg-[#FCE4EC] border-b border-[#F8BBD0]">
                   <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Pengguna (Nama &amp; NISN)</th>
                   <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Gmail / Email</th>
-                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Unit Kerja / Instansi</th>
-                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Jabatan / Peran</th>
+                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Jurusan</th>
+                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Asal Sekolah / Universitas</th>
                   <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Status 2FA</th>
                   <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Status Akun</th>
                   <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider text-right">Aksi</th>
@@ -473,12 +473,28 @@ const handleToggleActive = async (ct: any) => {
 const handleReset2FA = (ct: any) => {
   triggerConfirm(
     'Reset Keamanan 2FA?',
-    `Apakah Anda yakin ingin menonaktifkan Google Authenticator (2FA) untuk peserta magang ${ct.name}? Petugas harus melakukan scan ulang QR 2FA saat login berikutnya.`,
+    `Apakah Anda yakin ingin menonaktifkan Google Authenticator (2FA) untuk peserta magang ${ct.name}? Status 2FA akan ter-reset kembali menjadi Belum 2FA.`,
     async () => {
       submitLoading.value = true
       try {
         await authStore.resetUser2fa(ct.id)
-        showToast(true, `2FA untuk ${ct.name} berhasil dinonaktifkan.`)
+        ct.totp_enabled = false
+        ct.totp_secret = ''
+
+        // Update local array & authStore
+        const target = (callTakers.value || []).find((u: any) => u.id === ct.id || u.email === ct.email)
+        if (target) {
+          target.totp_enabled = false
+          target.totp_secret = ''
+        }
+
+        const storeTarget = (authStore.usersList || []).find((u: any) => u.id === ct.id || u.email === ct.email)
+        if (storeTarget) {
+          storeTarget.totp_enabled = false
+          storeTarget.totp_secret = ''
+        }
+
+        showToast(true, `2FA untuk ${ct.name} berhasil di-reset menjadi Belum 2FA.`)
         await loadCallTakers()
       } catch (err) {
         showToast(false, 'Gagal mereset 2FA Peserta Magang.')
