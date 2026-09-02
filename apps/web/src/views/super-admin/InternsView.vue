@@ -491,7 +491,7 @@ const submitForm = async () => {
         role: 'intern'
       })
       if (res && res.success !== false) {
-        // Instant optimism: push to local array if not already present
+        // Instant optimism: push to local array and authStore
         const createdObj = res.user || {
           id: Date.now(),
           name: form.value.name.trim(),
@@ -502,12 +502,16 @@ const submitForm = async () => {
           role: 'intern',
           is_active: true
         }
-        if (!callTakers.value.some((u: any) => u.email === createdObj.email || (u.nip && u.nip === createdObj.nip))) {
-          callTakers.value.unshift(createdObj)
+        callTakers.value = callTakers.value.filter((u: any) => u.email !== createdObj.email && (!createdObj.nip || u.nip !== createdObj.nip))
+        callTakers.value.unshift(createdObj)
+
+        // Also push to authStore.usersList immediately for Dashboard sync
+        if (!authStore.usersList.some((u: any) => u.email === createdObj.email || (u.nip && u.nip === createdObj.nip))) {
+          authStore.usersList.unshift(createdObj)
         }
+
         showToast(true, `Peserta Magang ${form.value.name} berhasil ditambahkan!`)
         closeDialog()
-        await loadCallTakers()
       } else {
         errorMessage.value = res?.error || authStore.error || 'Gagal menambahkan Peserta Magang.'
       }

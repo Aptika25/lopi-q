@@ -148,42 +148,45 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-[#f4dce4]/40 border-b border-[#ddbfc5]/50 text-xs uppercase text-[#574146] font-semibold">
-                <th class="py-3.5 px-5">Nama Pengguna</th>
+                <th class="py-3.5 px-5">Nama Peserta Magang</th>
                 <th class="py-3.5 px-5">NISN / NIM</th>
                 <th class="py-3.5 px-5">Gmail / Email Akses</th>
-                <th class="py-3.5 px-5">Jurusan / Asal Sekolah</th>
-                <th class="py-3.5 px-5">Status Account</th>
+                <th class="py-3.5 px-5">Jurusan</th>
+                <th class="py-3.5 px-5">Asal Sekolah / University</th>
+                <th class="py-3.5 px-5">Status Keaktifan</th>
               </tr>
             </thead>
             <tbody class="text-xs divide-y divide-[#ddbfc5]/30">
               <tr v-for="user in registeredUsers" :key="user.id" class="hover:bg-[#fec1d6]/10 transition-colors">
                 <td class="py-4 px-5">
                   <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-[#fec1d6]/40 text-[#ab2c5d] font-bold flex items-center justify-center text-xs border border-[#fec1d6]">
+                    <div class="w-8 h-8 rounded-full bg-[#fec1d6]/50 text-[#ab2c5d] font-extrabold flex items-center justify-center text-xs border border-[#fec1d6]">
                       {{ user.name ? user.name.charAt(0).toUpperCase() : 'P' }}
                     </div>
                     <div>
-                      <p class="font-bold text-[#1b1c1c]">{{ user.name }}</p>
-                      <p class="text-[10px] text-[#8a7176] uppercase font-semibold">{{ user.role || 'intern' }}</p>
+                      <p class="font-extrabold text-[#1b1c1c] text-sm">{{ user.name }}</p>
+                      <p class="text-[10px] text-[#8a7176] uppercase font-semibold">ROLE: {{ user.role || 'INTERN' }}</p>
                     </div>
                   </div>
                 </td>
-                <td class="py-4 px-5 font-mono text-[#1b1c1c]">
+                <td class="py-4 px-5 font-mono text-[#1b1c1c] font-bold">
                   {{ user.nip || '-' }}
                 </td>
-                <td class="py-4 px-5 text-[#574146]">
+                <td class="py-4 px-5 text-[#574146] font-mono">
                   {{ user.email }}
                 </td>
+                <td class="py-4 px-5 font-bold text-[#1b1c1c]">
+                  {{ user.unit_kerja || 'Rekayasa Perangkat Lunak' }}
+                </td>
                 <td class="py-4 px-5 text-[#574146]">
-                  <div>{{ user.unit_kerja || 'Rekayasa Perangkat Lunak' }}</div>
-                  <div class="text-[10px] text-[#8a7176]">{{ user.jabatan || 'SMK Negeri 1 Bulukumba' }}</div>
+                  {{ user.jabatan || 'SMK Negeri 1 Bulukumba' }}
                 </td>
                 <td class="py-4 px-5">
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase"
-                    :class="user.is_active !== false ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'"
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase"
+                    :class="user.is_active !== false ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs' : 'bg-slate-100 text-slate-500 border border-slate-300'"
                   >
-                    <span class="w-1.5 h-1.5 rounded-full" :class="user.is_active !== false ? 'bg-emerald-600 animate-pulse' : 'bg-slate-400'"></span>
-                    <span>{{ user.is_active !== false ? 'Aktif (Siap Login)' : 'Nonaktif' }}</span>
+                    <span class="w-2 h-2 rounded-full" :class="user.is_active !== false ? 'bg-emerald-600 animate-pulse' : 'bg-slate-400'"></span>
+                    <span>{{ user.is_active !== false ? 'Aktif (Siap Akses/Login)' : 'Nonaktif' }}</span>
                   </span>
                 </td>
               </tr>
