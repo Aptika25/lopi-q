@@ -84,22 +84,6 @@
             </div>
           </div>
 
-          <!-- Action Quick Scan Bar -->
-          <div class="pt-2 flex flex-col sm:flex-row gap-2.5 relative z-10">
-            <router-link 
-              to="/intern/scan" 
-              class="flex-1 py-3 px-4 bg-gradient-to-r from-[#ab2c5d] to-[#f06292] hover:from-[#8b0e45] hover:to-[#ab2c5d] text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 decoration-none cursor-pointer active:scale-98"
-            >
-              <span class="material-symbols-outlined text-lg">qr_code_scanner</span>
-              <span>Buka Kamera Scan QR Presensi</span>
-            </router-link>
-            <button 
-              @click="showLeaveModal = true"
-              class="px-4 py-3 bg-white hover:bg-[#ffd9e4]/30 text-[#574146] border border-[#ddbfc5] font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
-            >
-              <span class="material-symbols-outlined text-lg text-[#ab2c5d]">edit_document</span>
-              <span>Izin / Sakit / Shift</span>
-            </button>
           </div>
         </section>
 
@@ -183,59 +167,7 @@
       </main>
     </div>
 
-    <!-- ===== MODAL PENGAJUAN SAKIT / IZIN / SHIFT ===== -->
-    <transition name="fade">
-      <div v-if="showLeaveModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs" @click.self="showLeaveModal = false">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 border border-[#ddbfc5] shadow-2xl space-y-4">
-          <div class="flex items-center justify-between border-b border-[#ddbfc5]/60 pb-3">
-            <h3 class="font-bold text-base text-[#1b1c1c] flex items-center gap-2">
-              <span class="material-symbols-outlined text-[#ab2c5d]">edit_document</span>
-              <span>Form Pengajuan Izin / Sakit / Shift</span>
-            </h3>
-            <button @click="showLeaveModal = false" class="text-slate-400 hover:text-slate-600 border-0 bg-transparent cursor-pointer">
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          </div>
 
-          <form @submit.prevent="submitLeaveRequest" class="space-y-4 text-xs">
-            <div class="space-y-1">
-              <label class="font-bold text-[#574146]">Kategori Pengajuan <span class="text-rose-500">*</span></label>
-              <select v-model="formLeave.category" required class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-xl focus:outline-none focus:border-[#f06292]">
-                <option value="SAKIT">Sakit (Dengan Surat Keterangan)</option>
-                <option value="IZIN">Izin Keperluan Mendesak</option>
-                <option value="TUKAR_SHIFT">Tukar Shift Magang</option>
-              </select>
-            </div>
-
-            <div class="space-y-1">
-              <label class="font-bold text-[#574146]">Tanggal Shift <span class="text-rose-500">*</span></label>
-              <input v-model="formLeave.shift_date" type="date" required class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-xl focus:outline-none focus:border-[#f06292]" />
-            </div>
-
-            <div v-if="formLeave.category === 'TUKAR_SHIFT'" class="space-y-1">
-              <label class="font-bold text-[#574146]">Nama Peserta Magang Pengganti</label>
-              <input v-model="formLeave.replacement_name" type="text" placeholder="Contoh: Sarah Jenkins" class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-xl focus:outline-none focus:border-[#f06292]" />
-            </div>
-
-            <div class="space-y-1">
-              <label class="font-bold text-[#574146]">Alasan Keterangan <span class="text-rose-500">*</span></label>
-              <textarea v-model="formLeave.reason" rows="3" required placeholder="Tuliskan alasan lengkap pengajuan..." class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-xl focus:outline-none focus:border-[#f06292]"></textarea>
-            </div>
-
-            <div v-if="formMessage" class="p-3 bg-emerald-50 text-emerald-800 rounded-xl font-bold border border-emerald-200">
-              {{ formMessage }}
-            </div>
-
-            <div class="flex justify-end gap-3 pt-2">
-              <button type="button" @click="showLeaveModal = false" class="px-4 py-2 border border-[#ddbfc5] rounded-xl font-bold text-[#574146] bg-white cursor-pointer">Batal</button>
-              <button type="submit" :disabled="submitting" class="px-5 py-2 bg-[#f06292] hover:bg-[#ab2c5d] text-white rounded-xl font-bold border-0 cursor-pointer shadow-xs">
-                Kirim Pengajuan
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </transition>
 
     <!-- ===== MODAL TAMBAH CATATAN JURNAL ===== -->
     <transition name="fade">
