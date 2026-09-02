@@ -206,12 +206,38 @@ const authStore = useAuthStore()
 const showNoteModal = ref(false)
 const newJournalNote = ref('')
 
-// Sample / Dynamic Jurnal Activity List
-const activityJournalList = ref<any[]>([
+const defaultSampleJournal = [
   { name: 'Andi', time: '13:15', activity: 'Internal Sync' },
   { name: 'Rina', time: '15:00', activity: 'Quality Check' },
   { name: 'Hikma', time: '16:30', activity: 'Daily Report' }
-])
+]
+
+// Dynamic Jurnal Activity List persisted in localStorage
+const activityJournalList = ref<any[]>([])
+
+const loadJournalNotes = () => {
+  try {
+    const key = `lopiq_journal_notes_${authStore.user?.nip || 'default'}`
+    const stored = localStorage.getItem(key)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        activityJournalList.value = parsed
+        return
+      }
+    }
+  } catch (e) {}
+  
+  // Fallback to default initial list if empty
+  activityJournalList.value = [...defaultSampleJournal]
+}
+
+const saveJournalNotes = () => {
+  try {
+    const key = `lopiq_journal_notes_${authStore.user?.nip || 'default'}`
+    localStorage.setItem(key, JSON.stringify(activityJournalList.value))
+  } catch (e) {}
+}
 
 // Computeds
 const userFirstName = computed(() => {
@@ -265,11 +291,14 @@ const addJournalNote = () => {
   if (!newJournalNote.value.trim()) return
   const now = new Date()
   const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  
   activityJournalList.value.unshift({
     name: userFirstName.value,
     time: timeStr,
     activity: newJournalNote.value.trim()
   })
+
+  saveJournalNotes()
   showNoteModal.value = false
   newJournalNote.value = ''
 }
@@ -278,6 +307,7 @@ onMounted(async () => {
   await authStore.fetchProfile()
   await authStore.fetchTodayStatus()
   await authStore.fetchHistory()
+  loadJournalNotes()
 })
 </script>
 
