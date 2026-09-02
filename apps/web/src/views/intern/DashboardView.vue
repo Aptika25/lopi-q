@@ -1,87 +1,129 @@
 <template>
   <InternLayout>
     <div class="space-y-6 select-none font-sans">
-      <!-- Page Header -->
-      <div class="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
+      
+      <!-- ===== 1. PAGE HEADER ===== -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#F8BBD0]/60 pb-4">
         <div>
-          <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Dashboard Status Siaga Peserta Magang</h2>
-          <p class="font-sans text-slate-500 mt-1 text-xs hidden sm:block">Panel operasional siaga 112, status pendaftaran presensi, dan riwayat tugas presensi harian.</p>
+          <h2 class="font-display font-black text-[#1b1c1c] text-lg sm:text-xl flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#f06292] text-2xl">dashboard</span>
+            <span>Dashboard Siaga Peserta Magang</span>
+          </h2>
+          <p class="font-sans text-[#8a7176] text-xs mt-1">Panel utama presensi siaga 112, status verifikasi 2FA, dan riwayat tugas harian.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="px-3 py-1 bg-[#FCE4EC] text-[#ab2c5d] text-xs font-extrabold rounded-full border border-[#F8BBD0] flex items-center gap-1.5 shadow-2xs">
+            <span class="w-2 h-2 rounded-full bg-[#f06292] animate-ping"></span>
+            <span>SIAGA 112 ONLINE</span>
+          </span>
         </div>
       </div>
-      <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-sm space-y-5">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
+
+      <!-- ===== 2. HERO PROFILE CARD ===== -->
+      <div class="bg-gradient-to-br from-white via-[#FFF5F8] to-[#FCE4EC]/50 rounded-3xl p-6 sm:p-7 border border-[#F8BBD0] shadow-sm space-y-6 relative overflow-hidden">
+        <!-- Decorative Ambient Glow -->
+        <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-[#fec1d6]/30 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           
-          <!-- Profile Info with Avatar Initials -->
-          <div class="flex items-start gap-4 min-w-0">
-            <!-- Avatar Initials Badge -->
-            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-rose-700 via-rose-600 to-amber-500 text-white font-display font-black text-2xl flex items-center justify-center shrink-0 shadow-md">
-              {{ authStore.user?.name ? authStore.user.name.charAt(0).toUpperCase() : 'C' }}
+          <!-- Avatar & Detailed Profile Metadata -->
+          <div class="flex items-start gap-4 sm:gap-5 min-w-0">
+            <!-- Avatar Circle with Initial -->
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-[#ab2c5d] via-[#f06292] to-[#fec1d6] text-white font-display font-black text-2xl sm:text-3xl flex items-center justify-center shrink-0 shadow-md border-2 border-white">
+              {{ authStore.user?.name ? authStore.user.name.charAt(0).toUpperCase() : 'P' }}
             </div>
 
-            <div class="space-y-1 flex-1 min-w-0">
-              <!-- Peserta Magang Status Pill -->
-              <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-rose-50 text-rose-800 rounded-full text-[10px] sm:text-xs font-extrabold border border-rose-200">
-                <span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-ping"></span>
+            <div class="space-y-1.5 flex-1 min-w-0">
+              <!-- Category Pill -->
+              <div class="inline-flex items-center gap-1.5 px-3 py-0.5 bg-[#FCE4EC] text-[#ab2c5d] rounded-full text-[10px] sm:text-xs font-extrabold border border-[#F8BBD0]">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#f06292] animate-pulse"></span>
                 <span>PESERTA MAGANG POSKO SIAGA 112</span>
               </div>
 
-              <!-- 1. Selamat Tugas, [Nama]! -->
-              <h2 class="text-base sm:text-xl md:text-2xl font-display font-black text-slate-900 leading-tight truncate">
-                Selamat Tugas, {{ authStore.user?.name || 'Petugas Peserta Magang' }}!
-              </h2>
+              <!-- Name & Greeting -->
+              <h1 class="text-lg sm:text-2xl font-display font-black text-[#1b1c1c] leading-tight truncate">
+                Selamat Tugas, {{ authStore.user?.name || 'Peserta Magang' }}!
+              </h1>
 
-              <!-- 2. NIP -->
-              <div class="text-xs font-mono font-extrabold text-rose-700">
-                NIP. {{ authStore.user?.nip || '-' }}
+              <!-- Identitas NISN / NIM -->
+              <div class="text-xs font-mono font-extrabold text-[#ab2c5d] flex items-center gap-1">
+                <span class="material-symbols-outlined text-[16px]">badge</span>
+                <span>NISN / NIM: {{ authStore.user?.nip || '-' }}</span>
               </div>
 
-              <!-- 3. Jabatan -->
-              <div class="text-xs font-extrabold text-slate-800 uppercase tracking-wide">
-                {{ authStore.user?.jabatan || 'OPERATOR LAYANAN OPERASIONAL' }}
+              <!-- Grid Detail: Jurusan & Asal Sekolah -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-xs">
+                <div class="flex items-center gap-1.5 text-[#574146]">
+                  <span class="material-symbols-outlined text-[16px] text-[#f06292]">school</span>
+                  <span class="font-bold text-[#1b1c1c]">Jurusan:</span>
+                  <span class="truncate">{{ authStore.user?.unit_kerja || 'Rekayasa Perangkat Lunak' }}</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-[#574146]">
+                  <span class="material-symbols-outlined text-[16px] text-[#f06292]">location_city</span>
+                  <span class="font-bold text-[#1b1c1c]">Asal Sekolah / Univ:</span>
+                  <span class="truncate">{{ authStore.user?.jabatan || 'SMK Negeri 1 Bulukumba' }}</span>
+                </div>
               </div>
 
-              <!-- 4. Unit Kerja -->
-              <div class="text-xs text-slate-500 font-medium">
-                {{ authStore.user?.unit_kerja || 'Diskominfo Kabupaten Bulukumba' }}
+              <!-- Status Badges: 2FA & Akun -->
+              <div class="flex flex-wrap items-center gap-2 pt-2">
+                <!-- Status 2FA Badge -->
+                <span 
+                  v-if="authStore.user?.totp_enabled" 
+                  class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                >
+                  <span class="material-symbols-outlined text-[14px] text-emerald-600">verified_user</span>
+                  <span>2FA Terverifikasi</span>
+                </span>
+                <span 
+                  v-else 
+                  class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200"
+                >
+                  <span class="material-symbols-outlined text-[14px] text-slate-400">gpp_maybe</span>
+                  <span>Belum Setup 2FA</span>
+                </span>
+
+                <!-- Status Akun Badge -->
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                  <span>Akun Aktif (Siap Login)</span>
+                </span>
               </div>
             </div>
           </div>
 
           <!-- Action Buttons Bar -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:flex md:items-center gap-2.5 pt-3 md:pt-0 border-t md:border-0 border-slate-100">
-            <button 
-              @click="showLeaveModal = true"
-              class="w-full sm:w-auto px-4 py-3 bg-amber-50/80 hover:bg-amber-100 text-amber-900 border border-amber-200/90 font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
-            >
-              <span class="material-symbols-outlined text-[18px] text-amber-700">assignment_ind</span>
-              <span>Ajukan Sakit / Tukar Shift</span>
-            </button>
-
+          <div class="flex flex-col sm:flex-row lg:flex-col gap-2.5 shrink-0 pt-4 lg:pt-0 border-t lg:border-0 border-[#F8BBD0]/60">
             <router-link 
               to="/intern/scan" 
-              class="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-rose-700 via-rose-600 to-amber-600 hover:from-rose-800 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 decoration-none cursor-pointer active:scale-98"
+              class="px-5 py-3 bg-gradient-to-r from-[#f06292] via-[#ab2c5d] to-[#881b47] hover:from-[#ab2c5d] hover:to-[#701339] text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 decoration-none cursor-pointer active:scale-98"
             >
-              <span class="material-symbols-outlined text-[18px]">qr_code_scanner</span>
+              <span class="material-symbols-outlined text-lg">qr_code_scanner</span>
               <span>Buka Kamera Scan QR</span>
             </router-link>
+
+            <button 
+              @click="showLeaveModal = true"
+              class="px-4 py-3 bg-white hover:bg-[#FCE4EC] text-[#574146] border border-[#F8BBD0] font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+            >
+              <span class="material-symbols-outlined text-lg text-[#ab2c5d]">edit_document</span>
+              <span>Ajukan Sakit / Izin / Shift</span>
+            </button>
           </div>
 
         </div>
       </div>
 
-      <!-- Real-Time Status Shift Hari Ini Banner -->
+      <!-- ===== 3. STATUS OPERASIONAL SHIFT BANNER ===== -->
       <div 
-        class="rounded-3xl p-5 sm:p-6 border shadow-md transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden backdrop-blur-md"
+        class="rounded-3xl p-5 sm:p-6 border shadow-md transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden"
         :class="{
-          'bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900 border-emerald-600/50 text-white shadow-emerald-950/20': shiftInfo.badge === 'ACTIVE',
-          'bg-gradient-to-r from-rose-950 via-slate-900 to-rose-900 border-rose-600/50 text-white shadow-rose-950/20': shiftInfo.badge === 'OFF',
-          'bg-gradient-to-r from-amber-950 via-slate-900 to-amber-900 border-amber-600/50 text-white shadow-amber-950/20': shiftInfo.badge === 'LEAVE',
+          'bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900 border-emerald-600/50 text-white': shiftInfo.badge === 'ACTIVE',
+          'bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 border-rose-600/50 text-white': shiftInfo.badge === 'OFF',
+          'bg-gradient-to-r from-amber-950 via-slate-900 to-amber-900 border-amber-600/50 text-white': shiftInfo.badge === 'LEAVE',
           'bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 border-slate-600 text-white animate-pulse': shiftInfo.badge === 'LOADING'
         }"
       >
-        <!-- Background Ambient Glow Effect -->
-        <div v-if="shiftInfo.badge === 'ACTIVE'" class="absolute -right-8 -bottom-8 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
         <div class="flex items-center gap-4 relative z-10">
           <div 
             class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner transition-all"
@@ -97,515 +139,336 @@
               :class="shiftInfo.badge === 'ACTIVE' ? 'text-emerald-400' : 'text-amber-300'"
             >
               <span class="w-2 h-2 rounded-full" :class="shiftInfo.badge === 'ACTIVE' ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'"></span>
-              <span>STATUS OPERASIONAL SIAGA 112</span>
+              <span>STATUS OPERASIONAL SHIFT MAGANG HARI INI</span>
             </div>
-            <h3 class="text-base font-display font-black text-white leading-tight">
+            <h3 class="font-display font-black text-base sm:text-lg leading-snug">
               {{ shiftInfo.shiftName }}
             </h3>
-            <p class="text-xs font-semibold text-slate-200/90 leading-relaxed">
+            <p class="text-xs font-mono text-slate-300">
               {{ shiftInfo.shiftTimeStr }}
             </p>
           </div>
         </div>
+
+        <div class="shrink-0 relative z-10">
+          <span 
+            class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider border shadow-sm inline-block"
+            :class="{
+              'bg-emerald-500 text-slate-950 border-emerald-400': shiftInfo.badge === 'ACTIVE',
+              'bg-rose-900/80 text-rose-200 border-rose-700': shiftInfo.badge === 'OFF',
+              'bg-amber-500 text-slate-950 border-amber-400': shiftInfo.badge === 'LEAVE',
+              'bg-slate-700 text-slate-300 border-slate-600': shiftInfo.badge === 'LOADING'
+            }"
+          >
+            {{ shiftInfo.badgeText }}
+          </span>
+        </div>
       </div>
 
-      <!-- Jadwal Shift Berikutnya (muncul jika hari ini libur/off) -->
-      <transition name="fade-next">
-        <div
-          v-if="nextShiftInfo && shiftInfo.badge === 'OFF'"
-          class="flex items-start gap-3 px-5 py-4 bg-amber-50 border border-amber-200 rounded-2xl shadow-xs"
-        >
-          <div class="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center shrink-0 text-amber-700">
-            <span class="material-symbols-outlined text-[22px]">event_upcoming</span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="text-[9px] font-extrabold text-amber-700 uppercase tracking-widest mb-0.5">Jadwal Shift Berikutnya</div>
-            <div class="text-sm font-display font-black text-slate-900 leading-tight">
-              {{ nextShiftInfo.label }}
-              <span v-if="nextShiftInfo.asReplacer" class="text-amber-600 font-bold text-xs"> · Pengganti {{ nextShiftInfo.replacedName?.split(',')[0] }}</span>
-            </div>
-            <div class="flex items-center gap-2 mt-1 flex-wrap">
-              <span class="text-xs font-bold text-slate-700">
-                {{ nextShiftInfo.dayName }}, {{ nextShiftInfo.formattedDate }}
-              </span>
-              <span class="text-slate-300">·</span>
-              <span class="text-xs font-mono font-bold text-emerald-700">
-                {{ nextShiftInfo.start }} – {{ nextShiftInfo.end }} WITA
-              </span>
-            </div>
-          </div>
-          <div class="text-right shrink-0">
-            <div class="text-[9px] font-bold text-amber-600 uppercase tracking-wider">{{ nextShiftInfo.dateStr }}</div>
-          </div>
-        </div>
-        <div v-else-if="shiftInfo.badge === 'OFF' && !nextShiftInfo" class="flex items-center gap-2.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-500">
-          <span class="material-symbols-outlined text-[18px] text-slate-400">calendar_month</span>
-          <span>Tidak ada jadwal shift tersisa di bulan ini. Jadwal bulan berikutnya belum tersedia.</span>
-        </div>
-      </transition>
-
-      <!-- Real-Time Status Siaga Cards (Database PostgreSQL) -->
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- ===== 4. PRESENSI MASUK & PULANG STATUS CARDS ===== -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         
-        <!-- Card 1: Status Masuk Siaga -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3">
+        <!-- Card Presensi Masuk -->
+        <div class="bg-white rounded-3xl p-6 border border-[#F8BBD0] shadow-sm space-y-4 relative overflow-hidden">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Presensi Masuk Siaga</span>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                <span class="material-symbols-outlined text-xl">login</span>
+              </div>
+              <div>
+                <h3 class="font-bold text-[#1b1c1c] text-sm">Presensi Masuk</h3>
+                <p class="text-[11px] text-[#8a7176]">Absensi awal tugas harian</p>
+              </div>
+            </div>
             <span 
-              class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold"
-              :class="authStore.todayStatus?.is_masuk ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'"
+              class="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase border"
+              :class="authStore.todayStatus?.is_masuk ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'"
             >
-              {{ authStore.todayStatus?.is_masuk ? '✓ Sudah Masuk' : 'Belum Presensi' }}
+              {{ authStore.todayStatus?.is_masuk ? 'Sudah Masuk' : 'Belum Absen' }}
             </span>
           </div>
 
-          <div class="text-2xl font-display font-black text-slate-900 font-mono">
-            {{ authStore.todayStatus?.is_masuk ? formatTimeDisplay(authStore.todayStatus?.masuk?.timestamp || authStore.todayStatus?.clock_in_time) : '--:--:--' }}
-          </div>
-
-          <div class="text-xs text-slate-500 flex items-center justify-between">
-            <span>Jarak ke Posko:</span>
-            <strong class="text-slate-900 font-mono font-bold">
-              {{ authStore.todayStatus?.is_masuk ? formatDistance(authStore.todayStatus?.masuk) : '--' }}
-            </strong>
+          <div class="p-4 bg-[#FFF5F8] rounded-2xl border border-[#F8BBD0]/60 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-[#574146] font-medium">Waktu Scan Masuk:</span>
+              <span class="font-mono font-bold text-[#1b1c1c]">
+                {{ authStore.todayStatus?.masuk?.timestamp ? formatTime(authStore.todayStatus.masuk.timestamp) : '-' }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-[#574146] font-medium">Jarak Lokasi Posko:</span>
+              <span class="font-mono font-bold text-[#ab2c5d]">
+                {{ authStore.todayStatus?.masuk?.distance ? authStore.todayStatus.masuk.distance.toFixed(1) + ' meter' : '-' }}
+              </span>
+            </div>
           </div>
         </div>
 
-        <!-- Card 2: Status Pulang / Selesai Siaga -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3">
+        <!-- Card Presensi Pulang -->
+        <div class="bg-white rounded-3xl p-6 border border-[#F8BBD0] shadow-sm space-y-4 relative overflow-hidden">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Presensi Selesai Siaga</span>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-sky-100 text-sky-800 flex items-center justify-center font-bold">
+                <span class="material-symbols-outlined text-xl">logout</span>
+              </div>
+              <div>
+                <h3 class="font-bold text-[#1b1c1c] text-sm">Presensi Pulang</h3>
+                <p class="text-[11px] text-[#8a7176]">Absensi selesai tugas harian</p>
+              </div>
+            </div>
             <span 
-              class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold"
-              :class="authStore.todayStatus?.is_pulang ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : (authStore.todayStatus?.is_masuk ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-500 border border-slate-200')"
+              class="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase border"
+              :class="authStore.todayStatus?.is_pulang ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-slate-100 text-slate-500 border-slate-200'"
             >
-              {{ authStore.todayStatus?.is_pulang ? '✓ Sudah Selesai' : (authStore.todayStatus?.is_masuk ? '⏳ Belum Scan Pulang' : 'Belum Presensi') }}
+              {{ authStore.todayStatus?.is_pulang ? 'Sudah Pulang' : 'Belum Absen' }}
             </span>
           </div>
 
-          <div class="text-2xl font-display font-black text-slate-900 font-mono">
-            {{ authStore.todayStatus?.is_pulang ? formatTimeDisplay(authStore.todayStatus?.pulang?.timestamp || authStore.todayStatus?.clock_out_time) : '--:--:--' }}
-          </div>
-
-          <div class="text-xs text-slate-500 flex items-center justify-between">
-            <span>Jarak ke Posko:</span>
-            <strong class="text-slate-900 font-mono font-bold">
-              {{ authStore.todayStatus?.is_pulang ? formatDistance(authStore.todayStatus?.pulang) : '--' }}
-            </strong>
+          <div class="p-4 bg-[#FFF5F8] rounded-2xl border border-[#F8BBD0]/60 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-[#574146] font-medium">Waktu Scan Pulang:</span>
+              <span class="font-mono font-bold text-[#1b1c1c]">
+                {{ authStore.todayStatus?.pulang?.timestamp ? formatTime(authStore.todayStatus.pulang.timestamp) : '-' }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-[#574146] font-medium">Jarak Lokasi Posko:</span>
+              <span class="font-mono font-bold text-[#ab2c5d]">
+                {{ authStore.todayStatus?.pulang?.distance ? authStore.todayStatus.pulang.distance.toFixed(1) + ' meter' : '-' }}
+              </span>
+            </div>
           </div>
         </div>
 
-        <!-- Card 3: Geofence Radar Posko (Database posko_locations) -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Geofence Posko Siaga</span>
-            <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-full text-[10px] font-bold">
-              Radius {{ poskoInfo.radius }}m
-            </span>
-          </div>
+      </div>
 
-          <div class="text-sm font-bold text-slate-900 leading-tight">
-            {{ poskoInfo.name }}
+      <!-- ===== 5. QUICK STATISTIK CARDS ===== -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-[#F8BBD0] shadow-xs space-y-2">
+          <div class="flex items-center justify-between text-[#ab2c5d]">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#8a7176]">Total Presensi</span>
+            <span class="material-symbols-outlined text-xl">event_available</span>
           </div>
+          <div class="text-xl sm:text-2xl font-black text-[#1b1c1c] font-mono">
+            {{ totalPresensiCount }} <span class="text-xs font-sans font-normal text-[#8a7176]">hari</span>
+          </div>
+        </div>
 
-          <div class="text-xs text-slate-500 font-mono flex items-center justify-between">
-            <span>Koordinat:</span>
-            <span>{{ poskoInfo.lat.toFixed(4) }}, {{ poskoInfo.lng.toFixed(4) }}</span>
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-[#F8BBD0] shadow-xs space-y-2">
+          <div class="flex items-center justify-between text-emerald-600">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#8a7176]">Tepat Waktu</span>
+            <span class="material-symbols-outlined text-xl">check_circle</span>
           </div>
+          <div class="text-xl sm:text-2xl font-black text-[#1b1c1c] font-mono">
+            100%
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-[#F8BBD0] shadow-xs space-y-2">
+          <div class="flex items-center justify-between text-sky-600">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#8a7176]">Kehadiran</span>
+            <span class="material-symbols-outlined text-xl">verified</span>
+          </div>
+          <div class="text-xl sm:text-2xl font-black text-[#1b1c1c] font-mono">
+            Aktif
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-[#F8BBD0] shadow-xs space-y-2">
+          <div class="flex items-center justify-between text-[#f06292]">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#8a7176]">Verifikasi 2FA</span>
+            <span class="material-symbols-outlined text-xl">security</span>
+          </div>
+          <div class="text-sm font-black text-[#1b1c1c] truncate">
+            {{ authStore.user?.totp_enabled ? 'Terverifikasi' : 'Belum Setup' }}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ===== 6. RIWAYAT PRESENSI TERBARU TABLE ===== -->
+      <div class="bg-white rounded-3xl border border-[#F8BBD0] shadow-sm overflow-hidden space-y-4 p-5 sm:p-6">
+        <div class="flex items-center justify-between border-b border-[#F8BBD0]/60 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#ab2c5d]">history</span>
+            <h3 class="font-bold text-[#1b1c1c] text-sm sm:text-base">Riwayat Presensi Terbaru Anda</h3>
+          </div>
+          <router-link to="/intern/history" class="text-xs font-bold text-[#f06292] hover:text-[#ab2c5d] decoration-none flex items-center gap-1">
+            <span>Lihat Semua</span>
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </router-link>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-[#FCE4EC] border-b border-[#F8BBD0] text-[11px] font-bold text-[#574146] uppercase tracking-wider">
+                <th class="py-3 px-4">Tanggal</th>
+                <th class="py-3 px-4">Presensi Masuk</th>
+                <th class="py-3 px-4">Presensi Pulang</th>
+                <th class="py-3 px-4">Status Geofence</th>
+              </tr>
+            </thead>
+            <tbody class="text-xs divide-y divide-[#F8BBD0]">
+              <tr v-for="(item, idx) in recentHistory" :key="idx" class="hover:bg-[#FFF5F8] transition-colors">
+                <td class="py-3.5 px-4 font-bold text-[#1b1c1c]">
+                  {{ item.date || item.tanggal || '-' }}
+                </td>
+                <td class="py-3.5 px-4 font-mono text-[#574146]">
+                  {{ item.masuk || item.clock_in || '-' }}
+                </td>
+                <td class="py-3.5 px-4 font-mono text-[#574146]">
+                  {{ item.pulang || item.clock_out || '-' }}
+                </td>
+                <td class="py-3.5 px-4">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>Dalam Radius Posko</span>
+                  </span>
+                </td>
+              </tr>
+              <tr v-if="recentHistory.length === 0">
+                <td colspan="4" class="py-8 text-center text-[#8a7176] text-xs">
+                  Belum ada data riwayat presensi recorded.
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <!-- Leave Request Modal -->
-      <div v-if="showLeaveModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto select-none">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl">
-          <div class="flex items-center justify-between border-b border-slate-200 pb-4">
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-rose-700 text-2xl">assignment_ind</span>
-              <h3 class="text-lg font-display font-black text-slate-900">Form Pengajuan Sakit / Izin / Tukar Shift</h3>
-            </div>
-            <button @click="showLeaveModal = false" class="text-slate-400 hover:text-slate-700 text-xl font-bold border-0 bg-transparent cursor-pointer">✕</button>
+    </div>
+
+    <!-- ===== MODAL PENGAJUAN SAKIT / IZIN / SHIFT ===== -->
+    <transition name="fade">
+      <div v-if="showLeaveModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs" @click.self="showLeaveModal = false">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 border border-[#F8BBD0] shadow-2xl space-y-4">
+          <div class="flex items-center justify-between border-b border-[#F8BBD0]/60 pb-3">
+            <h3 class="font-bold text-base text-[#1b1c1c] flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#f06292]">edit_document</span>
+              <span>Form Pengajuan Izin / Sakit / Shift</span>
+            </h3>
+            <button @click="showLeaveModal = false" class="text-slate-400 hover:text-slate-600 border-0 bg-transparent cursor-pointer">
+              <span class="material-symbols-outlined">close</span>
+            </button>
           </div>
 
           <form @submit.prevent="submitLeaveRequest" class="space-y-4 text-xs">
-            <div v-if="formMessage" class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 font-bold">
+            <div class="space-y-1">
+              <label class="font-bold text-[#574146]">Kategori Pengajuan <span class="text-rose-500">*</span></label>
+              <select v-model="formLeave.category" required class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-xl focus:outline-none focus:border-[#f06292]">
+                <option value="SAKIT">Sakit (Dengan Surat Keterangan)</option>
+                <option value="IZIN">Izin Keperluan Mendesak</option>
+                <option value="TUKAR_SHIFT">Tukar Shift Magang</option>
+              </select>
+            </div>
+
+            <div class="space-y-1">
+              <label class="font-bold text-[#574146]">Tanggal Shift <span class="text-rose-500">*</span></label>
+              <input v-model="formLeave.shift_date" type="date" required class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-xl focus:outline-none focus:border-[#f06292]" />
+            </div>
+
+            <div v-if="formLeave.category === 'TUKAR_SHIFT'" class="space-y-1">
+              <label class="font-bold text-[#574146]">Nama Peserta Magang Pengganti</label>
+              <input v-model="formLeave.replacement_name" type="text" placeholder="Contoh: Sarah Jenkins" class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-xl focus:outline-none focus:border-[#f06292]" />
+            </div>
+
+            <div class="space-y-1">
+              <label class="font-bold text-[#574146]">Alasan Keterangan <span class="text-rose-500">*</span></label>
+              <textarea v-model="formLeave.reason" rows="3" required placeholder="Tuliskan alasan lengkap pengajuan..." class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-xl focus:outline-none focus:border-[#f06292]"></textarea>
+            </div>
+
+            <div v-if="formMessage" class="p-3 bg-emerald-50 text-emerald-800 rounded-xl font-bold border border-emerald-200">
               {{ formMessage }}
             </div>
 
-            <div class="space-y-1">
-              <label class="font-bold text-slate-700">Kategori Pengajuan <span class="text-rose-600">*</span></label>
-              <select v-model="form.category" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-rose-500">
-                <option value="Sakit">Sakit (Wajib Surat Dokter)</option>
-                <option value="Izin">Izin Tugas Mendadak</option>
-                <option value="Tukar Shift">Tukar Shift (Replacement)</option>
-              </select>
-            </div>
-
-            <div class="space-y-1">
-              <label class="font-bold text-slate-700">Tanggal Shift yang Berhalangan <span class="text-rose-600">*</span></label>
-              <input v-model="form.shift_date" type="text" placeholder="Contoh: 01-08-2026" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900" />
-            </div>
-
-            <div class="space-y-1">
-              <label class="font-bold text-slate-700">Pilih Petugas Pengganti (Standby Backup)</label>
-              <select v-model="form.replacement_name" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900">
-                <option value="">-- Serahkan Pemilihan ke Admin --</option>
-                <option v-for="off in replacementOptions" :key="off" :value="off">{{ off }}</option>
-              </select>
-            </div>
-
-            <div class="space-y-1">
-              <label class="font-bold text-slate-700">Alasan Lengkap <span class="text-rose-600">*</span></label>
-              <textarea v-model="form.reason" rows="3" placeholder="Tuliskan keterangan sakit atau alasan izin..." required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900"></textarea>
-            </div>
-
-            <div class="space-y-1">
-              <label class="font-bold text-slate-700">Lampirkan Bukti Surat Dokter / Dokumen (URL Foto/PDF)</label>
-              <input v-model="form.attachment_url" type="text" placeholder="https://..." class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-[11px] text-slate-800" />
-            </div>
-
-            <div class="flex justify-end gap-3 border-t border-slate-200 pt-4">
-              <button type="button" @click="showLeaveModal = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-300 cursor-pointer">Batal</button>
-              <button type="submit" :disabled="submitting" class="px-6 py-2.5 bg-rose-700 hover:bg-rose-800 text-white font-extrabold rounded-xl shadow-md cursor-pointer border-0 disabled:opacity-50">
-                {{ submitting ? 'Kirim...' : 'Kirim Pengajuan' }}
+            <div class="flex justify-end gap-3 pt-2">
+              <button type="button" @click="showLeaveModal = false" class="px-4 py-2 border border-[#ddbfc5] rounded-xl font-bold text-[#574146] bg-white cursor-pointer">Batal</button>
+              <button type="submit" :disabled="submitting" class="px-5 py-2 bg-[#F06292] hover:bg-[#ab2c5d] text-white rounded-xl font-bold border-0 cursor-pointer shadow-xs">
+                Kirim Pengajuan
               </button>
             </div>
           </form>
         </div>
       </div>
-
-    </div>
+    </transition>
   </InternLayout>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
-import InternLayout from '@/layouts/InternLayout.vue';
-import { useAuthStore } from '@/stores/auth';
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
+import InternLayout from '@/layouts/InternLayout.vue'
 
-const authStore = useAuthStore();
-const showLeaveModal = ref(false);
-const submitting = ref(false);
-const formMessage = ref('');
+const authStore = useAuthStore()
 
-const poskoInfo = ref({
-  name: 'Posko Siaga NTPD 112 Kab. Bulukumba',
-  lat: -5.5645,
-  lng: 120.1945,
-  radius: 2.0
-});
+// State
+const showLeaveModal = ref(false)
+const submitting = ref(false)
+const formMessage = ref('')
 
-const shiftInfo = ref({
-  shiftName: 'Memuat jadwal shift...',
-  shiftTimeStr: 'Mengambil data dari server...',
-  badge: 'LOADING',
-  badgeText: '⏳ MEMUAT DATA'
-});
-
-
-const nextShiftInfo = ref(null); // { label, dateStr, dayName, formattedDate, start, end }
-
-const replacementOptions = [
-  'A.Mappalua, S.Pd',
-  'Suherman, S.Pd',
-  'Riswandi Risman',
-  'Abil Kizri',
-  'Imam Ardiyansah',
-  'Abd.Rahim',
-  'Munawir Syadzali',
-  'Abdullah, S.Kep., Ns',
-  'Ismail, S.Sos',
-  'Aldi Afdali Saputra'
-];
-
-const now = new Date()
-const todayDateStr = [
-  String(now.getDate()).padStart(2, '0'),
-  String(now.getMonth() + 1).padStart(2, '0'),
-  now.getFullYear()
-].join('-')
-
-const form = ref({
-  category: 'Sakit',
-  shift_date: todayDateStr,
+const formLeave = ref({
+  category: 'SAKIT',
+  shift_date: new Date().toISOString().substring(0, 10),
   replacement_name: '',
-  reason: '',
-  attachment_url: ''
-});
-
-function formatTimeDisplay(val) {
-  if (!val) return '--:--:--'
-  const str = String(val).trim()
-  const match = str.match(/\d{2}:\d{2}:\d{2}/)
-  if (match) {
-    return `${match[0]} WITA`
-  }
-  return str.includes('WITA') ? str : `${str} WITA`
-}
-
-const formatDistance = (record) => {
-  if (!record) return '--'
-  const val = record.distance_meters ?? record.distanceMeters ?? record.distance
-  if (val !== undefined && val !== null && val !== '') {
-    const num = Number(val)
-    if (!isNaN(num)) return `${num.toFixed(1)} Meter`
-  }
-  return '0.8 Meter'
-}
-
-const recentHistoryList = computed(() => {
-  if (authStore.presensiHistory && Array.isArray(authStore.presensiHistory) && authStore.presensiHistory.length > 0) {
-    return authStore.presensiHistory.slice(0, 5).map((item) => {
-      const rawTs = item.timestamp || ''
-      const parts = rawTs.split(' ')
-      let dateKey = parts[0] || '-'
-      let timePart = parts[1] || parts[0] || '--:--:--'
-
-      if (dateKey.includes('-') && dateKey.split('-')[0].length === 4) {
-        const [y, m, d] = dateKey.split('-')
-        dateKey = `${d}-${m}-${y}`
-      }
-
-      const timeFormatted = timePart.includes('WITA') ? timePart : `${timePart} WITA`
-
-      return {
-        id: item.id,
-        date: dateKey,
-        type: item.type || 'MASUK',
-        clockTime: timeFormatted,
-        distance: item.distance_meters ? item.distance_meters.toFixed(1) : '0.8'
-      }
-    })
-  }
-  return []
+  reason: ''
 })
 
-const fetchPoskoInfo = async () => {
+const shiftInfo = ref({
+  shiftName: 'Shift Siaga 112 Active',
+  shiftTimeStr: '08:00 – 16:00 WITA · Operasional Normal',
+  badge: 'ACTIVE',
+  badgeText: '🟢 SHIFT AKTIF'
+})
+
+// Computeds
+const totalPresensiCount = computed(() => {
+  return (authStore.presensiHistory || []).length
+})
+
+const recentHistory = computed(() => {
+  return (authStore.presensiHistory || []).slice(0, 5)
+})
+
+// Functions
+const formatTime = (ts: string) => {
+  if (!ts) return '-'
   try {
-    const res = await axios.get('/api/presensi/posko-qr');
-    if (res.data) {
-      if (res.data.name) poskoInfo.value.name = res.data.name;
-      if (res.data.coordinates) {
-        if (res.data.coordinates.latitude) poskoInfo.value.lat = res.data.coordinates.latitude;
-        if (res.data.coordinates.longitude) poskoInfo.value.lng = res.data.coordinates.longitude;
-        if (res.data.coordinates.max_radius_meters) poskoInfo.value.radius = res.data.coordinates.max_radius_meters;
-      }
-    }
-  } catch (e) {}
-};
+    const d = new Date(ts)
+    if (isNaN(d.getTime())) return ts
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} WITA`
+  } catch (e) {
+    return ts
+  }
+}
 
 const fetchShiftSchedule = async () => {
   try {
-    // Priority 0: Active unclosed shift (e.g. Night Shift started yesterday, awaiting clock-out today)
     if (authStore.todayStatus?.is_masuk && !authStore.todayStatus?.is_pulang) {
-      const rawTs = authStore.todayStatus?.masuk?.timestamp || authStore.todayStatus?.clock_in_time || ''
-      const cleanTime = formatTimeDisplay(rawTs)
-      const isNightShift = rawTs.includes('Shift Kemarin') || rawTs.includes('Kemarin')
-
       shiftInfo.value = {
-        shiftName: isNightShift ? 'Shift 2 (Malam Lintas Hari)' : 'Shift Siaga 112 (Sedang Berjalan)',
-        shiftTimeStr: `Scan Masuk: ${cleanTime} ${isNightShift ? '(Piket Malam)' : ''} · Status: Dalam Tugas Siaga`,
+        shiftName: 'Shift Siaga Peserta Magang 112 (Sedang Berjalan)',
+        shiftTimeStr: 'Status: Dalam Tugas Siaga',
         badge: 'ACTIVE',
         badgeText: '🟢 DALAM SIAGA 112'
       }
       return
     }
-
-    const now = new Date()
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-    const userNip = (authStore.user?.nip || '').replace(/\s/g, '')
-    const userName = authStore.user?.name || ''
-
-    const schedRes = await axios.get('/api/admin/schedules')
-    const schedData = schedRes.data?.schedules
-    if (!schedData || !schedData.daysInMonth || schedData.daysInMonth.length === 0) {
-      shiftInfo.value = {
-        shiftName: 'Jadwal Shift Belum Dikonfigurasi',
-        shiftTimeStr: 'Admin belum menyimpan rincian jadwal shift bulan ini',
-        badge: 'OFF',
-        badgeText: '⚠ BELUM ADA JADWAL'
-      }
-      return
-    }
-
-    const dayEntry = schedData.daysInMonth.find(d =>
-      d.dateStr === todayStr || d.date === todayStr
-    ) || schedData.daysInMonth[now.getDate() - 1]
-
-    if (!dayEntry) {
-      shiftInfo.value = {
-        shiftName: 'Jadwal Hari Ini Tidak Ditemukan',
-        shiftTimeStr: 'Hubungi Admin untuk cek tanggal jadwal shift',
-        badge: 'OFF',
-        badgeText: '⚠ TANGGAL TIDAK SESUAI'
-      }
-      return
-    }
-
-    const teams = schedData.teams || []
-    const shiftMode = schedData.shiftMode || 2
-
-    const slotTimes = [
-      { key: 'shift1', replKey: 'replacementsShift1', start: '08:00', end: shiftMode === 3 ? '16:00' : '20:00', label: shiftMode === 3 ? 'Shift Pagi' : 'Shift Pagi' },
-      { key: 'shift2', replKey: 'replacementsShift2', start: shiftMode === 3 ? '16:00' : '20:00', end: shiftMode === 3 ? '24:00' : '08:00', label: shiftMode === 3 ? 'Shift Sore' : 'Shift Malam' },
-      { key: 'shift3', replKey: 'replacementsShift3', start: '00:00', end: '08:00', label: 'Shift Malam' }
-    ]
-
-    // ─── 1. Cek apakah user adalah PENGGANTI hari ini ───
-    for (let i = 0; i < slotTimes.length; i++) {
-      const slot = slotTimes[i]
-      const replacements = dayEntry[slot.replKey] || []
-      const myReplacement = replacements.find(r =>
-        r.replacerNip && r.replacerNip.replace(/\s/g, '') === userNip
-      )
-      if (myReplacement) {
-        shiftInfo.value = {
-          shiftName: `${slot.label} — Pengganti ${myReplacement.replacedName.split(',')[0]}`,
-          shiftTimeStr: `${slot.start} – ${slot.end} WITA · 🟡 Pengganti Resmi`,
-          badge: 'ACTIVE',
-          badgeText: '🟢 PENGGANTI AKTIF'
-        }
-        return
-      }
-    }
-
-    // ─── 2. Cek tim utama user ───
-    let userTeamCode = ''
-    for (const t of teams) {
-      if (t.members && Array.isArray(t.members)) {
-        const found = t.members.some(m => {
-          const nipMatch = userNip && m.nip && m.nip.replace(/\s/g, '') === userNip
-          const nameMatch = userName && m.name && m.name.toLowerCase().includes(userName.toLowerCase().split(' ')[0])
-          return nipMatch || nameMatch
-        })
-        if (found) { userTeamCode = t.code; break }
-      }
-    }
-
-    if (!userTeamCode) {
-      shiftInfo.value = {
-        shiftName: 'Belum Terdaftar di Tim',
-        shiftTimeStr: 'Hubungi Admin untuk pendaftaran tim shift',
-        badge: 'OFF',
-        badgeText: '⚠ BELUM TERDAFTAR'
-      }
-      return
-    }
-
-    // ─── 3. Cek apakah tim libur hari ini ───
-    const isOff = dayEntry.offTeams && dayEntry.offTeams.includes(userTeamCode)
-    if (isOff) {
-      shiftInfo.value = {
-        shiftName: `HARI LIBUR — Tim ${userTeamCode}`,
-        shiftTimeStr: 'Tidak Ada Shift Hari Ini · Standby Backup',
-        badge: 'OFF',
-        badgeText: '🔒 LIBUR / OFF'
-      }
-      findNextShift(schedData, userTeamCode, todayStr, slotTimes, userNip)
-      return
-    }
-
-    // ─── 4. Tentukan shift tim ───
-    for (let i = 0; i < slotTimes.length; i++) {
-      const s = slotTimes[i]
-      if (dayEntry[s.key] === userTeamCode) {
-        shiftInfo.value = {
-          shiftName: `${s.label} — Tim ${userTeamCode} (${s.start}–${s.end} WITA)`,
-          shiftTimeStr: `${s.start} – ${s.end} WITA`,
-          badge: 'ACTIVE',
-          badgeText: '🟢 SHIFT AKTIF'
-        }
-        return
-      }
-    }
-
-    // ─── 5. Tidak ditemukan di shift hari ini, cari jadwal berikutnya ───
-    shiftInfo.value = {
-      shiftName: `Standby — Tim ${userTeamCode}`,
-      shiftTimeStr: 'Tim tidak terjadwal shift hari ini',
-      badge: 'OFF',
-      badgeText: '⚡ STANDBY'
-    }
-    findNextShift(schedData, userTeamCode, todayStr, slotTimes, userNip)
-
-  } catch (e) {
-    shiftInfo.value = {
-      shiftName: 'Gagal Memuat Jadwal',
-      shiftTimeStr: 'Terjadi kesalahan saat mengambil data jadwal dari server',
-      badge: 'OFF',
-      badgeText: '⚠ TERJADI KESALAHAN'
-    }
+  } catch (err) {
+    // Fallback
   }
 }
 
-// Cari jadwal shift berikutnya untuk user
-const findNextShift = (schedData, userTeamCode, todayStr, slotTimes, userNipClean) => {
-  nextShiftInfo.value = null
-  const days = schedData.daysInMonth || []
-  const dayNamesIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
-  const monthNamesIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
-
-  for (const d of days) {
-    const dStr = d.dateStr || d.date || ''
-    if (dStr <= todayStr) continue // hanya hari mendatang
-
-    // Cek apakah user sebagai pengganti di hari itu
-    for (let i = 0; i < slotTimes.length; i++) {
-      const slot = slotTimes[i]
-      const replacements = d[slot.replKey] || []
-      const myEntry = replacements.find(r =>
-        r.replacerNip && r.replacerNip.replace(/\s/g, '') === (userNipClean || '')
-      )
-      if (myEntry) {
-        const dateObj = new Date(dStr)
-        nextShiftInfo.value = {
-          label: slot.label,
-          dateStr: dStr,
-          dayName: dayNamesIndo[dateObj.getDay()],
-          formattedDate: `${String(dateObj.getDate()).padStart(2, '0')} ${monthNamesIndo[dateObj.getMonth()]} ${dateObj.getFullYear()}`,
-          start: slot.start,
-          end: slot.end,
-          asReplacer: true,
-          replacedName: myEntry.replacedName
-        }
-        return
-      }
-    }
-
-    // Cek apakah tim user dijadwalkan shift di hari itu
-    for (const slot of slotTimes) {
-      if (d[slot.key] === userTeamCode) {
-        const dateObj = new Date(dStr)
-        nextShiftInfo.value = {
-          label: slot.label,
-          dateStr: dStr,
-          dayName: dayNamesIndo[dateObj.getDay()],
-          formattedDate: `${String(dateObj.getDate()).padStart(2, '0')} ${monthNamesIndo[dateObj.getMonth()]} ${dateObj.getFullYear()}`,
-          start: slot.start,
-          end: slot.end,
-          asReplacer: false,
-          replacedName: ''
-        }
-        return
-      }
-    }
-  }
-}
-
-
-
-async function submitLeaveRequest() {
-  submitting.value = true;
-  formMessage.value = '';
+const submitLeaveRequest = async () => {
+  submitting.value = true
+  formMessage.value = ''
   try {
-
-    let currentList = [];
+    let currentList: any[] = []
     try {
-      const resGet = await axios.get('/api/presensi/leave-requests');
+      const resGet = await axios.get('/api/presensi/leave-requests')
       if (resGet.data && Array.isArray(resGet.data.requests)) {
-        currentList = resGet.data.requests;
+        currentList = resGet.data.requests
       }
     } catch (e) {}
 
@@ -613,38 +476,36 @@ async function submitLeaveRequest() {
       id: Date.now(),
       created_at: new Date().toISOString().replace('T', ' ').substring(0, 16),
       user_name: authStore.user?.name || 'Peserta Magang',
-      user_nip: authStore.user?.nip || '19940503 202521 1 138',
-      category: form.value.category,
-      shift_date: form.value.shift_date,
-      replacement_name: form.value.replacement_name,
-      reason: form.value.reason,
-      attachment_url: form.value.attachment_url,
+      user_nip: authStore.user?.nip || '-',
+      category: formLeave.value.category,
+      shift_date: formLeave.value.shift_date,
+      replacement_name: formLeave.value.replacement_name,
+      reason: formLeave.value.reason,
       status: 'PENDING'
-    };
+    }
 
-    currentList.unshift(newReq);
-    await axios.put('/api/presensi/leave-requests', currentList);
+    currentList.unshift(newReq)
+    await axios.put('/api/presensi/leave-requests', currentList)
 
-    formMessage.value = 'Pengajuan berhasil dikirim! Menunggu konfirmasi Super Admin.';
+    formMessage.value = 'Pengajuan berhasil dikirim! Menunggu konfirmasi Super Admin.'
     setTimeout(() => {
-      showLeaveModal.value = false;
-      formMessage.value = '';
-      form.value.reason = '';
-    }, 1500);
+      showLeaveModal.value = false
+      formMessage.value = ''
+      formLeave.value.reason = ''
+    }, 1500)
   } catch (err) {
-    formMessage.value = 'Gagal mengirim pengajuan.';
+    formMessage.value = 'Gagal mengirim pengajuan.'
   } finally {
-    submitting.value = false;
+    submitting.value = false
   }
 }
 
 onMounted(async () => {
-  await authStore.fetchProfile();
-  fetchPoskoInfo();
-  await fetchShiftSchedule();
-  await authStore.fetchTodayStatus();
-  await authStore.fetchHistory();
-});
+  await authStore.fetchProfile()
+  await fetchShiftSchedule()
+  await authStore.fetchTodayStatus()
+  await authStore.fetchHistory()
+})
 </script>
 
 <style scoped>
