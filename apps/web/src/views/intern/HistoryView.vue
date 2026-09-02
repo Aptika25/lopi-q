@@ -1,267 +1,177 @@
 <template>
   <InternLayout>
-    <div class="space-y-6 select-none font-sans w-full pb-28 sm:pb-8">
+    <div class="space-y-6 select-none font-sans w-full max-w-[1200px] mx-auto pb-28 sm:pb-8">
       
-      <!-- ===== PAGE HEADER ===== -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#F8BBD0]/60 pb-4">
-        <div>
-          <h2 class="font-display font-black text-[#1b1c1c] text-lg sm:text-xl flex items-center gap-2">
-            <span class="material-symbols-outlined text-[#f06292] text-2xl">history</span>
-            <span>Riwayat &amp; Log Presensi Magang</span>
-          </h2>
-          <p class="font-sans text-[#8a7176] mt-1 text-xs">Rekapitulasi lengkap pemindaian QR Code presensi Masuk &amp; Pulang tugas siaga peserta magang.</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="px-3 py-1 bg-[#FCE4EC] text-[#ab2c5d] text-xs font-extrabold rounded-full border border-[#F8BBD0]">
-            REKAP PRESENSI DIGITAL
-          </span>
-        </div>
-      </div>
-
-      <!-- ===== PROFILE SUMMARY CARD ===== -->
-      <div class="bg-white rounded-3xl p-6 sm:p-7 border border-[#F8BBD0] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div class="flex items-start gap-4">
-          <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#ab2c5d] via-[#f06292] to-[#fec1d6] text-white font-display font-black text-2xl flex items-center justify-center shrink-0 shadow-md">
-            {{ authStore.user?.name ? authStore.user.name.charAt(0).toUpperCase() : 'M' }}
-          </div>
-          <div class="flex-1 min-w-0 space-y-1">
-            <h2 class="text-lg font-display font-black text-[#1b1c1c] leading-tight">
-              {{ authStore.user?.name || 'Peserta Magang' }}
-            </h2>
-            
-            <div class="text-xs text-[#ab2c5d] font-mono font-bold">
-              NISN / NIM: {{ authStore.user?.nip || '-' }}
-            </div>
-
-            <div class="text-xs text-[#574146] font-bold uppercase tracking-wide">
-              Jurusan: {{ authStore.user?.jabatan || 'Rekayasa Perangkat Lunak' }}
-            </div>
-
-            <div class="text-xs text-[#8a7176] font-medium pt-0.5">
-              Asal Sekolah / Kampus: {{ authStore.user?.unit_kerja || 'Diskominfo Bulukumba' }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Keluar Sesi Button (Mobile Only) -->
-        <div class="sm:hidden w-full pt-3 border-t border-[#F8BBD0]/60">
-          <button 
-            @click="handleLogout"
-            class="w-full py-2.5 px-4 bg-[#FFF5F8] hover:bg-[#FCE4EC] border border-[#F8BBD0] text-[#ab2c5d] font-bold text-xs rounded-full transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs group"
-          >
-            <span>Keluar Sesi</span>
-            <span class="material-symbols-outlined text-base group-hover:translate-x-0.5 transition-transform">logout</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- ===== HISTORY CONTAINER ===== -->
-      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-[#F8BBD0] shadow-sm space-y-6">
-        
-        <!-- Header Controls & Refresh Button -->
-        <div class="flex items-center justify-between pb-4 border-b border-[#F8BBD0]/60 gap-2">
-          <div class="min-w-0 flex-1">
-            <h3 class="text-sm sm:text-base font-bold text-[#1b1c1c] flex items-center gap-2">
-              <span class="material-symbols-outlined text-[#ab2c5d]">description</span>
-              <span class="truncate">Daftar Log Kehadiran</span>
-            </h3>
-            <p class="text-xs text-[#8a7176] mt-0.5 hidden sm:block">Log presensi otomatis yang terverifikasi Geofence Posko Siaga 112.</p>
-          </div>
-
-          <button 
-            @click="fetchHistory"
-            class="px-3.5 py-2 bg-[#FFF5F8] hover:bg-[#FCE4EC] text-[#ab2c5d] font-bold text-xs rounded-xl border border-[#F8BBD0] flex items-center gap-1.5 cursor-pointer shrink-0 transition-colors"
-          >
-            <span class="material-symbols-outlined text-base">refresh</span>
-            <span>Refresh</span>
-          </button>
-        </div>
-
-        <!-- Filter & Sorting Toolbar -->
-        <div class="bg-[#FFF5F8] p-4 rounded-2xl border border-[#F8BBD0]/60 text-xs space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-3">
-          <!-- Month & Year Filters -->
-          <div class="grid grid-cols-2 sm:flex sm:items-center gap-2 flex-1">
-            <select v-model="selectedMonth" class="w-full sm:w-auto px-3 py-2 bg-white border border-[#ddbfc5] rounded-xl font-bold text-[#1b1c1c] focus:outline-none focus:border-[#f06292] text-xs">
-              <option v-for="m in monthOptions" :key="m.value" :value="m.value">{{ m.label }}</option>
-            </select>
-
-            <select v-model="selectedYear" class="w-full sm:w-auto px-3 py-2 bg-white border border-[#ddbfc5] rounded-xl font-bold text-[#1b1c1c] focus:outline-none focus:border-[#f06292] text-xs">
-              <option v-for="y in yearOptions" :key="y.value" :value="y.value">{{ y.label }}</option>
-            </select>
-          </div>
-
-          <!-- Page Size & Reset Filter -->
-          <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-0 border-[#F8BBD0]/60">
-            <div class="flex items-center gap-1.5 font-bold text-[#574146]">
-              <span class="text-[11px] text-[#8a7176]">Tampilkan:</span>
-              <select v-model="pageSize" class="px-2.5 py-1.5 bg-white border border-[#ddbfc5] rounded-xl font-bold text-[#1b1c1c] focus:outline-none focus:border-[#f06292] text-xs">
-                <option v-for="size in pageSizeOptions" :key="size" :value="size">{{ size }} Data</option>
-              </select>
-            </div>
-
-            <button 
-              v-if="selectedMonth !== 'ALL' || selectedYear !== 'ALL'"
-              @click="selectedMonth = 'ALL'; selectedYear = 'ALL'"
-              class="px-3 py-1.5 bg-[#ab2c5d] hover:bg-[#881b47] text-white font-extrabold rounded-xl border-0 text-xs cursor-pointer whitespace-nowrap shadow-2xs"
-            >
-              Reset Filter
-            </button>
-          </div>
-        </div>
-
-        <!-- Mobile Card View -->
-        <div class="block sm:hidden space-y-3">
-          <div 
-            v-for="item in paginatedHistoryList" 
-            :key="item.id"
-            class="bg-white rounded-2xl p-4 border border-[#F8BBD0]/80 shadow-2xs space-y-3"
-          >
-            <!-- Card Header -->
-            <div class="flex items-center justify-between border-b border-[#F8BBD0]/50 pb-2.5">
-              <div class="flex items-center gap-1.5 font-mono font-bold text-[#1b1c1c] text-xs">
-                <span class="material-symbols-outlined text-base text-[#f06292]">calendar_today</span>
-                <span>{{ item.date }}</span>
-              </div>
-              <span class="px-2.5 py-0.5 bg-[#FCE4EC] border border-[#F8BBD0] text-[#ab2c5d] rounded-full text-[10px] font-extrabold">
-                {{ item.shiftName }}
+      <!-- ===== 1. PROFILE CARD SECTION ===== -->
+      <section class="mt-2">
+        <div class="bg-white border border-[#ddbfc5] rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+          <div class="flex items-center gap-4">
+            <!-- Avatar Box -->
+            <div class="w-16 h-16 rounded-xl bg-[#f06292] flex items-center justify-center shadow-sm shrink-0">
+              <span class="text-white font-bold text-2xl">
+                {{ authStore.user?.name ? authStore.user.name.charAt(0).toUpperCase() : 'A' }}
               </span>
             </div>
 
-            <!-- Card Body: Clock In & Clock Out Grid -->
-            <div class="grid grid-cols-2 gap-2.5 text-xs">
-              <!-- Jam Masuk Box -->
-              <div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200/80 flex flex-col justify-between space-y-2 min-h-[85px]">
-                <div class="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Jam Masuk
-                </div>
-                <div class="font-mono text-xs font-black text-[#1b1c1c]">
-                  {{ item.clockIn }}
-                </div>
-                <div>
-                  <span v-if="item.clockIn !== '--:--:--'" class="text-[10px] font-bold text-emerald-800 bg-white/90 px-2 py-0.5 rounded border border-emerald-200 inline-block shadow-2xs">
-                    ✓ Terverifikasi
-                  </span>
-                  <span v-else class="text-[10px] font-semibold text-slate-400 italic">--</span>
-                </div>
-              </div>
-
-              <!-- Jam Pulang Box -->
-              <div 
-                class="p-3 rounded-xl border flex flex-col justify-between space-y-2 min-h-[85px]"
-                :class="item.clockOut !== '--:--:--' ? 'bg-amber-50/70 border-amber-200/80' : 'bg-slate-50 border-slate-200'"
-              >
-                <div 
-                  class="text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1"
-                  :class="item.clockOut !== '--:--:--' ? 'text-amber-800' : 'text-slate-400'"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full" :class="item.clockOut !== '--:--:--' ? 'bg-amber-500' : 'bg-slate-300'"></span> Jam Pulang
-                </div>
-                <div class="font-mono text-xs font-black" :class="item.clockOut !== '--:--:--' ? 'text-[#1b1c1c]' : 'text-slate-400'">
-                  {{ item.clockOut }}
-                </div>
-                <div>
-                  <span v-if="item.clockOut !== '--:--:--'" class="text-[10px] font-bold text-amber-800 bg-white/90 px-2 py-0.5 rounded border border-amber-200 inline-block shadow-2xs">
-                    ✓ Terverifikasi
-                  </span>
-                  <span v-else class="text-[10px] font-medium text-slate-400 bg-white/70 px-2 py-0.5 rounded border border-slate-200 inline-block">
-                    ⏳ Belum Scan
-                  </span>
-                </div>
-              </div>
+            <!-- Profile Info -->
+            <div class="flex flex-col justify-center min-w-0">
+              <h3 class="text-lg font-bold text-[#1b1c1c] leading-tight truncate">
+                {{ authStore.user?.name || 'adhe anisa' }}
+              </h3>
+              <p class="text-[10px] font-bold text-[#ab2c5d] uppercase tracking-wider mt-0.5">
+                NISN. {{ authStore.user?.nip || '0091755987' }}
+              </p>
+              <p class="text-xs text-[#574146] font-semibold mt-0.5 truncate">
+                {{ authStore.user?.unit_kerja || 'SMKS TI BULUKUMBA' }}
+              </p>
             </div>
           </div>
 
-          <div v-if="filteredHistoryList.length === 0" class="py-8 text-center bg-[#FFF5F8] rounded-2xl border border-dashed border-[#F8BBD0]">
-            <div class="inline-flex items-center justify-center gap-1.5 text-xs text-[#8a7176] font-medium">
-              <span class="material-symbols-outlined text-[#f06292]">info</span>
-              <span>Tidak ada riwayat presensi yang sesuai dengan filter.</span>
+          <div class="h-px w-full bg-[#ddbfc5]/50"></div>
+
+          <!-- Keluar Sesi Button -->
+          <button 
+            @click="handleLogout"
+            class="w-full py-2.5 px-4 border border-[#f06292] rounded-full flex items-center justify-center gap-2 text-[#ab2c5d] font-bold text-xs hover:bg-[#f06292]/10 transition-colors active:scale-[0.98] cursor-pointer bg-transparent"
+          >
+            <span>Keluar Sesi</span>
+            <span class="material-symbols-outlined text-lg">logout</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ===== 2. MONTH FILTER SECTION ===== -->
+      <section class="py-2 flex items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#ddbfc5] shadow-xs">
+        <button 
+          @click="prevMonth"
+          class="w-10 h-10 flex items-center justify-center rounded-full bg-[#f5f3f3] hover:bg-[#eae8e7] transition-colors active:scale-95 text-[#574146] border-0 cursor-pointer"
+        >
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+
+        <div class="flex items-center gap-2">
+          <select 
+            v-model="selectedMonth" 
+            class="px-3 py-1.5 bg-[#f5f3f3] border border-[#ddbfc5] rounded-xl font-bold text-[#1b1c1c] text-xs focus:outline-none focus:border-[#f06292]"
+          >
+            <option v-for="m in monthOptions" :key="m.value" :value="m.value">{{ m.label }}</option>
+          </select>
+
+          <select 
+            v-model="selectedYear" 
+            class="px-3 py-1.5 bg-[#f5f3f3] border border-[#ddbfc5] rounded-xl font-bold text-[#1b1c1c] text-xs focus:outline-none focus:border-[#f06292]"
+          >
+            <option v-for="y in yearOptions" :key="y.value" :value="y.value">{{ y.label }}</option>
+          </select>
+        </div>
+
+        <button 
+          @click="nextMonth"
+          class="w-10 h-10 flex items-center justify-center rounded-full bg-[#f5f3f3] hover:bg-[#eae8e7] transition-colors active:scale-95 text-[#574146] border-0 cursor-pointer"
+        >
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </section>
+
+      <!-- ===== 3. HISTORY LIST SECTION ===== -->
+      <section class="flex flex-col gap-3">
+        <article 
+          v-for="item in paginatedHistoryList" 
+          :key="item.id"
+          class="bg-white border border-[#ddbfc5] rounded-2xl p-4 flex flex-col gap-3 hover:bg-[#ffd9e4]/10 transition-colors shadow-sm"
+        >
+          <!-- Item Header: Date & Badge -->
+          <div class="flex justify-between items-start">
+            <h3 class="text-xs font-bold text-[#574146] flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm text-[#f06292]">calendar_today</span>
+              <span>{{ item.date }}</span>
+            </h3>
+
+            <!-- Status Badge (Hadir, Terlambat, Izin/Cuti) -->
+            <span 
+              class="text-[10px] font-extrabold uppercase px-3 py-1 rounded-full tracking-wider border"
+              :class="{
+                'bg-[#E8F5E9] text-[#1B5E20] border-emerald-200': item.statusBadge === 'HADIR',
+                'bg-[#FFF8E1] text-[#FF8F00] border-amber-200': item.statusBadge === 'TERLAMBAT',
+                'bg-[#FCE4EC] text-[#F06292] border-rose-200': item.statusBadge === 'IZIN' || item.statusBadge === 'SAKIT'
+              }"
+            >
+              {{ item.statusBadge }}
+            </span>
+          </div>
+
+          <!-- Item Body: Clock In & Clock Out Grid -->
+          <div class="flex items-center gap-6 mt-1">
+            <!-- Masuk Box -->
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#ab2c5d] text-xl">login</span>
+              <div class="flex flex-col">
+                <span class="text-[10px] font-bold text-[#574146] uppercase tracking-wider">Masuk</span>
+                <span class="text-base font-black font-mono text-[#1b1c1c] leading-tight">{{ item.clockIn }}</span>
+              </div>
+            </div>
+
+            <!-- Divider Line -->
+            <div class="h-8 w-px bg-[#ddbfc5]/60"></div>
+
+            <!-- Keluar Box -->
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#8a7176] text-xl">logout</span>
+              <div class="flex flex-col">
+                <span class="text-[10px] font-bold text-[#574146] uppercase tracking-wider">Keluar</span>
+                <span class="text-base font-black font-mono leading-tight" :class="item.clockOut !== '--:--' ? 'text-[#1b1c1c]' : 'text-slate-400'">
+                  {{ item.clockOut }}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+        </article>
 
-        <!-- Desktop History Table -->
-        <div class="hidden sm:block overflow-x-auto rounded-2xl border border-[#F8BBD0] shadow-xs">
-          <table class="w-full text-left text-xs text-[#1b1c1c]">
-            <thead class="bg-[#FFF5F8] text-[#ab2c5d] font-bold uppercase tracking-wider border-b border-[#F8BBD0]">
-              <tr>
-                <th class="py-3.5 px-4">Tanggal Siaga</th>
-                <th class="py-3.5 px-4">Jadwal Shift</th>
-                <th class="py-3.5 px-4">Jam Masuk</th>
-                <th class="py-3.5 px-4">Jam Pulang</th>
-                <th class="py-3.5 px-4">Status Geofence</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-[#F8BBD0]/40 bg-white">
-              <tr v-for="item in paginatedHistoryList" :key="item.id" class="hover:bg-[#FFF5F8]/50 transition-colors">
-                <td class="py-3.5 px-4 font-mono font-bold text-[#1b1c1c] whitespace-nowrap">{{ item.date }}</td>
-                <td class="py-3.5 px-4">
-                  <span class="px-2.5 py-0.5 bg-[#FCE4EC] border border-[#F8BBD0] text-[#ab2c5d] rounded-full text-[10px] font-extrabold">
-                    {{ item.shiftName }}
-                  </span>
-                </td>
-                <td class="py-3.5 px-4 font-mono whitespace-nowrap font-extrabold text-emerald-700">
-                  {{ item.clockIn }}
-                </td>
-                <td class="py-3.5 px-4 font-mono whitespace-nowrap font-extrabold text-amber-700">
-                  {{ item.clockOut }}
-                </td>
-                <td class="py-3.5 px-4 whitespace-nowrap">
-                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border bg-emerald-50 text-emerald-700 border-emerald-200">
-                    Posko 112
-                  </span>
-                </td>
-              </tr>
-              <tr v-if="filteredHistoryList.length === 0">
-                <td colspan="5" class="py-8 text-center">
-                  <div class="inline-flex items-center justify-center gap-1.5 text-xs text-[#8a7176] font-medium">
-                    <span class="material-symbols-outlined text-[#f06292]">info</span>
-                    <span>Tidak ada riwayat presensi yang sesuai dengan filter.</span>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination Controls Footer -->
-        <div v-if="filteredHistoryList.length > 0" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-[#F8BBD0]/60 text-xs">
-          <div class="text-[#574146] font-medium text-center sm:text-left">
-            Menampilkan <strong class="text-[#1b1c1c] font-mono font-bold">{{ ((currentPage - 1) * pageSize) + 1 }}</strong> - <strong class="text-[#1b1c1c] font-mono font-bold">{{ Math.min(currentPage * pageSize, filteredHistoryList.length) }}</strong> dari <strong class="text-[#1b1c1c] font-mono font-bold">{{ filteredHistoryList.length }}</strong> riwayat presensi
+        <!-- Empty State -->
+        <div v-if="filteredHistoryList.length === 0" class="py-10 text-center bg-white rounded-2xl border border-dashed border-[#ddbfc5]">
+          <div class="inline-flex items-center justify-center gap-2 text-xs text-[#8a7176] font-medium">
+            <span class="material-symbols-outlined text-[#f06292]">info</span>
+            <span>Tidak ada riwayat presensi yang ditemukan untuk periode ini.</span>
           </div>
+        </div>
 
-          <div class="flex items-center gap-2">
+        <!-- Pagination Footer -->
+        <div v-if="filteredHistoryList.length > 0" class="flex items-center justify-between pt-3 text-xs">
+          <span class="text-[#574146] font-medium">
+            Data {{ ((currentPage - 1) * pageSize) + 1 }} - {{ Math.min(currentPage * pageSize, filteredHistoryList.length) }} dari {{ filteredHistoryList.length }}
+          </span>
+
+          <div class="flex items-center gap-1.5">
             <button 
               @click="currentPage--" 
               :disabled="currentPage === 1"
-              class="px-3 py-1.5 bg-[#FFF5F8] hover:bg-[#FCE4EC] text-[#ab2c5d] font-bold rounded-xl border border-[#F8BBD0] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 text-xs"
+              class="px-3 py-1.5 bg-[#f5f3f3] hover:bg-[#eae8e7] text-[#ab2c5d] font-bold rounded-xl border border-[#ddbfc5] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed text-xs"
             >
-              <span class="material-symbols-outlined text-base">chevron_left</span>
-              <span>Sebelumnya</span>
+              Prev
             </button>
 
-            <span class="px-3 py-1.5 bg-[#ab2c5d] text-white font-extrabold font-mono rounded-xl text-xs shadow-2xs">
+            <span class="px-3 py-1.5 bg-[#ab2c5d] text-white font-mono font-bold rounded-xl text-xs">
               {{ currentPage }} / {{ totalPages }}
             </span>
 
             <button 
               @click="currentPage++" 
               :disabled="currentPage >= totalPages"
-              class="px-3 py-1.5 bg-[#FFF5F8] hover:bg-[#FCE4EC] text-[#ab2c5d] font-bold rounded-xl border border-[#F8BBD0] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 text-xs"
+              class="px-3 py-1.5 bg-[#f5f3f3] hover:bg-[#eae8e7] text-[#ab2c5d] font-bold rounded-xl border border-[#ddbfc5] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed text-xs"
             >
-              <span>Berikutnya</span>
-              <span class="material-symbols-outlined text-base">chevron_right</span>
+              Next
             </button>
           </div>
         </div>
 
-      </div>
+      </section>
 
     </div>
 
     <!-- ===== MODAL KONFIRMASI KELUAR SESI ===== -->
     <Teleport to="body">
       <div v-if="showLogoutModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs select-none">
-        <div class="bg-white rounded-3xl border border-[#F8BBD0] shadow-2xl max-w-sm w-full p-6 text-center space-y-4">
+        <div class="bg-white rounded-3xl border border-[#ddbfc5] shadow-2xl max-w-sm w-full p-6 text-center space-y-4">
           <div class="w-14 h-14 rounded-full bg-[#FCE4EC] text-[#ab2c5d] flex items-center justify-center mx-auto shadow-inner">
             <span class="material-symbols-outlined text-3xl">logout</span>
           </div>
@@ -276,7 +186,7 @@
           <div class="grid grid-cols-2 gap-2.5 pt-2">
             <button
               @click="showLogoutModal = false"
-              class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-[#574146] font-bold text-xs rounded-xl transition-all cursor-pointer border-0"
+              class="w-full py-2.5 px-4 bg-[#f5f3f3] hover:bg-slate-200 text-[#574146] font-bold text-xs rounded-xl transition-all cursor-pointer border-0"
             >
               Batal
             </button>
@@ -296,20 +206,21 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
 import InternLayout from '@/layouts/InternLayout.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const router = useRouter()
-const schedulesData = ref<any>(null)
 
 const now = new Date()
+const currentMonthVal = String(now.getMonth() + 1).padStart(2, '0')
+const currentYearVal = String(now.getFullYear())
 
-const selectedMonth = ref('ALL')
-const selectedYear = ref('ALL')
+const selectedMonth = ref(currentMonthVal)
+const selectedYear = ref(currentYearVal)
 const pageSize = ref(10)
 const currentPage = ref(1)
+const showLogoutModal = ref(false)
 
 const monthOptions = [
   { value: 'ALL', label: 'Semua Bulan' },
@@ -335,69 +246,40 @@ const yearOptions = [
   { value: '2027', label: '2027' }
 ]
 
-const pageSizeOptions = [5, 10, 20, 50, 100]
-
-watch([selectedMonth, selectedYear, pageSize], () => {
+watch([selectedMonth, selectedYear], () => {
   currentPage.value = 1
 })
 
-const fetchSchedulesData = async () => {
-  try {
-    const res = await axios.get('/api/admin/schedules')
-    schedulesData.value = res.data?.schedules
-  } catch (e) {}
+const prevMonth = () => {
+  if (selectedMonth.value === 'ALL') {
+    selectedMonth.value = '01'
+    return
+  }
+  let m = parseInt(selectedMonth.value, 10) - 1
+  if (m < 1) {
+    m = 12
+    let y = parseInt(selectedYear.value, 10) - 1
+    selectedYear.value = String(y)
+  }
+  selectedMonth.value = String(m).padStart(2, '0')
 }
 
-const getShiftNameForDate = (dateStr: string) => {
-  let isoDate = dateStr
-  if (dateStr.includes('-') && dateStr.split('-')[0].length === 2) {
-    const [d, m, y] = dateStr.split('-')
-    isoDate = `${y}-${m}-${d}`
+const nextMonth = () => {
+  if (selectedMonth.value === 'ALL') {
+    selectedMonth.value = '12'
+    return
   }
-
-  const cleanUserNip = (authStore.user?.nip || '').replace(/\s+/g, '')
-  const cleanUserName = (authStore.user?.name || '').toLowerCase()
-  const teams = schedulesData.value?.teams || []
-
-  let userTeamCode = ''
-  for (const t of teams) {
-    if (t.members && Array.isArray(t.members)) {
-      const isMember = t.members.some((m: any) => {
-        if (typeof m === 'string') {
-          const cleanM = m.replace(/\s+/g, '')
-          return (cleanUserNip && cleanM.includes(cleanUserNip)) || (cleanUserName && cleanM.toLowerCase().includes(cleanUserName))
-        } else if (typeof m === 'object' && m !== null) {
-          const mNip = (m.nip || m.Nip || m.NIP || '').replace(/\s+/g, '')
-          const mName = (m.name || m.Name || '').toLowerCase()
-          return (cleanUserNip && mNip.includes(cleanUserNip)) || (cleanUserName && mName.includes(cleanUserName))
-        }
-        return false
-      })
-      if (isMember) {
-        userTeamCode = t.code || t.id || t.name
-        break
-      }
-    }
+  let m = parseInt(selectedMonth.value, 10) + 1
+  if (m > 12) {
+    m = 1
+    let y = parseInt(selectedYear.value, 10) + 1
+    selectedYear.value = String(y)
   }
-
-  if (schedulesData.value && Array.isArray(schedulesData.value.daysInMonth)) {
-    const dayEntry = schedulesData.value.daysInMonth.find((d: any) => d.date === isoDate || d.dateStr === isoDate)
-    if (dayEntry && userTeamCode) {
-      if (dayEntry.shift1 === userTeamCode || dayEntry.shift1Team === userTeamCode) return 'Shift Pagi'
-      if (dayEntry.shift2 === userTeamCode || dayEntry.shift2Team === userTeamCode) {
-        const mode = schedulesData.value?.shiftMode || 2
-        return mode === 3 ? 'Shift Sore' : 'Shift Malam'
-      }
-      if (dayEntry.shift3 === userTeamCode || dayEntry.shift3Team === userTeamCode) return 'Shift Malam'
-      if (dayEntry.offTeams && Array.isArray(dayEntry.offTeams) && dayEntry.offTeams.includes(userTeamCode)) return 'OFF (Libur)'
-    }
-  }
-
-  return 'Shift Siaga 112'
+  selectedMonth.value = String(m).padStart(2, '0')
 }
 
 const parseTs = (rawTs: string) => {
-  if (!rawTs) return { dateKey: '--', isoDate: '', month: '', year: '', timeFormatted: '--:--:--', hour: 0 }
+  if (!rawTs) return { dateKey: '--', isoDate: '', month: '', year: '', timeFormatted: '--:--', hour: 0, min: 0 }
   const clean = rawTs.replace('T', ' ').split('.')[0].replace('Z', '')
   const [datePart = '', timePart = ''] = clean.split(' ')
 
@@ -415,14 +297,16 @@ const parseTs = (rawTs: string) => {
     }
   }
 
-  const dateKey = (day && month && year) ? `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${year}` : datePart
+  const dateKey = (day && month && year) ? `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}` : datePart
   const isoDate = (year && month && day) ? `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}` : datePart
-  let cleanTime = timePart ? timePart.substring(0, 8) : '--:--:--'
-  let timeFormatted = cleanTime !== '--:--:--' ? (cleanTime.includes('WITA') ? cleanTime : `${cleanTime} WITA`) : '--:--:--'
+  let cleanTime = timePart ? timePart.substring(0, 5) : '--:--'
 
   let hour = 0
+  let min = 0
   if (cleanTime && cleanTime.includes(':')) {
-    hour = parseInt(cleanTime.split(':')[0], 10)
+    const parts = cleanTime.split(':')
+    hour = parseInt(parts[0], 10)
+    min = parseInt(parts[1], 10)
   }
 
   return {
@@ -430,8 +314,9 @@ const parseTs = (rawTs: string) => {
     isoDate,
     month: month ? month.padStart(2, '0') : '',
     year: year || '',
-    timeFormatted,
-    hour
+    timeFormatted: cleanTime,
+    hour,
+    min
   }
 }
 
@@ -448,6 +333,9 @@ const allPairedRows = computed(() => {
 
     if (item.type === 'MASUK') {
       const existing = dateMap.get(parsed.dateKey)
+      const isLate = parsed.hour > 8 || (parsed.hour === 8 && parsed.min > 15)
+      const status = isLate ? 'TERLAMBAT' : 'HADIR'
+
       if (!existing) {
         dateMap.set(parsed.dateKey, {
           id: item.id,
@@ -455,25 +343,16 @@ const allPairedRows = computed(() => {
           isoDate: parsed.isoDate,
           month: parsed.month,
           year: parsed.year,
-          shiftName: getShiftNameForDate(parsed.dateKey),
+          statusBadge: status,
           clockIn: parsed.timeFormatted,
-          clockOut: '--:--:--'
+          clockOut: '--:--'
         })
       } else {
         existing.clockIn = parsed.timeFormatted
+        existing.statusBadge = status
       }
     } else if (item.type === 'PULANG') {
       let targetDateKey = parsed.dateKey
-      if (parsed.hour < 12 && parsed.isoDate) {
-        const d = new Date(parsed.isoDate)
-        d.setDate(d.getDate() - 1)
-        const prevDateKey = `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`
-        const prevEntry = dateMap.get(prevDateKey)
-        if (prevEntry && prevEntry.clockOut === '--:--:--') {
-          targetDateKey = prevDateKey
-        }
-      }
-
       let targetEntry = dateMap.get(targetDateKey)
       if (!targetEntry) {
         targetEntry = {
@@ -482,8 +361,8 @@ const allPairedRows = computed(() => {
           isoDate: parsed.isoDate,
           month: parsed.month,
           year: parsed.year,
-          shiftName: getShiftNameForDate(targetDateKey),
-          clockIn: '--:--:--',
+          statusBadge: 'HADIR',
+          clockIn: '--:--',
           clockOut: parsed.timeFormatted
         }
         dateMap.set(targetDateKey, targetEntry)
@@ -521,12 +400,6 @@ const paginatedHistoryList = computed(() => {
   return filteredHistoryList.value.slice(startIdx, endIdx)
 })
 
-const fetchHistory = async () => {
-  await authStore.fetchHistory()
-}
-
-const showLogoutModal = ref(false)
-
 function handleLogout() {
   showLogoutModal.value = true
 }
@@ -539,8 +412,7 @@ function executeLogout() {
 
 onMounted(async () => {
   await authStore.fetchProfile()
-  await fetchSchedulesData()
-  await fetchHistory()
+  await authStore.fetchHistory()
 })
 </script>
 
