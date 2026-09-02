@@ -262,8 +262,26 @@
                 {{ isEdit ? 'Reset Password (Opsional)' : 'Password Akses' }} <span v-if="!isEdit" class="text-rose-500">*</span>
               </label>
               <div class="flex gap-2">
-                <input :type="showPassword ? 'text' : 'password'" v-model="form.password" :required="!isEdit" placeholder="Minimal 6 karakter" class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292]" />
-                <button type="button" @click="generatePassword" class="px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg font-bold text-xs text-[#ab2c5d] shrink-0 cursor-pointer">Acak</button>
+                <div class="relative flex-grow">
+                  <input 
+                    :type="showPassword ? 'text' : 'password'" 
+                    v-model="form.password" 
+                    :required="!isEdit" 
+                    placeholder="Minimal 6 karakter" 
+                    class="w-full pl-3.5 pr-10 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292]" 
+                  />
+                  <button 
+                    type="button" 
+                    @click="showPassword = !showPassword"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#ab2c5d] border-0 bg-transparent cursor-pointer flex items-center justify-center p-0.5 transition-colors"
+                    :title="showPassword ? 'Sembunyikan Password' : 'Tampilkan Password'"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">
+                      {{ showPassword ? 'visibility_off' : 'visibility' }}
+                    </span>
+                  </button>
+                </div>
+                <button type="button" @click="generatePassword" class="px-3 py-2 bg-slate-100 border border-slate-200 hover:bg-slate-200 transition-colors rounded-lg font-bold text-xs text-[#ab2c5d] shrink-0 cursor-pointer">Acak</button>
               </div>
             </div>
 
