@@ -83,8 +83,6 @@
               </p>
             </div>
           </div>
-
-          </div>
         </section>
 
         <!-- ===== 3. WEEKLY PROGRESS (PROGRES MINGGUAN) ===== -->
