@@ -49,30 +49,45 @@
       <!-- ===== MAIN CONTENT AREA ===== -->
       <main class="flex-grow flex flex-col items-center justify-center px-4 py-6 sm:py-8 max-w-2xl mx-auto w-full space-y-6">
 
-        <!-- Header Title Section -->
-        <div class="w-full max-w-sm flex flex-col items-center space-y-4 text-center">
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#FCE4EC] text-[#ab2c5d] border border-[#F8BBD0] mb-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-[#f06292] animate-ping"></span>
-            <span>MODE AUTO: {{ autoDetectedMode === 'MASUK' ? 'CHECK-IN MASUK' : (autoDetectedMode === 'PULANG' ? 'CHECK-OUT PULANG' : 'SELESAI') }}</span>
+        <!-- Scanner Container (Soft Minimalism) -->
+        <div class="w-full max-w-sm flex flex-col items-center space-y-4">
+          
+          <!-- Header Title Section -->
+          <div class="text-center space-y-1">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#FCE4EC] text-[#ab2c5d] border border-[#F8BBD0] mb-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#f06292] animate-ping"></span>
+              <span>MODE AUTO: {{ autoDetectedMode === 'MASUK' ? 'CHECK-IN MASUK' : (autoDetectedMode === 'PULANG' ? 'CHECK-OUT PULANG' : 'SELESAI') }}</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-[#1b1c1c]">
+              {{ autoDetectedMode === 'MASUK' ? 'Scan to Check-in' : (autoDetectedMode === 'PULANG' ? 'Scan to Check-out' : 'Presensi Selesai') }}
+            </h1>
+            <p class="text-xs sm:text-sm text-[#574146]">
+              Position the QR code within the frame.
+            </p>
           </div>
-          <h1 class="text-2xl sm:text-3xl font-bold text-[#1b1c1c]">
-            {{ autoDetectedMode === 'MASUK' ? 'Presensi Check-in' : (autoDetectedMode === 'PULANG' ? 'Presensi Check-out' : 'Presensi Selesai') }}
-          </h1>
-          <p class="text-xs sm:text-sm text-[#574146]">
-            Pastikan Anda berada dalam radius Geofence Posko Siaga 112 Bulukumba.
-          </p>
 
-          <!-- Action Button Presensi Directly within Geofence -->
-          <div class="w-full pt-2">
-            <button 
-              @click="submitScanPresensi" 
-              :disabled="loading || autoDetectedMode === 'SELESAI' || !isWithinRadius"
-              class="w-full py-3.5 bg-[#ab2c5d] hover:bg-[#881b47] disabled:bg-slate-300 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition-all border-0 cursor-pointer flex items-center justify-center gap-2 text-sm"
-            >
-              <span class="material-symbols-outlined">how_to_reg</span>
-              <span>{{ autoDetectedMode === 'MASUK' ? 'Kirim Presensi Masuk' : (autoDetectedMode === 'PULANG' ? 'Kirim Presensi Pulang' : 'Presensi Selesai') }}</span>
-            </button>
+          <!-- The Scanner 'Window' -->
+          <div class="relative w-64 h-64 rounded-3xl overflow-hidden shadow-[0px_10px_30px_rgba(240,98,146,0.1)] border border-[#ddbfc5] bg-white flex items-center justify-center p-4">
+            
+            <!-- Corner Indicators -->
+            <div class="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-[#ab2c5d] rounded-tl-lg z-20"></div>
+            <div class="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-[#ab2c5d] rounded-tr-lg z-20"></div>
+            <div class="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-[#ab2c5d] rounded-bl-lg z-20"></div>
+            <div class="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-[#ab2c5d] rounded-br-lg z-20"></div>
+
+            <!-- Video Stream Feed (Automatic background scanner) -->
+            <video 
+              ref="videoRef" 
+              class="absolute inset-0 w-full h-full object-cover z-10" 
+              autoplay 
+              playsinline 
+            ></video>
+
+            <!-- Animated Scanning Line -->
+            <div class="absolute w-[80%] h-0.5 bg-[#f06292] rounded-full shadow-[0_0_8px_#f06292] scan-line z-20"></div>
+            <span class="material-symbols-outlined text-[#8a7176] opacity-20 text-6xl z-10">qr_code</span>
           </div>
+
         </div>
 
         <!-- ===== GEOFENCE MAP CARD SECTION ===== -->
@@ -92,7 +107,7 @@
           </div>
 
           <!-- Leaflet Map Viewport Container -->
-          <div id="scanLeafletMap" class="w-full h-48 rounded-2xl border border-[#ddbfc5] overflow-hidden shadow-inner relative z-0"></div>
+          <div id="scanLeafletMap" class="w-full h-44 rounded-2xl border border-[#ddbfc5] overflow-hidden shadow-inner relative z-0"></div>
 
           <!-- Geofence Info Badges -->
           <div class="flex items-center justify-between text-xs bg-[#FFF5F8] p-3 rounded-xl border border-[#F8BBD0]/60">
@@ -247,6 +262,10 @@ const formLeave = ref({
   reason: ''
 })
 
+const videoRef = ref<HTMLVideoElement | null>(null)
+const mediaStream = ref<MediaStream | null>(null)
+const scannedToken = ref('')
+
 const currentLat = ref<number | null>(-5.5645)
 const currentLng = ref<number | null>(120.1945)
 const poskoLat = ref(-5.5645)
@@ -255,6 +274,7 @@ const maxRadius = ref(2.0)
 const poskoToken = ref('')
 const gpsLoading = ref(false)
 
+let scanLoopId: number | null = null
 let mapInstance: any = null
 let poskoMarker: any = null
 let userMarker: any = null
@@ -413,6 +433,53 @@ const updateMapVisuals = () => {
   } catch (e) {}
 }
 
+// ===== CAMERA AUTO-SCAN =====
+const startCamera = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' }
+    })
+    mediaStream.value = stream
+    if (videoRef.value) {
+      videoRef.value.srcObject = stream
+    }
+    startScanLoop()
+  } catch (err: any) {
+    console.warn('Auto start camera error:', err.message)
+  }
+}
+
+const stopCamera = () => {
+  if (scanLoopId !== null) {
+    cancelAnimationFrame(scanLoopId)
+    scanLoopId = null
+  }
+  if (mediaStream.value) {
+    mediaStream.value.getTracks().forEach(track => track.stop())
+    mediaStream.value = null
+  }
+}
+
+const startScanLoop = async () => {
+  if (!videoRef.value || isSuccessModalOpen.value || loading.value) return
+
+  if ('BarcodeDetector' in window) {
+    try {
+      const barcodeDetector = new (window as any).BarcodeDetector({ formats: ['qr_code'] })
+      const barcodes = await barcodeDetector.detect(videoRef.value)
+      if (barcodes && barcodes.length > 0) {
+        scannedToken.value = barcodes[0].rawValue
+        submitScanPresensi()
+        return
+      }
+    } catch (e) {}
+  }
+
+  if (!isSuccessModalOpen.value) {
+    scanLoopId = requestAnimationFrame(startScanLoop)
+  }
+}
+
 // ===== GEOLOCATION =====
 const getGeolocation = () => {
   if ('geolocation' in navigator) {
@@ -464,7 +531,7 @@ const submitScanPresensi = async () => {
     return
   }
 
-  const token = poskoToken.value || 'LOPI-Q-POSKO-BULUKUMBA-2026-NTPD112'
+  const token = scannedToken.value || poskoToken.value || 'LOPI-Q-POSKO-BULUKUMBA-2026-NTPD112'
   loading.value = true
 
   try {
@@ -481,6 +548,7 @@ const submitScanPresensi = async () => {
       successMessage.value = msg
       showToast('PRESENSI BERHASIL', msg, 'success')
       isSuccessModalOpen.value = true
+      stopCamera()
 
       let seconds = 2
       redirectCountdown.value = seconds
@@ -553,9 +621,11 @@ onMounted(async () => {
   await fetchPoskoInfo()
   initLeafletMap()
   await authStore.fetchTodayStatus()
+  startCamera()
 })
 
 onUnmounted(() => {
+  stopCamera()
   if (mapInstance) {
     mapInstance.remove()
     mapInstance = null
@@ -566,6 +636,15 @@ onUnmounted(() => {
 <style scoped>
 .material-symbols-outlined { 
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; 
+}
+@keyframes scan {
+  0% { transform: translateY(-100%); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+.scan-line {
+  animation: scan 2s linear infinite;
 }
 .pb-safe { 
   padding-bottom: env(safe-area-inset-bottom, 80px); 
