@@ -1,92 +1,100 @@
-﻿<template>
+<template>
   <InternLayout>
     <div class="space-y-6 select-none font-sans w-full pb-28 sm:pb-8">
-      <!-- Page Header -->
-      <div class="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
+      
+      <!-- ===== PAGE HEADER ===== -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#F8BBD0]/60 pb-4">
         <div>
-          <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Laporan Kehadiran Saya</h2>
-          <p class="font-sans text-slate-500 mt-1 text-xs hidden sm:block">Riwayat absensi dan log presensi harian petugas Peserta Magang di Posko Siaga NTPD 112 Bulukumba.</p>
+          <h2 class="font-display font-black text-[#1b1c1c] text-lg sm:text-xl flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#f06292] text-2xl">history</span>
+            <span>Riwayat &amp; Log Presensi Magang</span>
+          </h2>
+          <p class="font-sans text-[#8a7176] mt-1 text-xs">Rekapitulasi lengkap pemindaian QR Code presensi Masuk &amp; Pulang tugas siaga peserta magang.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="px-3 py-1 bg-[#FCE4EC] text-[#ab2c5d] text-xs font-extrabold rounded-full border border-[#F8BBD0]">
+            REKAP PRESENSI DIGITAL
+          </span>
         </div>
       </div>
-      <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
+      <!-- ===== PROFILE SUMMARY CARD ===== -->
+      <div class="bg-white rounded-3xl p-6 sm:p-7 border border-[#F8BBD0] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div class="flex items-start gap-4">
-          <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-700 via-rose-600 to-amber-500 text-white font-display font-black text-2xl flex items-center justify-center shrink-0 shadow-md">
-            {{ authStore.user?.name ? authStore.user.name.charAt(0).toUpperCase() : 'C' }}
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#ab2c5d] via-[#f06292] to-[#fec1d6] text-white font-display font-black text-2xl flex items-center justify-center shrink-0 shadow-md">
+            {{ authStore.user?.name ? authStore.user.name.charAt(0).toUpperCase() : 'M' }}
           </div>
           <div class="flex-1 min-w-0 space-y-1">
-            <!-- 1. Nama -->
-            <h2 class="text-lg font-display font-black text-slate-900 leading-tight">
-              {{ authStore.user?.name || 'Peserta Magang 112' }}
+            <h2 class="text-lg font-display font-black text-[#1b1c1c] leading-tight">
+              {{ authStore.user?.name || 'Peserta Magang' }}
             </h2>
             
-            <!-- 2. NIP. -->
-            <div class="text-xs text-rose-700 font-mono font-bold">
-              NIP. {{ authStore.user?.nip || '-' }}
+            <div class="text-xs text-[#ab2c5d] font-mono font-bold">
+              NISN / NIM: {{ authStore.user?.nip || '-' }}
             </div>
 
-            <!-- 3. Jabatan (Tanpa Badge, Plain Text) -->
-            <div class="text-xs text-slate-800 font-bold uppercase tracking-wide">
-              {{ authStore.user?.jabatan || 'OPERATOR LAYANAN OPERASIONAL' }}
+            <div class="text-xs text-[#574146] font-bold uppercase tracking-wide">
+              Jurusan: {{ authStore.user?.jabatan || 'Rekayasa Perangkat Lunak' }}
             </div>
 
-            <!-- 4. Unit Kerja -->
-            <div class="text-xs text-slate-500 font-medium pt-0.5">
-              {{ authStore.user?.unit_kerja || 'Diskominfo Kabupaten Bulukumba' }}
+            <div class="text-xs text-[#8a7176] font-medium pt-0.5">
+              Asal Sekolah / Kampus: {{ authStore.user?.unit_kerja || 'Diskominfo Bulukumba' }}
             </div>
           </div>
         </div>
 
-        <!-- Keluar Sesi Button (Mobile Only - Inside Profile Card) -->
-        <div class="sm:hidden w-full pt-3 border-t border-slate-100">
+        <!-- Keluar Sesi Button (Mobile Only) -->
+        <div class="sm:hidden w-full pt-3 border-t border-[#F8BBD0]/60">
           <button 
             @click="handleLogout"
-            class="w-full py-2.5 px-4 bg-rose-50/80 hover:bg-rose-100 border border-rose-200/80 text-rose-600 font-bold text-xs rounded-full transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs group"
+            class="w-full py-2.5 px-4 bg-[#FFF5F8] hover:bg-[#FCE4EC] border border-[#F8BBD0] text-[#ab2c5d] font-bold text-xs rounded-full transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs group"
           >
             <span>Keluar Sesi</span>
-            <span class="material-symbols-outlined text-[16px] text-rose-600 group-hover:translate-x-0.5 transition-transform">logout</span>
+            <span class="material-symbols-outlined text-base group-hover:translate-x-0.5 transition-transform">logout</span>
           </button>
         </div>
       </div>
 
-      <!-- History Table Container -->
-      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-        <!-- Card Header: Title on 1 Single Line + Refresh Button -->
-        <div class="flex items-center justify-between pb-4 border-b border-slate-200 gap-2">
+      <!-- ===== HISTORY CONTAINER ===== -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-[#F8BBD0] shadow-sm space-y-6">
+        
+        <!-- Header Controls & Refresh Button -->
+        <div class="flex items-center justify-between pb-4 border-b border-[#F8BBD0]/60 gap-2">
           <div class="min-w-0 flex-1">
-            <h3 class="text-xs sm:text-base md:text-lg font-display font-black text-slate-900 flex items-center gap-1.5 sm:gap-2">
-              <span class="material-symbols-outlined text-rose-700 text-[18px] sm:text-[22px] shrink-0">description</span>
-              <span class="truncate">Laporan Riwayat Kehadiran</span>
+            <h3 class="text-sm sm:text-base font-bold text-[#1b1c1c] flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#ab2c5d]">description</span>
+              <span class="truncate">Daftar Log Kehadiran</span>
             </h3>
-            <p class="text-xs text-slate-500 mt-1 hidden sm:block">Daftar rekapitulasi presensi siaga 112 yang terverifikasi Geofence.</p>
+            <p class="text-xs text-[#8a7176] mt-0.5 hidden sm:block">Log presensi otomatis yang terverifikasi Geofence Posko Siaga 112.</p>
           </div>
 
           <button 
             @click="fetchHistory"
-            class="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl border border-slate-300 flex items-center gap-1 cursor-pointer border-0 shrink-0"
+            class="px-3.5 py-2 bg-[#FFF5F8] hover:bg-[#FCE4EC] text-[#ab2c5d] font-bold text-xs rounded-xl border border-[#F8BBD0] flex items-center gap-1.5 cursor-pointer shrink-0 transition-colors"
           >
-            <span class="material-symbols-outlined text-[14px] sm:text-[16px]">refresh</span>
+            <span class="material-symbols-outlined text-base">refresh</span>
             <span>Refresh</span>
           </button>
         </div>
 
-        <!-- Filter & Sorting Toolbar (Bulan, Tahun, Tampilkan Per Halaman) -->
-        <div class="bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-200 text-xs space-y-2.5 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-3 overflow-hidden">
-          <!-- Left: Month & Year Filters (2-col grid on mobile) -->
+        <!-- Filter & Sorting Toolbar -->
+        <div class="bg-[#FFF5F8] p-4 rounded-2xl border border-[#F8BBD0]/60 text-xs space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-3">
+          <!-- Month & Year Filters -->
           <div class="grid grid-cols-2 sm:flex sm:items-center gap-2 flex-1">
-            <select v-model="selectedMonth" class="w-full sm:w-auto px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 shadow-2xs focus:ring-2 focus:ring-rose-500 text-xs">
+            <select v-model="selectedMonth" class="w-full sm:w-auto px-3 py-2 bg-white border border-[#ddbfc5] rounded-xl font-bold text-[#1b1c1c] focus:outline-none focus:border-[#f06292] text-xs">
               <option v-for="m in monthOptions" :key="m.value" :value="m.value">{{ m.label }}</option>
             </select>
 
-            <select v-model="selectedYear" class="w-full sm:w-auto px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 shadow-2xs focus:ring-2 focus:ring-rose-500 text-xs">
+            <select v-model="selectedYear" class="w-full sm:w-auto px-3 py-2 bg-white border border-[#ddbfc5] rounded-xl font-bold text-[#1b1c1c] focus:outline-none focus:border-[#f06292] text-xs">
               <option v-for="y in yearOptions" :key="y.value" :value="y.value">{{ y.label }}</option>
             </select>
           </div>
 
-          <!-- Right: Page Size & Reset Filter -->
-          <div class="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-0 border-slate-200/80">
-            <div class="flex items-center gap-1 text-slate-600 font-bold">
-              <span class="text-[11px] text-slate-500 shrink-0">Tampilkan:</span>
-              <select v-model="pageSize" class="px-2 py-1.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 shadow-2xs focus:ring-2 focus:ring-rose-500 text-xs">
+          <!-- Page Size & Reset Filter -->
+          <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-0 border-[#F8BBD0]/60">
+            <div class="flex items-center gap-1.5 font-bold text-[#574146]">
+              <span class="text-[11px] text-[#8a7176]">Tampilkan:</span>
+              <select v-model="pageSize" class="px-2.5 py-1.5 bg-white border border-[#ddbfc5] rounded-xl font-bold text-[#1b1c1c] focus:outline-none focus:border-[#f06292] text-xs">
                 <option v-for="size in pageSizeOptions" :key="size" :value="size">{{ size }} Data</option>
               </select>
             </div>
@@ -94,129 +102,119 @@
             <button 
               v-if="selectedMonth !== 'ALL' || selectedYear !== 'ALL'"
               @click="selectedMonth = 'ALL'; selectedYear = 'ALL'"
-              class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-extrabold rounded-xl border border-rose-200 text-xs cursor-pointer whitespace-nowrap shrink-0"
+              class="px-3 py-1.5 bg-[#ab2c5d] hover:bg-[#881b47] text-white font-extrabold rounded-xl border-0 text-xs cursor-pointer whitespace-nowrap shadow-2xs"
             >
               Reset Filter
             </button>
           </div>
         </div>
 
-        <!-- Mobile Card View (No Horizontal Scroll Needed) -->
+        <!-- Mobile Card View -->
         <div class="block sm:hidden space-y-3">
           <div 
             v-for="item in paginatedHistoryList" 
             :key="item.id"
-            class="bg-white rounded-3xl p-4 border border-slate-200/90 shadow-2xs space-y-3 hover:border-slate-300 transition-all"
+            class="bg-white rounded-2xl p-4 border border-[#F8BBD0]/80 shadow-2xs space-y-3"
           >
-            <!-- Card Header: Date & Shift -->
-            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <div class="flex items-center gap-1.5 font-mono font-bold text-slate-900 text-xs">
-                <span class="material-symbols-outlined text-[16px] text-rose-600">calendar_today</span>
+            <!-- Card Header -->
+            <div class="flex items-center justify-between border-b border-[#F8BBD0]/50 pb-2.5">
+              <div class="flex items-center gap-1.5 font-mono font-bold text-[#1b1c1c] text-xs">
+                <span class="material-symbols-outlined text-base text-[#f06292]">calendar_today</span>
                 <span>{{ item.date }}</span>
               </div>
-              <span class="px-2.5 py-0.5 bg-rose-50 border border-rose-200/80 text-rose-700 rounded-full text-[10px] font-extrabold">
+              <span class="px-2.5 py-0.5 bg-[#FCE4EC] border border-[#F8BBD0] text-[#ab2c5d] rounded-full text-[10px] font-extrabold">
                 {{ item.shiftName }}
               </span>
             </div>
 
-            <!-- Card Body: Clock In & Clock Out Grid with Symmetrical Equal-Height Boxes -->
+            <!-- Card Body: Clock In & Clock Out Grid -->
             <div class="grid grid-cols-2 gap-2.5 text-xs">
               <!-- Jam Masuk Box -->
-              <div class="bg-emerald-50/60 p-3 rounded-2xl border border-emerald-100/90 flex flex-col justify-between space-y-2 min-h-[92px]">
-                <div class="flex items-center justify-between">
-                  <span class="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Jam Masuk
-                  </span>
+              <div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200/80 flex flex-col justify-between space-y-2 min-h-[85px]">
+                <div class="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Jam Masuk
                 </div>
-
-                <div class="font-mono text-xs font-black text-slate-900">
+                <div class="font-mono text-xs font-black text-[#1b1c1c]">
                   {{ item.clockIn }}
                 </div>
-
                 <div>
-                  <span v-if="item.clockIn !== '--:--:--'" class="text-[10px] font-bold text-emerald-800 bg-white/90 px-2 py-0.5 rounded-md border border-emerald-200/70 inline-flex items-center gap-1 shadow-2xs">
-                    ðŸ“ {{ item.masukDistance }}
+                  <span v-if="item.clockIn !== '--:--:--'" class="text-[10px] font-bold text-emerald-800 bg-white/90 px-2 py-0.5 rounded border border-emerald-200 inline-block shadow-2xs">
+                    ✓ Terverifikasi
                   </span>
-                  <span v-else class="text-[10px] font-semibold text-slate-400 italic">
-                    --
-                  </span>
+                  <span v-else class="text-[10px] font-semibold text-slate-400 italic">--</span>
                 </div>
               </div>
 
               <!-- Jam Pulang Box -->
               <div 
-                class="p-3 rounded-2xl border flex flex-col justify-between space-y-2 min-h-[92px] transition-colors"
-                :class="item.clockOut !== '--:--:--' ? 'bg-amber-50/60 border-amber-100/90' : 'bg-slate-50/70 border-slate-200/70'"
+                class="p-3 rounded-xl border flex flex-col justify-between space-y-2 min-h-[85px]"
+                :class="item.clockOut !== '--:--:--' ? 'bg-amber-50/70 border-amber-200/80' : 'bg-slate-50 border-slate-200'"
               >
-                <div class="flex items-center justify-between">
-                  <span 
-                    class="text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1"
-                    :class="item.clockOut !== '--:--:--' ? 'text-amber-800' : 'text-slate-400'"
-                  >
-                    <span class="w-1.5 h-1.5 rounded-full" :class="item.clockOut !== '--:--:--' ? 'bg-amber-500' : 'bg-slate-300'"></span> Jam Pulang
-                  </span>
+                <div 
+                  class="text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1"
+                  :class="item.clockOut !== '--:--:--' ? 'text-amber-800' : 'text-slate-400'"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full" :class="item.clockOut !== '--:--:--' ? 'bg-amber-500' : 'bg-slate-300'"></span> Jam Pulang
                 </div>
-
-                <div class="font-mono text-xs font-black" :class="item.clockOut !== '--:--:--' ? 'text-slate-900' : 'text-slate-400'">
+                <div class="font-mono text-xs font-black" :class="item.clockOut !== '--:--:--' ? 'text-[#1b1c1c]' : 'text-slate-400'">
                   {{ item.clockOut }}
                 </div>
-
                 <div>
-                  <span v-if="item.clockOut !== '--:--:--'" class="text-[10px] font-bold text-amber-800 bg-white/90 px-2 py-0.5 rounded-md border border-amber-200/70 inline-flex items-center gap-1 shadow-2xs">
-                    ðŸ“ {{ item.pulangDistance }}
+                  <span v-if="item.clockOut !== '--:--:--'" class="text-[10px] font-bold text-amber-800 bg-white/90 px-2 py-0.5 rounded border border-amber-200 inline-block shadow-2xs">
+                    ✓ Terverifikasi
                   </span>
-                  <span v-else class="text-[10px] font-medium text-slate-400 bg-white/70 px-2 py-0.5 rounded-md border border-slate-200/60 inline-flex items-center gap-1">
-                    â³ Belum Scan
+                  <span v-else class="text-[10px] font-medium text-slate-400 bg-white/70 px-2 py-0.5 rounded border border-slate-200 inline-block">
+                    ⏳ Belum Scan
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div v-if="filteredHistoryList.length === 0" class="py-6 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-            <div class="inline-flex items-center justify-center gap-1.5 text-xs text-slate-500 font-medium">
-              <span class="material-symbols-outlined text-slate-400" style="font-size: 14px !important;">info</span>
+          <div v-if="filteredHistoryList.length === 0" class="py-8 text-center bg-[#FFF5F8] rounded-2xl border border-dashed border-[#F8BBD0]">
+            <div class="inline-flex items-center justify-center gap-1.5 text-xs text-[#8a7176] font-medium">
+              <span class="material-symbols-outlined text-[#f06292]">info</span>
               <span>Tidak ada riwayat presensi yang sesuai dengan filter.</span>
             </div>
           </div>
         </div>
 
-        <!-- Desktop History Table (Hidden on Mobile) -->
-        <div class="hidden sm:block overflow-x-auto rounded-2xl border border-slate-200 shadow-xs">
-          <table class="w-full text-left text-xs text-slate-700">
-            <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
+        <!-- Desktop History Table -->
+        <div class="hidden sm:block overflow-x-auto rounded-2xl border border-[#F8BBD0] shadow-xs">
+          <table class="w-full text-left text-xs text-[#1b1c1c]">
+            <thead class="bg-[#FFF5F8] text-[#ab2c5d] font-bold uppercase tracking-wider border-b border-[#F8BBD0]">
               <tr>
                 <th class="py-3.5 px-4">Tanggal Siaga</th>
                 <th class="py-3.5 px-4">Jadwal Shift</th>
-                <th class="py-3.5 px-4">Jam Masuk (Jarak)</th>
-                <th class="py-3.5 px-4">Jam Pulang (Jarak)</th>
+                <th class="py-3.5 px-4">Jam Masuk</th>
+                <th class="py-3.5 px-4">Jam Pulang</th>
+                <th class="py-3.5 px-4">Status Geofence</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-200 bg-white">
-              <tr v-for="item in paginatedHistoryList" :key="item.id" class="hover:bg-slate-50 transition-colors">
-                <td class="py-3.5 px-4 font-mono font-bold text-slate-900 whitespace-nowrap">{{ item.date }}</td>
-                <td class="py-3.5 px-4 font-bold text-rose-800">
-                  <span class="px-2.5 py-0.5 bg-rose-50 border border-rose-200/80 text-rose-700 rounded-full text-[10px] font-extrabold">
+            <tbody class="divide-y divide-[#F8BBD0]/40 bg-white">
+              <tr v-for="item in paginatedHistoryList" :key="item.id" class="hover:bg-[#FFF5F8]/50 transition-colors">
+                <td class="py-3.5 px-4 font-mono font-bold text-[#1b1c1c] whitespace-nowrap">{{ item.date }}</td>
+                <td class="py-3.5 px-4">
+                  <span class="px-2.5 py-0.5 bg-[#FCE4EC] border border-[#F8BBD0] text-[#ab2c5d] rounded-full text-[10px] font-extrabold">
                     {{ item.shiftName }}
                   </span>
                 </td>
-                <td class="py-3.5 px-4 font-mono whitespace-nowrap">
-                  <div class="font-extrabold text-emerald-700">{{ item.clockIn }}</div>
-                  <div v-if="item.clockIn !== '--:--:--'" class="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 inline-block mt-0.5">
-                    ðŸ“ {{ item.masukDistance }}
-                  </div>
+                <td class="py-3.5 px-4 font-mono whitespace-nowrap font-extrabold text-emerald-700">
+                  {{ item.clockIn }}
                 </td>
-                <td class="py-3.5 px-4 font-mono whitespace-nowrap">
-                  <div class="font-extrabold text-amber-700">{{ item.clockOut }}</div>
-                  <div v-if="item.clockOut !== '--:--:--'" class="text-[10px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 inline-block mt-0.5">
-                    ðŸ“ {{ item.pulangDistance }}
-                  </div>
+                <td class="py-3.5 px-4 font-mono whitespace-nowrap font-extrabold text-amber-700">
+                  {{ item.clockOut }}
+                </td>
+                <td class="py-3.5 px-4 whitespace-nowrap">
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border bg-emerald-50 text-emerald-700 border-emerald-200">
+                    Posko 112
+                  </span>
                 </td>
               </tr>
               <tr v-if="filteredHistoryList.length === 0">
-                <td colspan="5" class="py-6 text-center">
-                  <div class="inline-flex items-center justify-center gap-1.5 text-xs text-slate-500 font-medium">
-                    <span class="material-symbols-outlined text-slate-400" style="font-size: 14px !important;">info</span>
+                <td colspan="5" class="py-8 text-center">
+                  <div class="inline-flex items-center justify-center gap-1.5 text-xs text-[#8a7176] font-medium">
+                    <span class="material-symbols-outlined text-[#f06292]">info</span>
                     <span>Tidak ada riwayat presensi yang sesuai dengan filter.</span>
                   </div>
                 </td>
@@ -226,32 +224,32 @@
         </div>
 
         <!-- Pagination Controls Footer -->
-        <div v-if="filteredHistoryList.length > 0" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200 text-xs">
-          <div class="text-slate-500 font-semibold text-center sm:text-left">
-            Menampilkan <strong class="text-slate-900 font-mono font-bold">{{ ((currentPage - 1) * pageSize) + 1 }}</strong> - <strong class="text-slate-900 font-mono font-bold">{{ Math.min(currentPage * pageSize, filteredHistoryList.length) }}</strong> dari <strong class="text-slate-900 font-mono font-bold">{{ filteredHistoryList.length }}</strong> riwayat presensi
+        <div v-if="filteredHistoryList.length > 0" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-[#F8BBD0]/60 text-xs">
+          <div class="text-[#574146] font-medium text-center sm:text-left">
+            Menampilkan <strong class="text-[#1b1c1c] font-mono font-bold">{{ ((currentPage - 1) * pageSize) + 1 }}</strong> - <strong class="text-[#1b1c1c] font-mono font-bold">{{ Math.min(currentPage * pageSize, filteredHistoryList.length) }}</strong> dari <strong class="text-[#1b1c1c] font-mono font-bold">{{ filteredHistoryList.length }}</strong> riwayat presensi
           </div>
 
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-2">
             <button 
               @click="currentPage--" 
               :disabled="currentPage === 1"
-              class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 text-xs"
+              class="px-3 py-1.5 bg-[#FFF5F8] hover:bg-[#FCE4EC] text-[#ab2c5d] font-bold rounded-xl border border-[#F8BBD0] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 text-xs"
             >
-              <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+              <span class="material-symbols-outlined text-base">chevron_left</span>
               <span>Sebelumnya</span>
             </button>
 
-            <span class="px-3 py-1.5 bg-rose-50 border border-rose-200 text-rose-800 font-extrabold font-mono rounded-xl text-xs">
+            <span class="px-3 py-1.5 bg-[#ab2c5d] text-white font-extrabold font-mono rounded-xl text-xs shadow-2xs">
               {{ currentPage }} / {{ totalPages }}
             </span>
 
             <button 
               @click="currentPage++" 
               :disabled="currentPage >= totalPages"
-              class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 text-xs"
+              class="px-3 py-1.5 bg-[#FFF5F8] hover:bg-[#FCE4EC] text-[#ab2c5d] font-bold rounded-xl border border-[#F8BBD0] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 text-xs"
             >
               <span>Berikutnya</span>
-              <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+              <span class="material-symbols-outlined text-base">chevron_right</span>
             </button>
           </div>
         </div>
@@ -260,31 +258,31 @@
 
     </div>
 
-    <!-- ========== MODAL KONFIRMASI KELUAR SESI ========== -->
+    <!-- ===== MODAL KONFIRMASI KELUAR SESI ===== -->
     <Teleport to="body">
-      <div v-if="showLogoutModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200 select-none">
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 text-center space-y-4 animate-in zoom-in-95 duration-150">
-          <div class="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-inner">
+      <div v-if="showLogoutModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs select-none">
+        <div class="bg-white rounded-3xl border border-[#F8BBD0] shadow-2xl max-w-sm w-full p-6 text-center space-y-4">
+          <div class="w-14 h-14 rounded-full bg-[#FCE4EC] text-[#ab2c5d] flex items-center justify-center mx-auto shadow-inner">
             <span class="material-symbols-outlined text-3xl">logout</span>
           </div>
           
           <div class="space-y-1">
-            <h3 class="text-base font-extrabold text-slate-900">Konfirmasi Keluar Sesi</h3>
-            <p class="text-xs text-slate-500 leading-relaxed">
-              Apakah Anda yakin ingin keluar dari akun <strong class="text-slate-800">{{ authStore.user?.name || 'Peserta Magang' }}</strong>? Anda harus memasukkan kredensial login kembali untuk masuk.
+            <h3 class="text-base font-extrabold text-[#1b1c1c]">Konfirmasi Keluar Sesi</h3>
+            <p class="text-xs text-[#574146] leading-relaxed">
+              Apakah Anda yakin ingin keluar dari akun <strong class="text-[#1b1c1c]">{{ authStore.user?.name || 'Peserta Magang' }}</strong>?
             </p>
           </div>
 
           <div class="grid grid-cols-2 gap-2.5 pt-2">
             <button
               @click="showLogoutModal = false"
-              class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer border-0"
+              class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-[#574146] font-bold text-xs rounded-xl transition-all cursor-pointer border-0"
             >
               Batal
             </button>
             <button
               @click="executeLogout"
-              class="w-full py-2.5 px-4 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-extrabold text-xs rounded-xl shadow-md transition-all cursor-pointer border-0 active:scale-95"
+              class="w-full py-2.5 px-4 bg-[#ab2c5d] hover:bg-[#881b47] text-white font-extrabold text-xs rounded-xl shadow-md transition-all cursor-pointer border-0 active:scale-95"
             >
               Ya, Keluar
             </button>
@@ -295,7 +293,7 @@
   </InternLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
@@ -304,11 +302,9 @@ import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const router = useRouter()
-const schedulesData = ref(null)
+const schedulesData = ref<any>(null)
 
 const now = new Date()
-const currentMonthStr = String(now.getMonth() + 1).padStart(2, '0')
-const currentYearStr = String(now.getFullYear())
 
 const selectedMonth = ref('ALL')
 const selectedYear = ref('ALL')
@@ -352,7 +348,7 @@ const fetchSchedulesData = async () => {
   } catch (e) {}
 }
 
-const getShiftNameForDate = (dateStr) => {
+const getShiftNameForDate = (dateStr: string) => {
   let isoDate = dateStr
   if (dateStr.includes('-') && dateStr.split('-')[0].length === 2) {
     const [d, m, y] = dateStr.split('-')
@@ -366,7 +362,7 @@ const getShiftNameForDate = (dateStr) => {
   let userTeamCode = ''
   for (const t of teams) {
     if (t.members && Array.isArray(t.members)) {
-      const isMember = t.members.some((m) => {
+      const isMember = t.members.some((m: any) => {
         if (typeof m === 'string') {
           const cleanM = m.replace(/\s+/g, '')
           return (cleanUserNip && cleanM.includes(cleanUserNip)) || (cleanUserName && cleanM.toLowerCase().includes(cleanUserName))
@@ -385,14 +381,14 @@ const getShiftNameForDate = (dateStr) => {
   }
 
   if (schedulesData.value && Array.isArray(schedulesData.value.daysInMonth)) {
-    const dayEntry = schedulesData.value.daysInMonth.find((d) => d.date === isoDate || d.dateStr === isoDate)
+    const dayEntry = schedulesData.value.daysInMonth.find((d: any) => d.date === isoDate || d.dateStr === isoDate)
     if (dayEntry && userTeamCode) {
-      if (dayEntry.shift1 === userTeamCode || dayEntry.shift1Team === userTeamCode) return 'Shift 1 (Pagi)'
+      if (dayEntry.shift1 === userTeamCode || dayEntry.shift1Team === userTeamCode) return 'Shift Pagi'
       if (dayEntry.shift2 === userTeamCode || dayEntry.shift2Team === userTeamCode) {
         const mode = schedulesData.value?.shiftMode || 2
-        return mode === 3 ? 'Shift 2 (Sore)' : 'Shift 2 (Malam)'
+        return mode === 3 ? 'Shift Sore' : 'Shift Malam'
       }
-      if (dayEntry.shift3 === userTeamCode || dayEntry.shift3Team === userTeamCode) return 'Shift 3 (Malam)'
+      if (dayEntry.shift3 === userTeamCode || dayEntry.shift3Team === userTeamCode) return 'Shift Malam'
       if (dayEntry.offTeams && Array.isArray(dayEntry.offTeams) && dayEntry.offTeams.includes(userTeamCode)) return 'OFF (Libur)'
     }
   }
@@ -400,7 +396,7 @@ const getShiftNameForDate = (dateStr) => {
   return 'Shift Siaga 112'
 }
 
-const parseTs = (rawTs) => {
+const parseTs = (rawTs: string) => {
   if (!rawTs) return { dateKey: '--', isoDate: '', month: '', year: '', timeFormatted: '--:--:--', hour: 0 }
   const clean = rawTs.replace('T', ' ').split('.')[0].replace('Z', '')
   const [datePart = '', timePart = ''] = clean.split(' ')
@@ -444,13 +440,11 @@ const allPairedRows = computed(() => {
     return []
   }
 
-  // Sort history ascending by ID / timestamp so we pair chronologically
-  const sortedHistory = [...authStore.presensiHistory].sort((a, b) => (a.id || 0) - (b.id || 0))
+  const sortedHistory = [...authStore.presensiHistory].sort((a: any, b: any) => (a.id || 0) - (b.id || 0))
   const dateMap = new Map()
 
-  sortedHistory.forEach((item) => {
+  sortedHistory.forEach((item: any) => {
     const parsed = parseTs(item.timestamp || '')
-    const distanceFormatted = (item.distance_meters !== undefined && item.distance_meters !== null) ? `${item.distance_meters.toFixed(1)} Meter` : '0.8 Meter'
 
     if (item.type === 'MASUK') {
       const existing = dateMap.get(parsed.dateKey)
@@ -463,16 +457,12 @@ const allPairedRows = computed(() => {
           year: parsed.year,
           shiftName: getShiftNameForDate(parsed.dateKey),
           clockIn: parsed.timeFormatted,
-          masukDistance: distanceFormatted,
-          clockOut: '--:--:--',
-          pulangDistance: '--'
+          clockOut: '--:--:--'
         })
       } else {
         existing.clockIn = parsed.timeFormatted
-        existing.masukDistance = distanceFormatted
       }
     } else if (item.type === 'PULANG') {
-      // Check if this PULANG belongs to yesterday's night shift (scan PULANG between 00:00 - 12:00 WITA)
       let targetDateKey = parsed.dateKey
       if (parsed.hour < 12 && parsed.isoDate) {
         const d = new Date(parsed.isoDate)
@@ -494,21 +484,17 @@ const allPairedRows = computed(() => {
           year: parsed.year,
           shiftName: getShiftNameForDate(targetDateKey),
           clockIn: '--:--:--',
-          masukDistance: '--',
-          clockOut: parsed.timeFormatted,
-          pulangDistance: distanceFormatted
+          clockOut: parsed.timeFormatted
         }
         dateMap.set(targetDateKey, targetEntry)
       } else {
         targetEntry.clockOut = parsed.timeFormatted
-        targetEntry.pulangDistance = distanceFormatted
       }
     }
   })
 
-  // Convert map values to array and sort descending by date
   const result = Array.from(dateMap.values())
-  result.sort((a, b) => {
+  result.sort((a: any, b: any) => {
     const keyA = a.isoDate || a.date
     const keyB = b.isoDate || b.date
     return keyB.localeCompare(keyA)
@@ -518,13 +504,9 @@ const allPairedRows = computed(() => {
 })
 
 const filteredHistoryList = computed(() => {
-  return allPairedRows.value.filter((row) => {
-    if (selectedMonth.value !== 'ALL' && row.month !== selectedMonth.value) {
-      return false
-    }
-    if (selectedYear.value !== 'ALL' && row.year !== selectedYear.value) {
-      return false
-    }
+  return allPairedRows.value.filter((row: any) => {
+    if (selectedMonth.value !== 'ALL' && row.month !== selectedMonth.value) return false
+    if (selectedYear.value !== 'ALL' && row.year !== selectedYear.value) return false
     return true
   })
 })
@@ -552,7 +534,7 @@ function handleLogout() {
 function executeLogout() {
   showLogoutModal.value = false
   authStore.logout()
-  window.location.href = '/login'
+  router.push('/login')
 }
 
 onMounted(async () => {
@@ -565,8 +547,3 @@ onMounted(async () => {
 <style scoped>
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 </style>
-
-
-
-
-
