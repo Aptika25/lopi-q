@@ -109,48 +109,7 @@
           </span>
         </div>
 
-        <!-- Geofence Distance & Manual Token Input Card -->
-        <div class="w-full bg-white rounded-2xl p-4 border border-[#ddbfc5] shadow-xs space-y-3">
-          <!-- Distance & GPS Status -->
-          <div class="flex items-center justify-between text-xs border-b border-[#ddbfc5]/40 pb-2">
-            <div class="flex items-center gap-1.5 text-[#574146]">
-              <span class="material-symbols-outlined text-base text-[#ab2c5d]">location_on</span>
-              <span class="font-bold">Jarak ke Posko:</span>
-              <span class="font-mono font-extrabold text-[#ab2c5d]">
-                {{ distanceMeters !== null ? distanceMeters.toFixed(1) + ' m' : 'Memuat...' }}
-              </span>
-            </div>
-            <span 
-              class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border"
-              :class="isWithinRadius ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'"
-            >
-              {{ isWithinRadius ? 'Dalam Radius' : 'Di Luar Radius' }}
-            </span>
-          </div>
 
-          <!-- Manual Token Form Input -->
-          <div class="space-y-1.5">
-            <label class="text-[10px] font-bold text-[#574146] uppercase tracking-wider flex items-center gap-1">
-              <span class="material-symbols-outlined text-xs text-[#f06292]">key</span>
-              <span>Input Token QR Manual</span>
-            </label>
-            <div class="flex gap-2">
-              <input 
-                v-model="manualTokenInput" 
-                type="text" 
-                placeholder="Ketik token QR posko..." 
-                class="flex-1 px-3 py-2 border border-[#ddbfc5] rounded-xl text-xs focus:outline-none focus:border-[#f06292] font-mono bg-[#f5f3f3]"
-              />
-              <button 
-                @click="submitManualToken" 
-                :disabled="loading || !manualTokenInput.trim()"
-                class="px-4 py-2 bg-[#ab2c5d] hover:bg-[#881b47] disabled:bg-slate-300 text-white font-bold text-xs rounded-xl border-0 cursor-pointer shadow-xs transition-all"
-              >
-                Kirim
-              </button>
-            </div>
-          </div>
-        </div>
 
       </main>
 
