@@ -10,6 +10,16 @@ export interface LoginResult {
   error?: string
 }
 
+export interface TodayStatus {
+  masuk?: any
+  pulang?: any
+  is_masuk: boolean
+  is_pulang: boolean
+  clock_in_time?: string
+  clock_out_time?: string
+  [key: string]: any
+}
+
 export const useAuthStore = defineStore('auth', {
   state: () => {
     const savedToken = localStorage.getItem('garda_token') || ''
@@ -36,8 +46,10 @@ export const useAuthStore = defineStore('auth', {
         masuk: null as any,
         pulang: null as any,
         is_masuk: false,
-        is_pulang: false
-      }
+        is_pulang: false,
+        clock_in_time: undefined,
+        clock_out_time: undefined
+      } as TodayStatus
     }
   },
 

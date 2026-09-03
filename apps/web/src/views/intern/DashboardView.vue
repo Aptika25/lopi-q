@@ -251,21 +251,23 @@ const userInitial = computed(() => {
 })
 
 const checkInTimeDisplay = computed(() => {
-  if (authStore.todayStatus?.masuk?.timestamp) {
-    return formatTime(authStore.todayStatus.masuk.timestamp)
+  const status = authStore.todayStatus as any
+  if (status?.masuk?.timestamp) {
+    return formatTime(status.masuk.timestamp)
   }
-  if (authStore.todayStatus?.clock_in_time) {
-    return formatTime(authStore.todayStatus.clock_in_time)
+  if (status?.clock_in_time) {
+    return formatTime(status.clock_in_time)
   }
   return '--:--'
 })
 
 const checkOutTimeDisplay = computed(() => {
-  if (authStore.todayStatus?.pulang?.timestamp) {
-    return formatTime(authStore.todayStatus.pulang.timestamp)
+  const status = authStore.todayStatus as any
+  if (status?.pulang?.timestamp) {
+    return formatTime(status.pulang.timestamp)
   }
-  if (authStore.todayStatus?.clock_out_time) {
-    return formatTime(authStore.todayStatus.clock_out_time)
+  if (status?.clock_out_time) {
+    return formatTime(status.clock_out_time)
   }
   return '--:--'
 })
