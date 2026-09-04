@@ -94,7 +94,6 @@ func findUsersJSONPath() string {
 
 func getSeedUsersJSON() []UserDataJSON {
 	superAdminHash := "$2a$10$EwQk2ADnVXXIVSSSueM4sOnO9Py1TQB0l5Bynadgn1Ke7TXT6W/vO"
-	callTakerHash := superAdminHash
 
 	users := []UserDataJSON{
 		{
