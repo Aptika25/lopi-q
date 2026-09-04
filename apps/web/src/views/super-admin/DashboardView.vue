@@ -410,9 +410,9 @@ const leaveRequests = ref([]);
 
 const registeredUsers = computed(() => {
   return (authStore.usersList || []).filter(u => {
-    if (!u.role) return true;
+    if (!u.role) return false;
     const r = u.role.toLowerCase();
-    return r === 'intern' || r === 'call_taker' || r === 'peserta' || (r !== 'admin' && r !== 'superadmin');
+    return r === 'intern' || r === 'peserta';
   });
 });
 

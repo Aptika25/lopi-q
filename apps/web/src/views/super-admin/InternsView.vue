@@ -394,8 +394,7 @@ const loadCallTakers = async () => {
     const allUsers = authStore.usersList || []
     callTakers.value = allUsers.filter((u: any) => {
       const role = (u.role || u.Role || '').toLowerCase()
-      if (!role) return true
-      return role === 'intern' || role === 'call_taker' || role === 'peserta' || (role !== 'admin' && role !== 'superadmin' && role !== 'super_admin')
+      return role === 'intern' || role === 'peserta'
     })
   } catch (err) {
     showToast(false, 'Gagal memuat data peserta magang.')
