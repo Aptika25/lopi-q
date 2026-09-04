@@ -1,1 +1,1 @@
-DELETE FROM users WHERE id IN (101, 102, 103);
+-- No default intern seeds
