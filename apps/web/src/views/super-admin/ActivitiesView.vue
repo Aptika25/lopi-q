@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <AdminLayout>
     <div class="w-full space-y-6 select-none font-sans text-slate-800">
 
@@ -121,13 +121,7 @@ const selectedDateFormatted = ref('24 Okt 2026')
 const filterDept = ref('')
 const searchQuery = ref('')
 
-const allActivities = ref([
-  { id: 101, internName: 'Hikma', dept: 'Product Design', time: '11:30 WITA', title: 'Research Design System', description: 'Mempelajari dan menyusun pedoman untuk Design System LOPI-Q yang baru.', icon: 'design_services' },
-  { id: 102, internName: 'Hikma', dept: 'Product Design', time: '14:30 WITA', title: 'Meeting Coordination', description: 'Sinkronisasi progres mingguan dengan tim developer terkait implementasi UI.', icon: 'groups' },
-  { id: 103, internName: 'Hikma', dept: 'Product Design', time: '16:15 WITA', title: 'Prototyping Jurnal Intern', description: 'Membuat high-fidelity prototype untuk halaman log aktivitas & presensi.', icon: 'pending_actions' },
-  { id: 201, internName: 'Budi Santoso', dept: 'Frontend Dev', time: '10:45 WITA', title: 'Slicing UI Vue 3', description: 'Menerapkan komponen Tailwind CSS & AdminLayout pada tampilan baru.', icon: 'code' },
-  { id: 301, internName: 'Ayu Diah', dept: 'Backend Dev', time: '09:15 WITA', title: 'gRPC Endpoint Refactoring', description: 'Optimalisasi mikroservis activity-service & reporting-service.', icon: 'dns' }
-])
+const allActivities = ref<any[]>([])
 
 const filteredActivities = computed(() => {
   return allActivities.value.filter(act => {

@@ -206,12 +206,6 @@ const authStore = useAuthStore()
 const showNoteModal = ref(false)
 const newJournalNote = ref('')
 
-const defaultSampleJournal = [
-  { name: 'Andi', time: '13:15', activity: 'Internal Sync' },
-  { name: 'Rina', time: '15:00', activity: 'Quality Check' },
-  { name: 'Hikma', time: '16:30', activity: 'Daily Report' }
-]
-
 // Dynamic Jurnal Activity List persisted in localStorage
 const activityJournalList = ref<any[]>([])
 
@@ -221,15 +215,15 @@ const loadJournalNotes = () => {
     const stored = localStorage.getItem(key)
     if (stored) {
       const parsed = JSON.parse(stored)
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         activityJournalList.value = parsed
         return
       }
     }
   } catch (e) {}
   
-  // Fallback to default initial list if empty
-  activityJournalList.value = [...defaultSampleJournal]
+  // Default to empty list
+  activityJournalList.value = []
 }
 
 const saveJournalNotes = () => {

@@ -229,7 +229,7 @@
             <!-- Nama Lengkap -->
             <div class="space-y-1">
               <label class="font-bold text-[#574146] uppercase text-[10px]">Nama Lengkap <span class="text-rose-500">*</span></label>
-              <input v-model="form.name" type="text" placeholder="Contoh: Sarah Jenkins" required class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292]" />
+              <input v-model="form.name" type="text" placeholder="Contoh: Nama Peserta Magang" required class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292]" />
             </div>
 
             <!-- NISN / NIM -->
@@ -241,7 +241,7 @@
             <!-- Gmail / Email -->
             <div class="space-y-1">
               <label class="font-bold text-[#574146] uppercase text-[10px]">Gmail / Email Akses <span class="text-rose-500">*</span></label>
-              <input v-model="form.email" type="email" placeholder="sarah.j@gmail.com" required :disabled="isEdit" class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292] disabled:bg-slate-100" />
+              <input v-model="form.email" type="email" placeholder="peserta@gmail.com" required :disabled="isEdit" class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292] disabled:bg-slate-100" />
             </div>
 
             <!-- Jurusan -->
