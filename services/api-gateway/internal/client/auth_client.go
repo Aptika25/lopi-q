@@ -93,7 +93,7 @@ func findUsersJSONPath() string {
 }
 
 func getSeedUsersJSON() []UserDataJSON {
-	superAdminHash := "$2a$10$EwQk2ADnVXXIVSSSueM4sOnO9Py1TQB0l5Bynadgn1Ke7TXT6W/vO"
+	superAdminHash := os.Getenv("SUPER_ADMIN_PASSWORD_HASH")
 
 	users := []UserDataJSON{
 		{
@@ -115,9 +115,26 @@ func getSeedUsersJSON() []UserDataJSON {
 
 func getAuthConnStrings(dbHost string) []string {
 	hosts := []string{dbHost, "postgres_apps", "localhost", "127.0.0.1", "host.docker.internal"}
-	envUser := os.Getenv("DB_USER")
-	envPass := os.Getenv("DB_PASSWORD")
-	envDB := os.Getenv("DB_NAME")
+	envUser := os.Getenv("AUTH_DB_USER")
+	if envUser == "" {
+		envUser = os.Getenv("DB_USER")
+	}
+	if envUser == "" {
+		envUser = "user_lopiq_auth"
+	}
+
+	envPass := os.Getenv("AUTH_DB_PASSWORD")
+	if envPass == "" {
+		envPass = os.Getenv("DB_PASSWORD")
+	}
+
+	envDB := os.Getenv("AUTH_DB_NAME")
+	if envDB == "" {
+		envDB = os.Getenv("DB_NAME")
+	}
+	if envDB == "" {
+		envDB = "db_lopiq_auth"
+	}
 
 	var conns []string
 	seen := make(map[string]bool)
@@ -125,22 +142,12 @@ func getAuthConnStrings(dbHost string) []string {
 		if strings.TrimSpace(h) == "" {
 			continue
 		}
-		if envUser != "" && envPass != "" && envDB != "" {
+		if envPass != "" {
 			c := fmt.Sprintf("host=%s port=5432 user=%s password=%s dbname=%s sslmode=disable", h, envUser, envPass, envDB)
 			if !seen[c] {
 				conns = append(conns, c)
 				seen[c] = true
 			}
-		}
-		c1 := fmt.Sprintf("host=%s port=5432 user=user_lopiq_auth password=lopiqauthPassword@2k26# dbname=db_lopiq_auth sslmode=disable", h)
-		if !seen[c1] {
-			conns = append(conns, c1)
-			seen[c1] = true
-		}
-		c2 := fmt.Sprintf("host=%s port=5432 user=user_garda112_auth password=garda112authPassword@2k26# dbname=db_garda112_auth sslmode=disable", h)
-		if !seen[c2] {
-			conns = append(conns, c2)
-			seen[c2] = true
 		}
 	}
 	return conns
@@ -148,21 +155,39 @@ func getAuthConnStrings(dbHost string) []string {
 
 func getUserConnStrings(dbHost string) []string {
 	hosts := []string{dbHost, "postgres_apps", "localhost", "127.0.0.1", "host.docker.internal"}
+	envUser := os.Getenv("USER_DB_USER")
+	if envUser == "" {
+		envUser = os.Getenv("DB_USER")
+	}
+	if envUser == "" {
+		envUser = "user_lopiq_user"
+	}
+
+	envPass := os.Getenv("USER_DB_PASSWORD")
+	if envPass == "" {
+		envPass = os.Getenv("DB_PASSWORD")
+	}
+
+	envDB := os.Getenv("USER_DB_NAME")
+	if envDB == "" {
+		envDB = os.Getenv("DB_NAME")
+	}
+	if envDB == "" {
+		envDB = "db_lopiq_user"
+	}
+
 	var conns []string
 	seen := make(map[string]bool)
 	for _, h := range hosts {
 		if strings.TrimSpace(h) == "" {
 			continue
 		}
-		c1 := fmt.Sprintf("host=%s port=5432 user=user_lopiq_user password=lopiquserPassword@2k26# dbname=db_lopiq_user sslmode=disable", h)
-		if !seen[c1] {
-			conns = append(conns, c1)
-			seen[c1] = true
-		}
-		c2 := fmt.Sprintf("host=%s port=5432 user=user_garda112_user password=garda112userPassword@2k26# dbname=db_garda112_user sslmode=disable", h)
-		if !seen[c2] {
-			conns = append(conns, c2)
-			seen[c2] = true
+		if envPass != "" {
+			c := fmt.Sprintf("host=%s port=5432 user=%s password=%s dbname=%s sslmode=disable", h, envUser, envPass, envDB)
+			if !seen[c] {
+				conns = append(conns, c)
+				seen[c] = true
+			}
 		}
 	}
 	return conns
