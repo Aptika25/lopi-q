@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <AdminLayout>
     <div class="w-full space-y-6 select-none font-sans text-slate-800">
       
@@ -160,7 +160,7 @@
           </div>
         </section>
 
-        <!-- RIGHT COLUMN: QR Management & Active Zones List (Span 5) -->
+        <!-- RIGHT COLUMN: QR Management (Span 5) -->
         <section class="lg:col-span-5 flex flex-col gap-6">
           
           <!-- Master Access QR Card -->
@@ -204,64 +204,6 @@
             <div class="mt-4 text-[11px] font-medium text-[#574146] flex items-center gap-1">
               <span class="material-symbols-outlined text-xs">timer</span>
               <span>Auto-refreshes in 14:59</span>
-            </div>
-          </div>
-
-          <!-- Active Locations / Zones List -->
-          <div class="bg-white/85 backdrop-blur-md rounded-xl p-6 border border-[#F8BBD0] shadow-[0px_10px_30px_rgba(240,98,146,0.05)] flex-1">
-            <h3 class="font-bold text-sm text-[#1b1c1c] mb-4">Active Zones</h3>
-            
-            <div class="overflow-x-auto w-full">
-              <table class="w-full text-left border-collapse">
-                <thead>
-                  <tr class="bg-[#FCE4EC] border-b border-[#F8BBD0]">
-                    <th class="py-2.5 px-4 text-[10px] font-bold text-[#574146] uppercase tracking-wider rounded-l-lg">Zone Name</th>
-                    <th class="py-2.5 px-4 text-[10px] font-bold text-[#574146] uppercase tracking-wider">Radius</th>
-                    <th class="py-2.5 px-4 text-[10px] font-bold text-[#574146] uppercase tracking-wider text-right rounded-r-lg">Status</th>
-                  </tr>
-                </thead>
-                <tbody class="text-xs text-[#1b1c1c] divide-y divide-[#F8BBD0]">
-                  <!-- Row 1 -->
-                  <tr class="hover:bg-[#FCE4EC]/30 transition-colors">
-                    <td class="px-4 py-3.5">
-                      <div class="font-bold text-[#1b1c1c]">Main Lobby</div>
-                      <div class="text-[10px] text-[#574146]">Posko Siaga NTPD 112 Bulukumba</div>
-                    </td>
-                    <td class="px-4 py-3.5 font-mono text-[#574146] font-bold">{{ radiusMeters }}m</td>
-                    <td class="px-4 py-3.5 text-right">
-                      <span class="bg-[#E8F5E9] text-[#1B5E20] text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full border border-[#A5D6A7]">
-                        Active
-                      </span>
-                    </td>
-                  </tr>
-                  <!-- Row 2 -->
-                  <tr class="hover:bg-[#FCE4EC]/30 transition-colors">
-                    <td class="px-4 py-3.5">
-                      <div class="font-bold text-[#1b1c1c]">North Wing</div>
-                      <div class="text-[10px] text-[#574146]">Building B - Diskominfo</div>
-                    </td>
-                    <td class="px-4 py-3.5 font-mono text-[#574146] font-bold">50m</td>
-                    <td class="px-4 py-3.5 text-right">
-                      <span class="bg-[#E8F5E9] text-[#1B5E20] text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full border border-[#A5D6A7]">
-                        Active
-                      </span>
-                    </td>
-                  </tr>
-                  <!-- Row 3 -->
-                  <tr class="hover:bg-[#FCE4EC]/30 transition-colors">
-                    <td class="px-4 py-3.5">
-                      <div class="font-bold text-[#1b1c1c]">Remote Site A</div>
-                      <div class="text-[10px] text-[#574146]">Posko Kecamatan Ujung Bulu</div>
-                    </td>
-                    <td class="px-4 py-3.5 font-mono text-[#574146] font-bold">200m</td>
-                    <td class="px-4 py-3.5 text-right">
-                      <span class="bg-[#FCE4EC] text-[#F06292] text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full border border-[#F8BBD0]">
-                        Inactive
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
             </div>
           </div>
 
