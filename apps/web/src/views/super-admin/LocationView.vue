@@ -175,7 +175,7 @@
             </div>
 
             <div class="font-mono text-xs font-extrabold text-[#1b1c1c] tracking-wider mb-6 bg-[#f5f3f3] px-3 py-1.5 rounded-md border border-[#F8BBD0]">
-              {{ qrToken }}
+              PRESENSI MAGANG
             </div>
 
             <div class="flex gap-3 w-full px-2">
@@ -228,7 +228,7 @@ const poskoAddress = ref('Gedung Pinisi Lt 3, JL. jend sudirman, bentengnge, kec
 const latitude = ref(-5.5578602)
 const longitude = ref(120.1937020)
 const radiusMeters = ref(25.0)
-const qrToken = ref('GARDA112-POSKO-BULUKUMBA-1702E')
+const qrToken = ref('PRESENSI MAGANG')
 
 const gpsLoading = ref(false)
 const saveLoading = ref(false)
@@ -268,8 +268,7 @@ const fetchLocationConfig = async () => {
 }
 
 const refreshQrToken = () => {
-  const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase()
-  qrToken.value = `GARDA112-POSKO-BULUKUMBA-${randomSuffix}`
+  qrToken.value = 'PRESENSI MAGANG'
   showToast(true, 'Master Access QR berhasil di-refresh!')
 }
 
@@ -338,7 +337,7 @@ const resetDefaultLocation = () => {
   latitude.value = -5.5578602
   longitude.value = 120.1937020
   radiusMeters.value = 25.0
-  qrToken.value = 'GARDA112-POSKO-BULUKUMBA-1702E'
+  qrToken.value = 'PRESENSI MAGANG'
   updateMapMarker()
   showToast(true, 'Koordinat & konfigurasi di-reset ke Posko Siaga Garda 112 Bulukumba.')
 }

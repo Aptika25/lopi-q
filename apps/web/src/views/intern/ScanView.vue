@@ -271,7 +271,7 @@ const currentLng = ref<number | null>(120.1937020)
 const poskoLat = ref(-5.5578602)
 const poskoLng = ref(120.1937020)
 const maxRadius = ref(25.0)
-const poskoToken = ref('GARDA112-POSKO-BULUKUMBA-1702E')
+const poskoToken = ref('PRESENSI MAGANG')
 const gpsLoading = ref(false)
 
 let scanLoopId: number | null = null
@@ -531,7 +531,7 @@ const submitScanPresensi = async () => {
     return
   }
 
-  const token = scannedToken.value || poskoToken.value || 'GARDA112-POSKO-BULUKUMBA-1702E'
+  const token = scannedToken.value || poskoToken.value || 'PRESENSI MAGANG'
   loading.value = true
 
   try {

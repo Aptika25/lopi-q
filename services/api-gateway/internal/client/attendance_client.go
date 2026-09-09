@@ -196,7 +196,7 @@ func (s *AttendanceClientDirectStub) GetLocationConfig() LocationConfig {
 		Latitude:     -5.5578602,
 		Longitude:    120.1937020,
 		RadiusMeters: 25.0,
-		QRToken:      "GARDA112-POSKO-BULUKUMBA-1702E",
+		QRToken:      "PRESENSI MAGANG",
 	}
 }
 
