@@ -315,7 +315,7 @@ const deleteJournalNote = (index: number) => {
   saveJournalNotes()
 }
 
-onMounted(async () => {
+onMounted(async () => {     
   await authStore.fetchProfile()
   await authStore.fetchTodayStatus()
   await authStore.fetchHistory()
