@@ -399,11 +399,11 @@ import AdminLayout from '@/layouts/AdminLayout.vue';
 const authStore = useAuthStore();
 
 const poskoInfo = ref({
-  name: 'Posko Siaga NTPD 112 Kabupaten Bulukumba',
-  address: 'Jl. Jend. Sudirman No. 1, Caile, Kec. Ujung Bulu, Kabupaten Bulukumba, Sulawesi Selatan',
-  lat: -5.5645,
-  lng: 120.1945,
-  radius: 2.0
+  name: 'POSKO SIAGA NTPD 112 KABUPATEN BULUKUMBA',
+  address: 'Gedung Pinisi Lt 3, JL. jend sudirman, bentengnge, kec. ujung bulu, kabupaten bulukumba, sulawesi selatan, 92511, indonesia.',
+  lat: -5.5578602,
+  lng: 120.1937020,
+  radius: 25.0
 });
 
 const leaveRequests = ref([]);

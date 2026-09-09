@@ -1,7 +1,7 @@
 export const POSKO_COORDS = {
-  latitude: -5.5645,
-  longitude: 120.1945,
-  maxRadiusMeters: 2.0
+  latitude: -5.5578602,
+  longitude: 120.1937020,
+  maxRadiusMeters: 25.0
 }
 
 export function calculateDistance(lat1: number, lon1: number, lat2 = POSKO_COORDS.latitude, lon2 = POSKO_COORDS.longitude): number {

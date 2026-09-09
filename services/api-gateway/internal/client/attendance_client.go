@@ -191,12 +191,12 @@ func (s *AttendanceClientDirectStub) GetLocationConfig() LocationConfig {
 	}
 
 	return LocationConfig{
-		Name:         "Posko Siaga NTPD 112 Kabupaten Bulukumba",
-		Address:      "Jl. Jend. Sudirman No. 1, Caile, Kec. Ujung Bulu, Kabupaten Bulukumba, Sulawesi Selatan",
-		Latitude:     -5.5645,
-		Longitude:    120.1945,
-		RadiusMeters: 2.0,
-		QRToken:      "LOPI-Q-POSKO-BULUKUMBA-2026-NTPD112",
+		Name:         "POSKO SIAGA NTPD 112 KABUPATEN BULUKUMBA",
+		Address:      "Gedung Pinisi Lt 3, JL. jend sudirman, bentengnge, kec. ujung bulu, kabupaten bulukumba, sulawesi selatan, 92511, indonesia.",
+		Latitude:     -5.5578602,
+		Longitude:    120.1937020,
+		RadiusMeters: 25.0,
+		QRToken:      "GARDA112-POSKO-BULUKUMBA-1702E",
 	}
 }
 

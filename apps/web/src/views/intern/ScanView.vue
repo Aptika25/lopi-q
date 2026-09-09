@@ -266,12 +266,12 @@ const videoRef = ref<HTMLVideoElement | null>(null)
 const mediaStream = ref<MediaStream | null>(null)
 const scannedToken = ref('')
 
-const currentLat = ref<number | null>(-5.5645)
-const currentLng = ref<number | null>(120.1945)
-const poskoLat = ref(-5.5645)
-const poskoLng = ref(120.1945)
-const maxRadius = ref(2.0)
-const poskoToken = ref('')
+const currentLat = ref<number | null>(-5.5578602)
+const currentLng = ref<number | null>(120.1937020)
+const poskoLat = ref(-5.5578602)
+const poskoLng = ref(120.1937020)
+const maxRadius = ref(25.0)
+const poskoToken = ref('GARDA112-POSKO-BULUKUMBA-1702E')
 const gpsLoading = ref(false)
 
 let scanLoopId: number | null = null
@@ -493,8 +493,8 @@ const getGeolocation = () => {
       },
       () => {
         gpsLoading.value = false
-        currentLat.value = -5.5645
-        currentLng.value = 120.1945
+        currentLat.value = -5.5578602
+        currentLng.value = 120.1937020
         updateMapVisuals()
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -531,16 +531,16 @@ const submitScanPresensi = async () => {
     return
   }
 
-  const token = scannedToken.value || poskoToken.value || 'LOPI-Q-POSKO-BULUKUMBA-2026-NTPD112'
+  const token = scannedToken.value || poskoToken.value || 'GARDA112-POSKO-BULUKUMBA-1702E'
   loading.value = true
 
   try {
     let res
     const mode = autoDetectedMode.value
     if (mode === 'PULANG') {
-      res = await authStore.clockOut(currentLat.value || -5.5645, currentLng.value || 120.1945, token)
+      res = await authStore.clockOut(currentLat.value || -5.5578602, currentLng.value || 120.1937020, token)
     } else {
-      res = await authStore.clockIn(currentLat.value || -5.5645, currentLng.value || 120.1945, token)
+      res = await authStore.clockIn(currentLat.value || -5.5578602, currentLng.value || 120.1937020, token)
     }
 
     if (res && res.success) {
