@@ -414,63 +414,64 @@ const downloadOfficialQrImage = async () => {
     headerGrad.addColorStop(0.5, '#ab2c5d')
     headerGrad.addColorStop(1, '#c44075')
     ctx.fillStyle = headerGrad
-    ctx.fillRect(0, 0, 1200, 160)
+    ctx.fillRect(0, 0, 1200, 180)
 
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
 
-    // Judul: PEMERINTAH KABUPATEN BULUKUMBA
+    // Judul Diperbesar: PEMERINTAH KABUPATEN BULUKUMBA
     ctx.fillStyle = '#FFFFFF'
-    ctx.font = 'bold 28px "Segoe UI", Arial, sans-serif'
-    ctx.fillText('PEMERINTAH KABUPATEN BULUKUMBA', 600, 44)
+    ctx.font = 'bold 34px "Segoe UI", Arial, sans-serif'
+    ctx.fillText('PEMERINTAH KABUPATEN BULUKUMBA', 600, 48)
 
-    // Sub Judul: DINAS KOMUNIKASI INFORMATIKA DAN PERSANDIAN
-    ctx.font = 'bold 20px "Segoe UI", Arial, sans-serif'
-    ctx.fillText('DINAS KOMUNIKASI INFORMATIKA DAN PERSANDIAN', 600, 86)
+    // Sub Judul Diperbesar: DINAS KOMUNIKASI INFORMATIKA DAN PERSANDIAN
+    ctx.font = 'bold 24px "Segoe UI", Arial, sans-serif'
+    ctx.fillText('DINAS KOMUNIKASI INFORMATIKA DAN PERSANDIAN', 600, 96)
 
-    // Tulisan Kuning: presensi peserta magang
+    // Tulisan Kuning Diperbesar: PRESENSI PESERTA MAGANG
     ctx.fillStyle = '#fbbf24'
-    ctx.font = 'bold 18px "Segoe UI", Arial, sans-serif'
-    ctx.fillText('PRESENSI PESERTA MAGANG', 600, 126)
+    ctx.font = 'bold 22px "Segoe UI", Arial, sans-serif'
+    ctx.fillText('PRESENSI PESERTA MAGANG', 600, 142)
 
     // 3. Outer Card Border (Tema Warna Project LOPI-Q #F8BBD0)
     ctx.strokeStyle = '#F8BBD0'
     ctx.lineWidth = 3
-    ctx.strokeRect(40, 185, 1120, 1375)
+    ctx.strokeRect(40, 205, 1120, 1355)
 
-    // 4. Big Title above Barcode: LOPI-Q (Logbook, Online Presence, and Internship Quality Management System)
+    // 4. Big Title above Barcode Diperbesar: LOPI-Q
     ctx.fillStyle = '#1b1c1c'
-    ctx.font = 'bold 26px "Segoe UI", Arial, sans-serif'
-    ctx.fillText('LOPI-Q', 600, 226)
+    ctx.font = 'bold 40px "Segoe UI", Arial, sans-serif'
+    ctx.fillText('LOPI-Q', 600, 252)
 
+    // Pengertian Diperbesar: (Logbook, Online Presence, and Internship Quality Management System)
     ctx.fillStyle = '#574146'
-    ctx.font = 'bold 18px "Segoe UI", Arial, sans-serif'
-    ctx.fillText('(Logbook, Online Presence, and Internship Quality Management System)', 600, 260)
+    ctx.font = 'bold 22px "Segoe UI", Arial, sans-serif'
+    ctx.fillText('(Logbook, Online Presence, and Internship Quality Management System)', 600, 296)
 
-    // Small Address Text
+    // Small Address Text Diperbesar
     ctx.fillStyle = '#64748b'
-    ctx.font = '15.5px "Segoe UI", Arial, sans-serif'
-    ctx.fillText('Gedung Pinisi Lt 3, JL. jend sudirman, bentengnge, kec. ujung bulu, kabupaten bulukumba,', 600, 298)
-    ctx.fillText('sulawesi selatan, 92511, indonesia.', 600, 322)
+    ctx.font = '19px "Segoe UI", Arial, sans-serif'
+    ctx.fillText('Gedung Pinisi Lt 3, JL. jend sudirman, bentengnge, kec. ujung bulu, kabupaten bulukumba,', 600, 338)
+    ctx.fillText('sulawesi selatan, 92511, indonesia.', 600, 366)
 
     // 5. Barcode Frame & Image
     ctx.strokeStyle = '#e2e8f0'
-    ctx.lineWidth = 2
-    ctx.strokeRect(290, 360, 620, 620)
+    ctx.lineWidth = 2.5
+    ctx.strokeRect(310, 405, 580, 580)
 
     const qrImg = new Image()
     qrImg.crossOrigin = 'anonymous'
     
     await new Promise((resolve) => {
       qrImg.onload = () => {
-        ctx.drawImage(qrImg, 310, 380, 580, 580)
+        ctx.drawImage(qrImg, 325, 420, 550, 550)
         resolve(true)
       }
       qrImg.onerror = () => {
         const fallbackImg = new Image()
         fallbackImg.crossOrigin = 'anonymous'
         fallbackImg.onload = () => {
-          ctx.drawImage(fallbackImg, 290, 360, 620, 620, 310, 380, 580, 580)
+          ctx.drawImage(fallbackImg, 310, 405, 580, 580, 325, 420, 550, 550)
           resolve(true)
         }
         fallbackImg.onerror = () => resolve(false)
@@ -479,34 +480,35 @@ const downloadOfficialQrImage = async () => {
       qrImg.src = qrImageUrl.value
     })
 
-    // 6. Below Barcode
+    // 6. Below Barcode (Semua Tulisan Lain Diperbesar)
     // Teks: BULUKUMBA-1702E
     ctx.fillStyle = '#ab2c5d'
-    ctx.font = 'bold 28px Consolas, monospace'
+    ctx.font = 'bold 34px Consolas, monospace'
     ctx.fillText('BULUKUMBA-1702E', 600, 1030)
 
-    // Koordinat
+    // Koordinat Diperbesar
     ctx.fillStyle = '#1e293b'
-    ctx.font = 'bold 19px "Segoe UI", Arial, sans-serif'
-    ctx.fillText(`KOORDINAT: ${latitude.value.toFixed(7)}, ${longitude.value.toFixed(7)}`, 600, 1076)
+    ctx.font = 'bold 23px "Segoe UI", Arial, sans-serif'
+    ctx.fillText(`KOORDINAT: ${latitude.value.toFixed(7)}, ${longitude.value.toFixed(7)}`, 600, 1080)
 
-    // Batas Radius Geofence
+    // Batas Radius Geofence Diperbesar
     ctx.fillStyle = '#059669'
-    ctx.fillText(`BATAS RADIUS GEOFENCE: ${radiusMeters.value} METER`, 600, 1116)
+    ctx.font = 'bold 23px "Segoe UI", Arial, sans-serif'
+    ctx.fillText(`BATAS RADIUS GEOFENCE: ${radiusMeters.value} METER`, 600, 1122)
 
-    // Instruksi: SCAN QR CODE INI MENGGUNAKAN APLIKASI LOPI-Q UNTUK MELAKUKAN PRESENSI SIAGA
+    // Instruksi Diperbesar
     ctx.fillStyle = '#64748b'
-    ctx.font = 'italic 16.5px "Segoe UI", Arial, sans-serif'
-    ctx.fillText('Scan QR Code ini menggunakan aplikasi LOPI-Q untuk melakukan presensi siaga.', 600, 1175)
+    ctx.font = 'italic 20px "Segoe UI", Arial, sans-serif'
+    ctx.fillText('Scan QR Code ini menggunakan aplikasi LOPI-Q untuk melakukan presensi siaga.', 600, 1178)
 
-    // Footer: official generated by LOPI-Q • <Tanggal saat QR di download>
+    // Footer Diperbesar: official generated by LOPI-Q • <Tanggal saat QR di download>
     const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
     const now = new Date()
     const dateStr = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`
     
     ctx.fillStyle = '#94a3b8'
-    ctx.font = '15.5px "Segoe UI", Arial, sans-serif'
-    ctx.fillText(`Official Generated by LOPI-Q • ${dateStr}`, 600, 1230)
+    ctx.font = '18px "Segoe UI", Arial, sans-serif'
+    ctx.fillText(`Official Generated by LOPI-Q • ${dateStr}`, 600, 1235)
 
     // Trigger download
     const link = document.createElement('a')
