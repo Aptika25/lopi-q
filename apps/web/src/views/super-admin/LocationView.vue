@@ -113,7 +113,7 @@
                     min="0.5" 
                     max="500" 
                     required 
-                    @input="updateMapCircle"
+                    @input="handleRadiusChange"
                     class="w-full rounded-lg px-3 py-2 bg-white border border-[#F8BBD0] text-xs font-mono font-bold text-[#1b1c1c] pr-8 focus:outline-none focus:border-[#f06292] focus:ring-1 focus:ring-[#f06292]/30 transition-all"
                   />
                   <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#574146]">m</span>
@@ -267,8 +267,18 @@ const fetchLocationConfig = async () => {
   }
 }
 
+const generateDynamicToken = () => {
+  const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase()
+  qrToken.value = `GARDA112-POSKO-BULUKUMBA-${randomSuffix}`
+}
+
+const handleRadiusChange = () => {
+  updateMapCircle()
+  generateDynamicToken()
+}
+
 const refreshQrToken = () => {
-  qrToken.value = 'PRESENSI MAGANG'
+  generateDynamicToken()
   showToast(true, 'Master Access QR berhasil di-refresh!')
 }
 
@@ -329,6 +339,7 @@ const updateMapCircle = () => {
 const setRadiusPreset = (r: number) => {
   radiusMeters.value = r
   updateMapCircle()
+  generateDynamicToken()
 }
 
 const resetDefaultLocation = () => {
@@ -337,7 +348,7 @@ const resetDefaultLocation = () => {
   latitude.value = -5.5578602
   longitude.value = 120.1937020
   radiusMeters.value = 25.0
-  qrToken.value = 'PRESENSI MAGANG'
+  generateDynamicToken()
   updateMapMarker()
   showToast(true, 'Koordinat & konfigurasi di-reset ke Posko Siaga Garda 112 Bulukumba.')
 }
