@@ -167,126 +167,49 @@
           <div class="bg-white/85 backdrop-blur-md rounded-xl p-6 border border-[#F8BBD0] shadow-[0px_10px_30px_rgba(240,98,146,0.05)] flex flex-col items-center justify-center text-center relative overflow-hidden">
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#ffd9e4] rounded-full mix-blend-multiply opacity-50 pointer-events-none"></div>
             
-            <div class="flex items-center justify-between w-full mb-3">
-              <div class="text-left">
-                <h2 class="font-bold text-base text-[#1b1c1c]">Master Access QR</h2>
-                <p class="text-[11px] text-[#574146]">Scan QR untuk presensi Posko Siaga 112</p>
-              </div>
-              <span class="bg-[#FCE4EC] text-[#ab2c5d] text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border border-[#F8BBD0]">
-                Official QRIS
-              </span>
+            <h2 class="font-bold text-base text-[#1b1c1c] mb-1">Master Access QR</h2>
+            <p class="text-xs text-[#574146] mb-6">Scan to check-in at main lobby</p>
+
+            <div class="bg-white p-4 rounded-xl border border-[#F8BBD0] shadow-xs mb-4 relative group">
+              <img :src="qrImageUrl" alt="Master QR Code" class="w-48 h-48 object-contain" />
             </div>
 
-            <!-- Official Poster / QR Image Display -->
-            <div 
-              class="bg-white p-2 rounded-xl border border-[#F8BBD0] shadow-sm mb-4 relative group max-w-[280px] cursor-pointer hover:shadow-md transition-all"
-              @click="showFullPreview = true"
-              title="Klik untuk memperbesar poster resmi"
-            >
-              <img 
-                src="/qr-posko-official.jpg" 
-                alt="QR Code &amp; Poster Resmi Posko Siaga NTPD 112 Bulukumba" 
-                class="w-full h-auto rounded-lg object-contain transition-transform duration-300 group-hover:scale-[1.02]" 
-              />
-              <div class="absolute inset-0 bg-black/30 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1 backdrop-blur-[1px]">
-                <span class="material-symbols-outlined text-lg">zoom_in</span>
-                <span>Perbesar Poster</span>
-              </div>
+            <div class="font-mono text-xs font-extrabold text-[#1b1c1c] tracking-wider mb-6 bg-[#f5f3f3] px-3 py-1.5 rounded-md border border-[#F8BBD0]">
+              {{ qrToken }}
             </div>
 
-            <!-- Token & Details -->
-            <div class="w-full max-w-[320px] bg-[#fdf2f4] p-3 rounded-xl border border-[#F8BBD0] mb-4 space-y-1.5 text-left">
-              <div class="flex items-center justify-between text-[10px] font-bold text-[#ab2c5d] uppercase tracking-wider">
-                <span>Token Akses Resmi</span>
-                <button 
-                  type="button" 
-                  @click="copyQrToken" 
-                  class="text-[#F06292] hover:text-[#ab2c5d] bg-transparent border-0 cursor-pointer flex items-center gap-1 font-bold text-[10px] p-0"
-                >
-                  <span class="material-symbols-outlined text-xs">content_copy</span>
-                  <span>Salin</span>
-                </button>
-              </div>
-              <div class="font-mono text-xs font-black text-[#1b1c1c] break-all">
-                {{ qrToken }}
-              </div>
-              <div class="flex items-center justify-between text-[10px] text-[#574146] pt-1 border-t border-[#F8BBD0]/60">
-                <span>Radius: <strong>{{ radiusMeters }} Meter</strong></span>
-                <span>Geofence: <strong>Aktif</strong></span>
-              </div>
-            </div>
-
-            <div class="flex gap-2.5 w-full">
+            <div class="flex gap-3 w-full px-2">
               <button 
                 type="button"
                 @click="refreshQrToken"
-                class="flex-1 flex items-center justify-center gap-1.5 bg-[#FCE4EC] text-[#F06292] hover:bg-[#ffd9e4] font-bold text-xs py-2.5 px-3 rounded-lg transition-colors border-0 cursor-pointer uppercase tracking-wider"
+                class="flex-1 flex items-center justify-center gap-2 bg-[#FCE4EC] text-[#F06292] font-bold text-xs py-2.5 px-4 rounded-lg hover:bg-[#ffd9e4] transition-colors border-0 cursor-pointer uppercase tracking-wider"
               >
                 <span class="material-symbols-outlined text-base">refresh</span>
-                Reset Token
+                Refresh
               </button>
 
               <button 
                 type="button"
                 @click="downloadOfficialQrImage"
                 :disabled="downloadLoading"
-                class="flex-1 flex items-center justify-center gap-1.5 bg-[#ab2c5d] hover:bg-[#8b0e45] text-white font-bold text-xs py-2.5 px-3 rounded-lg transition-colors border-0 cursor-pointer shadow-[0px_10px_30px_rgba(240,98,146,0.1)] uppercase tracking-wider disabled:opacity-60"
+                class="flex-1 flex items-center justify-center gap-2 bg-[#ab2c5d] text-white font-bold text-xs py-2.5 px-4 rounded-lg hover:bg-[#8b0e45] transition-colors border-0 cursor-pointer shadow-[0px_10px_30px_rgba(240,98,146,0.1)] uppercase tracking-wider disabled:opacity-60"
               >
                 <span class="material-symbols-outlined text-base" :class="{ 'animate-spin': downloadLoading }">
                   {{ downloadLoading ? 'sync' : 'download' }}
                 </span>
-                Unduh Poster
+                Download
               </button>
+            </div>
+
+            <div class="mt-4 text-[11px] font-medium text-[#574146] flex items-center gap-1">
+              <span class="material-symbols-outlined text-xs">timer</span>
+              <span>Auto-refreshes in 14:59</span>
             </div>
           </div>
 
         </section>
 
       </div>
-
-      <!-- Fullscreen Poster Preview Modal -->
-      <transition name="fade">
-        <div 
-          v-if="showFullPreview" 
-          class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
-          @click.self="showFullPreview = false"
-        >
-          <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl border border-[#F8BBD0] flex flex-col">
-            <div class="flex items-center justify-between px-5 py-4 border-b border-[#ddbfc5]/60 bg-[#FCE4EC]/30">
-              <h3 class="font-bold text-sm text-[#1b1c1c] flex items-center gap-2">
-                <span class="material-symbols-outlined text-[#ab2c5d]">qr_code_2</span>
-                Poster Resmi Presensi Siaga 112
-              </h3>
-              <button 
-                @click="showFullPreview = false"
-                class="text-[#574146] hover:text-[#1b1c1c] bg-transparent border-0 cursor-pointer p-1"
-              >
-                <span class="material-symbols-outlined text-xl">close</span>
-              </button>
-            </div>
-
-            <div class="p-4 flex justify-center bg-slate-50 max-h-[75vh] overflow-auto">
-              <img 
-                src="/qr-posko-official.jpg" 
-                alt="Poster Resmi Posko Siaga NTPD 112" 
-                class="w-full h-auto rounded-lg shadow-sm"
-              />
-            </div>
-
-            <div class="px-5 py-3 border-t border-[#ddbfc5]/60 flex items-center justify-between bg-white">
-              <span class="text-xs text-[#574146] font-mono">{{ qrToken }}</span>
-              <button 
-                type="button" 
-                @click="downloadOfficialQrImage"
-                class="bg-[#ab2c5d] hover:bg-[#8b0e45] text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors border-0 cursor-pointer flex items-center gap-1.5"
-              >
-                <span class="material-symbols-outlined text-base">download</span>
-                <span>Unduh File</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </transition>
 
     </div>
   </AdminLayout>
@@ -306,7 +229,6 @@ const latitude = ref(-5.5578602)
 const longitude = ref(120.1937020)
 const radiusMeters = ref(25.0)
 const qrToken = ref('GARDA112-POSKO-BULUKUMBA-1702E')
-const showFullPreview = ref(false)
 
 const gpsLoading = ref(false)
 const saveLoading = ref(false)
@@ -345,18 +267,10 @@ const fetchLocationConfig = async () => {
   }
 }
 
-const copyQrToken = async () => {
-  try {
-    await navigator.clipboard.writeText(qrToken.value)
-    showToast(true, 'Token QR resmi berhasil disalin!')
-  } catch (err) {
-    showToast(false, 'Gagal menyalin token.')
-  }
-}
-
 const refreshQrToken = () => {
-  qrToken.value = 'GARDA112-POSKO-BULUKUMBA-1702E'
-  showToast(true, 'Token QR dikembalikan ke Token Resmi Garda 112!')
+  const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase()
+  qrToken.value = `GARDA112-POSKO-BULUKUMBA-${randomSuffix}`
+  showToast(true, 'Master Access QR berhasil di-refresh!')
 }
 
 // ===== LEAFLET MAP INTEGRATION =====
