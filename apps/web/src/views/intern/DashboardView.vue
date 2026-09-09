@@ -140,6 +140,7 @@
                     <th class="p-3 text-[11px] font-bold text-[#ab2c5d] uppercase tracking-wider">Nama</th>
                     <th class="p-3 text-[11px] font-bold text-[#ab2c5d] uppercase tracking-wider">Waktu</th>
                     <th class="p-3 text-[11px] font-bold text-[#ab2c5d] uppercase tracking-wider">Kegiatan</th>
+                    <th class="p-3 text-[11px] font-bold text-[#ab2c5d] uppercase tracking-wider text-right w-16">Aksi</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-[#F8BBD0]/40 text-xs">
@@ -147,9 +148,19 @@
                     <td class="p-3 font-bold text-[#1b1c1c]">{{ item.name }}</td>
                     <td class="p-3 font-mono text-[#574146]">{{ item.time }}</td>
                     <td class="p-3 text-[#1b1c1c] font-medium">{{ item.activity }}</td>
+                    <td class="p-3 text-right">
+                      <button 
+                        type="button" 
+                        @click="deleteJournalNote(idx)"
+                        title="Hapus Catatan Kegiatan"
+                        class="text-rose-400 hover:text-rose-600 hover:bg-rose-50 p-1.5 rounded-lg transition-colors border-0 bg-transparent cursor-pointer inline-flex items-center justify-center"
+                      >
+                        <span class="material-symbols-outlined text-base">delete</span>
+                      </button>
+                    </td>
                   </tr>
                   <tr v-if="activityJournalList.length === 0">
-                    <td colspan="3" class="p-6 text-center text-[#8a7176] text-xs">
+                    <td colspan="4" class="p-6 text-center text-[#8a7176] text-xs">
                       Belum ada catatan jurnal kegiatan harian recorded.
                     </td>
                   </tr>
@@ -297,6 +308,11 @@ const addJournalNote = () => {
   saveJournalNotes()
   showNoteModal.value = false
   newJournalNote.value = ''
+}
+
+const deleteJournalNote = (index: number) => {
+  activityJournalList.value.splice(index, 1)
+  saveJournalNotes()
 }
 
 onMounted(async () => {
