@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="min-h-screen bg-slate-50 text-slate-800 antialiased font-body flex select-none relative overflow-x-hidden pb-24 lg:pb-0">
 
     <!-- ========== SIDEBAR (desktop only, hidden on mobile) ========== -->
@@ -74,10 +74,10 @@
       <!-- ===== TOP NAVBAR ===== -->
       <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/60 shadow-xs min-h-14">
 
-        <!-- MOBILE top navbar: logo only -->
+        <!-- MOBILE top navbar: logo icon only (texts LOPI-Q, PRESENSI MAGANG, and status online removed) -->
         <div class="lg:hidden flex items-center justify-between px-4 h-14">
-          <!-- Logo LOPI-Q -->
-          <router-link to="/intern/dashboard" class="flex items-center gap-2.5 decoration-none">
+          <!-- Logo LOPI-Q Icon -->
+          <router-link to="/intern/dashboard" class="flex items-center decoration-none">
             <div class="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-tr from-primary via-primary-container to-secondary text-on-primary font-display font-black text-base shadow-md shrink-0">
               <span class="tracking-tighter">LQ</span>
               <span class="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
@@ -85,17 +85,7 @@
                 <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border-2 border-white"></span>
               </span>
             </div>
-            <div>
-              <div class="text-sm font-display font-black text-slate-900 tracking-tight leading-none">LOPI<span class="text-primary">-Q</span></div>
-              <div class="text-[8px] font-bold text-primary tracking-widest uppercase leading-none mt-0.5">PRESENSI MAGANG</div>
-            </div>
           </router-link>
-
-          <!-- Online status pill -->
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0"></span>
-            Online
-          </span>
         </div>
 
         <!-- DESKTOP top navbar: page title + online status -->
