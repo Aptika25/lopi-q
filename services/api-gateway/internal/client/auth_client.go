@@ -203,7 +203,7 @@ func fetchPostgresUsers() ([]UserDataJSON, bool) {
 	userProfileMap := make(map[string]UserDataJSON)
 	for _, userConn := range getUserConnStrings(dbHost) {
 		if dbUser, err := sql.Open("postgres", userConn); err == nil {
-			ctx, cancel := context.WithTimeout(context.Background(), 600*time.Millisecond)
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			rows, err := dbUser.QueryContext(ctx, "SELECT id, COALESCE(nip, ''), email, name, role, COALESCE(jabatan, ''), COALESCE(unit_kerja, ''), COALESCE(is_active, true) FROM users;")
 			if err == nil {
 				for rows.Next() {
@@ -245,7 +245,7 @@ func fetchPostgresUsers() ([]UserDataJSON, bool) {
 		if err != nil {
 			continue
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), 600*time.Millisecond)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		_, _ = db.ExecContext(ctx, `UPDATE auth_users SET totp_enabled = true WHERE totp_secret IS NOT NULL AND totp_secret <> '' AND (totp_enabled IS FALSE OR totp_enabled IS NULL);`)
 		rows, err := db.QueryContext(ctx, "SELECT id, COALESCE(nip, ''), email, name, role, COALESCE(jabatan, ''), COALESCE(unit_kerja, ''), password, COALESCE(totp_secret, ''), (COALESCE(totp_enabled, false) OR (totp_secret IS NOT NULL AND totp_secret <> '')), COALESCE(is_active, true) FROM auth_users ORDER BY id;")
 		if err == nil {
