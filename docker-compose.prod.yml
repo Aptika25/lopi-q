@@ -68,8 +68,6 @@ services:
       context: .
       dockerfile: services/auth-service/Dockerfile.prod
     container_name: lopiq-auth-service
-    depends_on:
-      - auth-migrate
     expose:
       - "50051"
     env_file:
@@ -94,8 +92,6 @@ services:
       context: .
       dockerfile: services/user-service/Dockerfile.prod
     container_name: lopiq-user-service
-    depends_on:
-      - user-migrate
     expose:
       - "50052"
     env_file:
@@ -119,8 +115,6 @@ services:
       context: .
       dockerfile: services/activity-service/Dockerfile.prod
     container_name: lopiq-activity-service
-    depends_on:
-      - activity-migrate
     expose:
       - "50053"
     env_file:
@@ -144,8 +138,6 @@ services:
       context: .
       dockerfile: services/reporting-service/Dockerfile.prod
     container_name: lopiq-reporting-service
-    depends_on:
-      - reporting-migrate
     expose:
       - "50054"
     env_file:
@@ -169,8 +161,6 @@ services:
       context: .
       dockerfile: services/attendance-service/Dockerfile.prod
     container_name: lopiq-attendance-service
-    depends_on:
-      - attendance-migrate
     expose:
       - "50055"
     env_file:
