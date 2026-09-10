@@ -57,44 +57,74 @@ func syncPostgresCreateUser(req *userProto.CreateUserRequest, passwordHash strin
 	cleanEmail := strings.ToLower(strings.TrimSpace(req.Email))
 	cleanNip := strings.TrimSpace(req.Nip)
 
-	// 1. Insert/Update into auth_users in db_lopiq_auth / db_garda112_auth
+	// 1. Insert/Update into auth_users in db_lopiq_auth
 	for _, conn := range getAuthConnStrings(dbHost) {
 		if dbAuth, err := sql.Open("postgres", conn); err == nil {
 			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			_, _ = dbAuth.ExecContext(ctx, `ALTER TABLE auth_users ALTER COLUMN nip DROP NOT NULL;`)
-			_, errIns := dbAuth.ExecContext(ctx,
-				`INSERT INTO auth_users (nip, email, name, role, jabatan, unit_kerja, password, is_active)
-				 VALUES (NULLIF($1, ''), $2, $3, $4, $5, $6, $7, true);`,
-				cleanNip, cleanEmail, req.Name, req.Role, req.Jabatan, req.UnitKerja, passwordHash,
-			)
-			if errIns != nil {
-				_, _ = dbAuth.ExecContext(ctx,
+
+			var exists bool
+			_ = dbAuth.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM auth_users WHERE LOWER(email)=LOWER($1) OR ($2 <> '' AND REPLACE(nip,' ','')=REPLACE($2,' ','')));`, cleanEmail, cleanNip).Scan(&exists)
+
+			if exists {
+				_, errUpd := dbAuth.ExecContext(ctx,
 					`UPDATE auth_users SET nip=NULLIF($1, ''), name=$3, role=$4, jabatan=$5, unit_kerja=$6, password=$7, is_active=true
 					 WHERE LOWER(email)=$2 OR ($1 <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ',''));`,
 					cleanNip, cleanEmail, req.Name, req.Role, req.Jabatan, req.UnitKerja, passwordHash,
 				)
+				if errUpd != nil {
+					log.Printf("[syncPostgresCreateUser UPDATE Auth Error] %v", errUpd)
+				} else {
+					log.Printf("[syncPostgresCreateUser Auth Success] Updated existing user %s", cleanEmail)
+				}
+			} else {
+				_, errIns := dbAuth.ExecContext(ctx,
+					`INSERT INTO auth_users (nip, email, name, role, jabatan, unit_kerja, password, is_active)
+					 VALUES (NULLIF($1, ''), $2, $3, $4, $5, $6, $7, true);`,
+					cleanNip, cleanEmail, req.Name, req.Role, req.Jabatan, req.UnitKerja, passwordHash,
+				)
+				if errIns != nil {
+					log.Printf("[syncPostgresCreateUser INSERT Auth Error] %v", errIns)
+				} else {
+					log.Printf("[syncPostgresCreateUser Auth Success] Inserted new user %s", cleanEmail)
+				}
 			}
 			cancel()
 			dbAuth.Close()
 		}
 	}
 
-	// 2. Insert/Update into users in db_lopiq_user / db_garda112_user
+	// 2. Insert/Update into users in db_lopiq_user
 	for _, conn := range getUserConnStrings(dbHost) {
 		if dbUser, err := sql.Open("postgres", conn); err == nil {
 			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			_, _ = dbUser.ExecContext(ctx, `ALTER TABLE users ALTER COLUMN nip DROP NOT NULL;`)
-			_, errIns := dbUser.ExecContext(ctx,
-				`INSERT INTO users (nip, email, name, role, jabatan, unit_kerja, password_hash, is_active)
-				 VALUES (NULLIF($1, ''), $2, $3, $4, $5, $6, $7, true);`,
-				cleanNip, cleanEmail, req.Name, req.Role, req.Jabatan, req.UnitKerja, passwordHash,
-			)
-			if errIns != nil {
-				_, _ = dbUser.ExecContext(ctx,
+
+			var exists bool
+			_ = dbUser.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM users WHERE LOWER(email)=LOWER($1) OR ($2 <> '' AND REPLACE(nip,' ','')=REPLACE($2,' ','')));`, cleanEmail, cleanNip).Scan(&exists)
+
+			if exists {
+				_, errUpd := dbUser.ExecContext(ctx,
 					`UPDATE users SET nip=NULLIF($1, ''), name=$3, role=$4, jabatan=$5, unit_kerja=$6, password_hash=$7, is_active=true
 					 WHERE LOWER(email)=$2 OR ($1 <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ',''));`,
 					cleanNip, cleanEmail, req.Name, req.Role, req.Jabatan, req.UnitKerja, passwordHash,
 				)
+				if errUpd != nil {
+					log.Printf("[syncPostgresCreateUser UPDATE User Error] %v", errUpd)
+				} else {
+					log.Printf("[syncPostgresCreateUser User Success] Updated existing user %s", cleanEmail)
+				}
+			} else {
+				_, errIns := dbUser.ExecContext(ctx,
+					`INSERT INTO users (nip, email, name, role, jabatan, unit_kerja, password_hash, is_active)
+					 VALUES (NULLIF($1, ''), $2, $3, $4, $5, $6, $7, true);`,
+					cleanNip, cleanEmail, req.Name, req.Role, req.Jabatan, req.UnitKerja, passwordHash,
+				)
+				if errIns != nil {
+					log.Printf("[syncPostgresCreateUser INSERT User Error] %v", errIns)
+				} else {
+					log.Printf("[syncPostgresCreateUser User Success] Inserted new user %s", cleanEmail)
+				}
 			}
 			cancel()
 			dbUser.Close()

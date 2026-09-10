@@ -127,6 +127,9 @@ func getAuthConnStrings(dbHost string) []string {
 	if envPass == "" {
 		envPass = os.Getenv("DB_PASSWORD")
 	}
+	if envPass == "" {
+		envPass = "lopiqauthPassword@2k26#"
+	}
 
 	envDB := os.Getenv("AUTH_DB_NAME")
 	if envDB == "" {
