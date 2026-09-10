@@ -70,8 +70,8 @@ services:
     container_name: lopiq-auth-service
     depends_on:
       - auth-migrate
-    ports:
-      - "50051:50051"
+    expose:
+      - "50051"
     env_file:
       - ./services/auth-service/.env.prod
     environment:
@@ -96,8 +96,8 @@ services:
     container_name: lopiq-user-service
     depends_on:
       - user-migrate
-    ports:
-      - "50052:50052"
+    expose:
+      - "50052"
     env_file:
       - ./services/user-service/.env.prod
     environment:
@@ -121,8 +121,8 @@ services:
     container_name: lopiq-activity-service
     depends_on:
       - activity-migrate
-    ports:
-      - "50053:50053"
+    expose:
+      - "50053"
     env_file:
       - ./services/activity-service/.env.prod
     environment:
@@ -146,8 +146,8 @@ services:
     container_name: lopiq-reporting-service
     depends_on:
       - reporting-migrate
-    ports:
-      - "50054:50054"
+    expose:
+      - "50054"
     env_file:
       - ./services/reporting-service/.env.prod
     environment:
@@ -171,8 +171,8 @@ services:
     container_name: lopiq-attendance-service
     depends_on:
       - attendance-migrate
-    ports:
-      - "50055:50055"
+    expose:
+      - "50055"
     env_file:
       - ./services/attendance-service/.env.prod
     environment:
@@ -203,8 +203,8 @@ services:
       - activity-service
       - reporting-service
       - attendance-service
-    ports:
-      - "5000:5000"
+    expose:
+      - "5000"
     env_file:
       - ./services/api-gateway/.env.prod
     environment:
@@ -235,8 +235,8 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile.prod
     container_name: lopiq-frontend
-    ports:
-      - "3000:80"
+    expose:
+      - "80"
     depends_on:
       - api-gateway
     restart: always
