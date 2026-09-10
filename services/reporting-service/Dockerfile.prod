@@ -1,0 +1,25 @@
+FROM golang:1.23-alpine AS builder
+
+WORKDIR /app
+
+COPY proto ./proto
+COPY pkg ./pkg
+COPY services/reporting-service ./services/reporting-service
+
+WORKDIR /app/services/reporting-service
+
+RUN go mod download
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o reporting-service ./cmd
+
+FROM alpine:3.20
+
+RUN apk add --no-cache ca-certificates tzdata
+ENV TZ=Asia/Jakarta
+
+WORKDIR /app
+
+COPY --from=builder /app/services/reporting-service/reporting-service .
+
+EXPOSE 50054
+
+CMD ["./reporting-service"]
