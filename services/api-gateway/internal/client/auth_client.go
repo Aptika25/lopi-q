@@ -7,6 +7,7 @@ import (
 	"encoding/base32"
 	_ "encoding/json"
 	"fmt"
+	"log"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -499,7 +500,7 @@ func (s *AuthClientDirectStub) Setup2FA(ctx context.Context, req *authProto.Setu
 				totpSecret = generateUniqueBase32Secret(users[i].ID, users[i].Email)
 				users[i].TotpSecret = totpSecret
 				saveUsersJSON(users, path)
-				go syncPostgresTotpSecret(targetEmail, targetNIP, totpSecret)
+				syncPostgres2FAState(targetEmail, targetNIP, totpSecret, users[i].TotpEnabled)
 			}
 			break
 		}
@@ -519,27 +520,60 @@ func (s *AuthClientDirectStub) Setup2FA(ctx context.Context, req *authProto.Setu
 	}, nil
 }
 
-func syncPostgresTotpSecret(email, nip, secret string) {
+func syncPostgres2FAState(email, nip, secret string, enabled bool) {
 	dbHost := os.Getenv("DB_HOST")
 	if dbHost == "" {
 		dbHost = "postgres_apps"
 	}
 
+	cleanEmail := strings.ToLower(strings.TrimSpace(email))
+	cleanNIP := strings.ReplaceAll(nip, " ", "")
+
 	for _, conn := range getAuthConnStrings(dbHost) {
 		if dbAuth, err := sql.Open("postgres", conn); err == nil {
-			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-			_, _ = dbAuth.ExecContext(ctx, `UPDATE auth_users SET totp_secret=$1 WHERE LOWER(email)=LOWER($2) OR REPLACE(nip, ' ', '')=REPLACE($3, ' ', '');`, secret, email, nip)
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			var query string
+			var args []interface{}
+			if secret != "" {
+				query = `UPDATE auth_users SET totp_enabled=$1, totp_secret=$2 WHERE LOWER(email)=$3 OR ($4 <> '' AND REPLACE(nip, ' ', '')=$4);`
+				args = []interface{}{enabled, secret, cleanEmail, cleanNIP}
+			} else {
+				query = `UPDATE auth_users SET totp_enabled=$1, totp_secret='' WHERE LOWER(email)=$2 OR ($3 <> '' AND REPLACE(nip, ' ', '')=$3);`
+				args = []interface{}{enabled, cleanEmail, cleanNIP}
+			}
+			res, errUpd := dbAuth.ExecContext(ctx, query, args...)
 			cancel()
 			dbAuth.Close()
+			if errUpd != nil {
+				log.Printf("[syncPostgres2FAState Auth Error] %v", errUpd)
+			} else if n, _ := res.RowsAffected(); n > 0 {
+				log.Printf("[syncPostgres2FAState Auth Success] Updated auth_users (enabled=%v, secret_len=%d) for %s", enabled, len(secret), cleanEmail)
+				break
+			}
 		}
 	}
 
 	for _, conn := range getUserConnStrings(dbHost) {
 		if dbUser, err := sql.Open("postgres", conn); err == nil {
-			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-			_, _ = dbUser.ExecContext(ctx, `UPDATE users SET totp_secret=$1 WHERE LOWER(email)=LOWER($2) OR REPLACE(nip, ' ', '')=REPLACE($3, ' ', '');`, secret, email, nip)
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			var query string
+			var args []interface{}
+			if secret != "" {
+				query = `UPDATE users SET totp_enabled=$1, totp_secret=$2 WHERE LOWER(email)=$3 OR ($4 <> '' AND REPLACE(nip, ' ', '')=$4);`
+				args = []interface{}{enabled, secret, cleanEmail, cleanNIP}
+			} else {
+				query = `UPDATE users SET totp_enabled=$1, totp_secret='' WHERE LOWER(email)=$2 OR ($3 <> '' AND REPLACE(nip, ' ', '')=$3);`
+				args = []interface{}{enabled, cleanEmail, cleanNIP}
+			}
+			res, errUpd := dbUser.ExecContext(ctx, query, args...)
 			cancel()
 			dbUser.Close()
+			if errUpd != nil {
+				log.Printf("[syncPostgres2FAState User Error] %v", errUpd)
+			} else if n, _ := res.RowsAffected(); n > 0 {
+				log.Printf("[syncPostgres2FAState User Success] Updated users (enabled=%v, secret_len=%d) for %s", enabled, len(secret), cleanEmail)
+				break
+			}
 		}
 	}
 }
@@ -562,13 +596,19 @@ func (s *AuthClientDirectStub) Enable2FA(ctx context.Context, req *authProto.Ena
 	users, path := loadUsersJSON()
 	backupCodes := []string{"88219412", "99124012", "77123951", "12495812"}
 
+	secretToUse := strings.TrimSpace(req.Secret)
+
 	var targetEmail, targetNIP string
 	for i := range users {
 		if users[i].ID == userID {
-			users[i].TotpEnabled = true
-			if users[i].TotpSecret == "" {
-				users[i].TotpSecret = generateUniqueBase32Secret(users[i].ID, users[i].Email)
+			if secretToUse == "" {
+				secretToUse = users[i].TotpSecret
 			}
+			if secretToUse == "" {
+				secretToUse = generateUniqueBase32Secret(users[i].ID, users[i].Email)
+			}
+			users[i].TotpSecret = secretToUse
+			users[i].TotpEnabled = true
 			users[i].BackupCodes = backupCodes
 			targetEmail = users[i].Email
 			targetNIP = users[i].NIP
@@ -578,38 +618,13 @@ func (s *AuthClientDirectStub) Enable2FA(ctx context.Context, req *authProto.Ena
 	}
 
 	if targetEmail != "" || targetNIP != "" {
-		go syncPostgres2FAEnabled(targetEmail, targetNIP, true)
+		syncPostgres2FAState(targetEmail, targetNIP, secretToUse, true)
 	}
 
 	return &authProto.Enable2FAResponse{
 		Success:     true,
 		BackupCodes: backupCodes,
 	}, nil
-}
-
-func syncPostgres2FAEnabled(email, nip string, enabled bool) {
-	dbHost := os.Getenv("DB_HOST")
-	if dbHost == "" {
-		dbHost = "postgres_apps"
-	}
-
-	for _, conn := range getAuthConnStrings(dbHost) {
-		if dbAuth, err := sql.Open("postgres", conn); err == nil {
-			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-			_, _ = dbAuth.ExecContext(ctx, `UPDATE auth_users SET totp_enabled=$1 WHERE LOWER(email)=LOWER($2) OR REPLACE(nip, ' ', '')=REPLACE($3, ' ', '');`, enabled, email, nip)
-			cancel()
-			dbAuth.Close()
-		}
-	}
-
-	for _, conn := range getUserConnStrings(dbHost) {
-		if dbUser, err := sql.Open("postgres", conn); err == nil {
-			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-			_, _ = dbUser.ExecContext(ctx, `UPDATE users SET totp_enabled=$1 WHERE LOWER(email)=LOWER($2) OR REPLACE(nip, ' ', '')=REPLACE($3, ' ', '');`, enabled, email, nip)
-			cancel()
-			dbUser.Close()
-		}
-	}
 }
 
 func (s *AuthClientDirectStub) Disable2FA(ctx context.Context, req *authProto.Disable2FARequest) (*authProto.Disable2FAResponse, error) {
@@ -623,6 +638,7 @@ func (s *AuthClientDirectStub) Disable2FA(ctx context.Context, req *authProto.Di
 			users[i].TotpSecret = ""
 			users[i].BackupCodes = nil
 			saveUsersJSON(users, path)
+			syncPostgres2FAState(users[i].Email, users[i].NIP, "", false)
 			break
 		}
 	}
@@ -646,6 +662,7 @@ func (s *AuthClientDirectStub) SelfReset2FA(ctx context.Context, req *authProto.
 			users[i].TotpSecret = ""
 			users[i].BackupCodes = nil
 			saveUsersJSON(users, path)
+			syncPostgres2FAState(users[i].Email, users[i].NIP, "", false)
 			break
 		}
 	}
