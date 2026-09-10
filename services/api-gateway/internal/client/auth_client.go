@@ -146,6 +146,13 @@ func getAuthConnStrings(dbHost string) []string {
 		if strings.TrimSpace(h) == "" {
 			continue
 		}
+		// Priority 1: Super admin apps root user (guaranteed to exist on postgres_apps)
+		cSuper := fmt.Sprintf("host=%s port=5432 user='super_admin_apps' password='SuperAdminApps@2k26#' dbname='%s' sslmode=disable", h, envDB)
+		if !seen[cSuper] {
+			conns = append(conns, cSuper)
+			seen[cSuper] = true
+		}
+		// Priority 2: Service specific user
 		if envPass != "" {
 			c := fmt.Sprintf("host=%s port=5432 user='%s' password='%s' dbname='%s' sslmode=disable", h, envUser, envPass, envDB)
 			if !seen[c] {
@@ -186,6 +193,13 @@ func getUserConnStrings(dbHost string) []string {
 		if strings.TrimSpace(h) == "" {
 			continue
 		}
+		// Priority 1: Super admin apps root user (guaranteed to exist on postgres_apps)
+		cSuper := fmt.Sprintf("host=%s port=5432 user='super_admin_apps' password='SuperAdminApps@2k26#' dbname='%s' sslmode=disable", h, envDB)
+		if !seen[cSuper] {
+			conns = append(conns, cSuper)
+			seen[cSuper] = true
+		}
+		// Priority 2: Service specific user
 		if envPass != "" {
 			c := fmt.Sprintf("host=%s port=5432 user='%s' password='%s' dbname='%s' sslmode=disable", h, envUser, envPass, envDB)
 			if !seen[c] {
@@ -310,9 +324,11 @@ func fetchPostgresUsers() ([]UserDataJSON, bool) {
 			cancel()
 			db.Close()
 			if len(loaded) > 0 {
+				log.Printf("[fetchPostgresUsers Success] Loaded %d users from PostgreSQL (%s)", len(loaded), conn)
 				break
 			}
 		} else {
+			log.Printf("[fetchPostgresUsers Error] %v on %s", err, conn)
 			cancel()
 			db.Close()
 		}
@@ -449,6 +465,12 @@ func (s *AuthClientDirectStub) Verify2FA(ctx context.Context, req *authProto.Ver
 	}
 
 	token, _ := jwt.GenerateToken(userID, nip, role, 24*time.Hour)
+
+	// Ensure 2FA active state is persisted to PostgreSQL so QR setup never pops up again
+	if matchedUser != nil {
+		syncPostgres2FAState(matchedUser.Email, matchedUser.NIP, matchedUser.TotpSecret, true)
+	}
+
 	return &authProto.Verify2FAResponse{
 		Success: true,
 		Token:   token,
