@@ -521,7 +521,7 @@ func RecordActivityLog(userID int, userNIP, userName, action, details, ip, userA
 		dbHost = "postgres_apps"
 	}
 
-	authConn := fmt.Sprintf("host=%s port=5432 user=user_garda112_auth password=garda112authPassword@2k26# dbname=db_garda112_auth sslmode=disable", dbHost)
+	authConn := fmt.Sprintf("host=%s port=5432 user='user_lopiq_auth' password='lopiqauthPassword@2k26#' dbname='db_lopiq_auth' sslmode=disable", dbHost)
 	go func() {
 		db, err := sql.Open("postgres", authConn)
 		if err != nil {
@@ -560,7 +560,7 @@ func (s *UserClientDirectStub) GetActivityLogs(ctx context.Context) ([]ActivityL
 	}
 
 	list := make([]ActivityLogItem, 0)
-	authConn := fmt.Sprintf("host=%s port=5432 user=user_garda112_auth password=garda112authPassword@2k26# dbname=db_garda112_auth sslmode=disable", dbHost)
+	authConn := fmt.Sprintf("host=%s port=5432 user='user_lopiq_auth' password='lopiqauthPassword@2k26#' dbname='db_lopiq_auth' sslmode=disable", dbHost)
 	if dbAuth, err := sql.Open("postgres", authConn); err == nil {
 		defer dbAuth.Close()
 		queryCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
@@ -598,7 +598,7 @@ func (s *UserClientDirectStub) GetActivityLogs(ctx context.Context) ([]ActivityL
 	}
 
 	// Merge real presensi records from db_garda112_user so presensi scans show up as activity logs
-	userConn := fmt.Sprintf("host=%s port=5432 user=user_garda112_user password=garda112userPassword@2k26# dbname=db_garda112_user sslmode=disable", dbHost)
+	userConn := fmt.Sprintf("host=%s port=5432 user='user_lopiq_user' password='lopiquserPassword@2k26#' dbname='db_lopiq_user' sslmode=disable", dbHost)
 	if dbUser, err := sql.Open("postgres", userConn); err == nil {
 		defer dbUser.Close()
 		queryCtx, cancel := context.WithTimeout(ctx, 3*time.Second)

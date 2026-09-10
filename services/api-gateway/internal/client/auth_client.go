@@ -143,7 +143,7 @@ func getAuthConnStrings(dbHost string) []string {
 			continue
 		}
 		if envPass != "" {
-			c := fmt.Sprintf("host=%s port=5432 user=%s password=%s dbname=%s sslmode=disable", h, envUser, envPass, envDB)
+			c := fmt.Sprintf("host=%s port=5432 user='%s' password='%s' dbname='%s' sslmode=disable", h, envUser, envPass, envDB)
 			if !seen[c] {
 				conns = append(conns, c)
 				seen[c] = true
@@ -183,7 +183,7 @@ func getUserConnStrings(dbHost string) []string {
 			continue
 		}
 		if envPass != "" {
-			c := fmt.Sprintf("host=%s port=5432 user=%s password=%s dbname=%s sslmode=disable", h, envUser, envPass, envDB)
+			c := fmt.Sprintf("host=%s port=5432 user='%s' password='%s' dbname='%s' sslmode=disable", h, envUser, envPass, envDB)
 			if !seen[c] {
 				conns = append(conns, c)
 				seen[c] = true

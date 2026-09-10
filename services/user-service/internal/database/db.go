@@ -13,7 +13,7 @@ import (
 
 func NewDB(cfg *config.Config) *sql.DB {
 	conn := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		"host=%s port=%s user='%s' password='%s' dbname='%s' sslmode=disable",
 		cfg.DBHost,
 		cfg.DBPort,
 		cfg.DBUser,
@@ -43,7 +43,7 @@ func NewDB(cfg *config.Config) *sql.DB {
 
 func NewAuthDB(cfg *config.Config) *sql.DB {
 	conn := fmt.Sprintf(
-		"host=%s port=%s user=user_lopiq_auth password=lopiqauthPassword@2k26# dbname=db_lopiq_auth sslmode=disable",
+		"host=%s port=%s user='user_lopiq_auth' password='lopiqauthPassword@2k26#' dbname='db_lopiq_auth' sslmode=disable",
 		cfg.DBHost,
 		cfg.DBPort,
 	)

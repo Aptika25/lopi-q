@@ -41,7 +41,7 @@ type AttendanceClientDirectStub struct {
 
 func getPostgresDB(dbHost string) (*sql.DB, error) {
 	// 1. Try db_lopi-q_presensi with super_admin_apps
-	connSuper := fmt.Sprintf("host=%s port=5432 user=super_admin_apps password=superAdminAppsPassword@2k26# dbname=db_lopi-q_presensi sslmode=disable", dbHost)
+	connSuper := fmt.Sprintf("host=%s port=5432 user='super_admin_apps' password='SuperAdminApps@2k26#' dbname='db_lopiq_attendance' sslmode=disable", dbHost)
 	if db, err := sql.Open("postgres", connSuper); err == nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
@@ -52,7 +52,7 @@ func getPostgresDB(dbHost string) (*sql.DB, error) {
 	}
 
 	// 2. Try db_lopi-q_presensi with user_lopi-q_presensi
-	connUser := fmt.Sprintf("host=%s port=5432 user=user_lopi-q_presensi password=lopi-qpresensiPassword@2k26# dbname=db_lopi-q_presensi sslmode=disable", dbHost)
+	connUser := fmt.Sprintf("host=%s port=5432 user='user_lopiq_attendance' password='lopiqattendancePassword@2k26#' dbname='db_lopiq_attendance' sslmode=disable", dbHost)
 	if db, err := sql.Open("postgres", connUser); err == nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
@@ -63,7 +63,7 @@ func getPostgresDB(dbHost string) (*sql.DB, error) {
 	}
 
 	// 3. Fallback to db_lopiq_auth with super_admin_apps
-	connAuth := fmt.Sprintf("host=%s port=5432 user=super_admin_apps password=superAdminAppsPassword@2k26# dbname=db_lopiq_auth sslmode=disable", dbHost)
+	connAuth := fmt.Sprintf("host=%s port=5432 user='super_admin_apps' password='SuperAdminApps@2k26#' dbname='db_lopiq_auth' sslmode=disable", dbHost)
 	return sql.Open("postgres", connAuth)
 }
 
