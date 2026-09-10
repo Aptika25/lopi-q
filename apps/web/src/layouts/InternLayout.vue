@@ -71,40 +71,22 @@
     <!-- ========== RIGHT SIDE: Header + Content ========== -->
     <div class="flex-grow flex flex-col min-w-0 h-screen overflow-y-auto relative bg-slate-50">
 
-      <!-- ===== TOP NAVBAR ===== -->
-      <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/60 shadow-xs min-h-14">
-
-        <!-- MOBILE top navbar: logo icon only (texts LOPI-Q, PRESENSI MAGANG, and status online removed) -->
-        <div class="lg:hidden flex items-center justify-between px-4 h-14">
-          <!-- Logo LOPI-Q Icon -->
-          <router-link to="/intern/dashboard" class="flex items-center decoration-none">
-            <div class="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-tr from-primary via-primary-container to-secondary text-on-primary font-display font-black text-base shadow-md shrink-0">
-              <span class="tracking-tighter">LQ</span>
-              <span class="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border-2 border-white"></span>
-              </span>
-            </div>
-          </router-link>
+      <!-- ===== TOP NAVBAR (desktop only, hidden on mobile) ===== -->
+      <header class="hidden lg:flex sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/60 shadow-xs min-h-14 items-center justify-between px-6">
+        <div class="text-left">
+          <h2 class="text-base font-bold text-slate-900 leading-tight">{{ pageTitle }}</h2>
+          <div class="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+            <span>Portal Intern</span>
+            <span class="material-symbols-outlined text-[10px]">chevron_right</span>
+            <span>{{ breadcrumbSub }}</span>
+          </div>
         </div>
 
-        <!-- DESKTOP top navbar: page title + online status -->
-        <div class="hidden lg:flex items-center justify-between px-6 h-14">
-          <div class="text-left">
-            <h2 class="text-base font-bold text-slate-900 leading-tight">{{ pageTitle }}</h2>
-            <div class="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
-              <span>Portal Intern</span>
-              <span class="material-symbols-outlined text-[10px]">chevron_right</span>
-              <span>{{ breadcrumbSub }}</span>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-4">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 shadow-xs">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0"></span>
-              Sistem Presensi Online
-            </span>
-          </div>
+        <div class="flex items-center gap-4">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 shadow-xs">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0"></span>
+            Sistem Presensi Online
+          </span>
         </div>
       </header>
 
