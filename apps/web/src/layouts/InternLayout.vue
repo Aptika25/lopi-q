@@ -95,8 +95,8 @@
         <slot />
       </main>
 
-      <!-- ===== FOOTER ===== -->
-      <footer class="mt-auto border-t border-slate-200/60 bg-white/80 backdrop-blur-md py-4">
+      <!-- ===== FOOTER (desktop only, hidden on mobile) ===== -->
+      <footer class="hidden lg:block mt-auto border-t border-slate-200/60 bg-white/80 backdrop-blur-md py-4">
         <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400 font-medium">
           &copy; {{ new Date().getFullYear() }} <span class="font-semibold text-slate-700">LOPI-Q Kabupaten Bulukumba</span>. Developed by 
           <a href="https://diskominfo.bulukumbakab.go.id" target="_blank" rel="noopener noreferrer" class="font-semibold text-primary hover:underline">Diskominfo Kab. Bulukumba</a>.
