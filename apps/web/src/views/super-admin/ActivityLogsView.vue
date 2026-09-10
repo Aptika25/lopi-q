@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <AdminLayout>
     <div class="w-full space-y-6 select-none font-sans text-slate-800">
       
@@ -129,8 +129,11 @@
                 </td>
               </tr>
               <tr v-else-if="filteredLogs.length === 0">
-                <td colspan="5" class="px-6 py-12 text-center text-[#574146] font-semibold">
-                  Tidak ada catatan log aktivitas yang sesuai dengan kriteria filter.
+                <td colspan="5" class="py-6 text-center">
+                  <div class="inline-flex items-center justify-center gap-1.5 text-xs text-slate-500 font-medium">
+                    <span class="material-symbols-outlined text-slate-400" style="font-size: 14px !important;">info</span>
+                    <span>Tidak ada catatan log aktivitas yang sesuai dengan kriteria filter.</span>
+                  </div>
                 </td>
               </tr>
               <tr 
@@ -493,3 +496,9 @@ onMounted(() => {
 <style scoped>
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 </style>
+
+
+
+
+
+

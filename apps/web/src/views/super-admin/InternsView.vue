@@ -42,7 +42,6 @@
 
         <!-- Add User Button -->
         <button 
-          v-if="authStore.isAdmin"
           @click="openAddDialog"
           class="bg-[#F06292] hover:bg-[#ab2c5d] text-white font-bold text-xs px-6 py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 shadow-[0px_10px_30px_rgba(240,98,146,0.15)] w-full sm:w-auto shrink-0 border-0 cursor-pointer active:scale-95"
         >
@@ -67,9 +66,10 @@
                 <tr class="bg-[#FCE4EC] border-b border-[#F8BBD0]">
                   <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Pengguna (Nama &amp; NISN)</th>
                   <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Gmail / Email</th>
-                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Jurusan &amp; Asal Sekolah / Univ</th>
-                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Peran</th>
-                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Status</th>
+                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Jurusan</th>
+                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Asal Sekolah / Universitas</th>
+                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Status 2FA</th>
+                  <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider">Status Akun</th>
                   <th class="py-4 px-6 text-[11px] font-bold text-[#574146] uppercase tracking-wider text-right">Aksi</th>
                 </tr>
               </thead>
@@ -100,30 +100,56 @@
                   <!-- Jurusan & Asal Sekolah/University -->
                   <td class="py-4 px-6 text-[#574146]">
                     <div class="font-bold text-[#1b1c1c]">{{ ct.unit_kerja || 'Rekayasa Perangkat Lunak' }}</div>
-                    <div class="text-[11px] text-[#8a7176]">{{ ct.jabatan || 'SMK Negeri 1 Bulukumba' }}</div>
                   </td>
 
-                  <!-- Role Badge -->
+                  <!-- Role / Jabatan Badge -->
                   <td class="py-4 px-6">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FCE4EC] text-[#F06292] border border-[#F06292]/20">
+                    <div class="font-semibold text-[#1b1c1c] uppercase text-[11px]">{{ ct.jabatan || 'SMK Negeri 1 Bulukumba' }}</div>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[#FCE4EC] text-[#F06292] border border-[#F06292]/20 mt-0.5">
                       INTERN
                     </span>
                   </td>
 
-                  <!-- Status (Active / Inactive) -->
-                  <td class="py-4 px-6">
-                    <button 
-                      @click="handleToggleActive(ct)"
-                      :disabled="togglingId === ct.id"
-                      class="inline-flex items-center gap-1.5 text-xs font-bold border-0 bg-transparent cursor-pointer transition-opacity"
-                      :class="ct.is_active ? 'text-green-600' : 'text-gray-400'"
+                  <!-- Status 2FA Badge -->
+                  <td class="py-4 px-6 whitespace-nowrap">
+                    <span 
+                      v-if="ct.totp_enabled" 
+                      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"
                     >
-                      <span class="w-2.5 h-2.5 rounded-full" :class="ct.is_active ? 'bg-green-500 animate-pulse' : 'bg-gray-400'"></span>
-                      <span>{{ ct.is_active ? 'Aktif' : 'Nonaktif' }}</span>
-                    </button>
+                      <span class="material-symbols-outlined text-[14px] text-emerald-600">verified_user</span>
+                      <span>2FA Terverifikasi</span>
+                    </span>
+                    <span 
+                      v-else 
+                      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200"
+                    >
+                      <span class="material-symbols-outlined text-[14px] text-slate-400">gpp_maybe</span>
+                      <span>Belum 2FA</span>
+                    </span>
                   </td>
 
-                  <!-- Action Buttons (Edit & Reset 2FA/Delete) -->
+                  <!-- Status (Active / Inactive Toggle Switch) -->
+                  <td class="py-4 px-6">
+                    <div class="inline-flex items-center gap-2">
+                      <button
+                        type="button"
+                        @click="handleToggleActive(ct)"
+                        :disabled="togglingId === ct.id"
+                        :title="ct.is_active ? 'Klik untuk menonaktifkan' : 'Klik untuk mengaktifkan'"
+                        :class="[
+                          ct.is_active ? 'bg-emerald-500' : 'bg-slate-300',
+                          'relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed'
+                        ]"
+                      >
+                        <span :class="[ct.is_active ? 'translate-x-4' : 'translate-x-0', 'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200']"></span>
+                      </button>
+                      <span :class="['text-xs font-bold', ct.is_active ? 'text-emerald-600' : 'text-slate-400']">
+                        {{ ct.is_active ? 'Aktif' : 'Nonaktif' }}
+                      </span>
+                    </div>
+                  </td>
+
+                  <!-- Action Buttons (Edit & Reset 2FA) -->
                   <td class="py-4 px-6 text-right">
                     <div class="flex justify-end gap-2">
                       <button 
@@ -133,10 +159,12 @@
                       >
                         <span class="material-symbols-outlined text-base">edit</span>
                       </button>
+                      <!-- Tombol reset 2FA hanya muncul jika Status 2FA Terverifikasi (ct.totp_enabled === true) -->
                       <button 
+                        v-if="ct.totp_enabled"
                         @click="handleReset2FA(ct)"
                         class="p-2 text-rose-600 hover:text-rose-800 transition-colors rounded-lg hover:bg-rose-50 border-0 cursor-pointer bg-transparent"
-                        title="Reset 2FA"
+                        title="Reset 2FA Peserta Magang"
                       >
                         <span class="material-symbols-outlined text-base">lock_reset</span>
                       </button>
@@ -146,9 +174,11 @@
 
                 <!-- Empty State -->
                 <tr v-if="filteredCallTakers.length === 0">
-                  <td colspan="6" class="py-12 text-center text-[#8a7176]">
-                    <span class="material-symbols-outlined text-4xl block mb-2 opacity-50">person_off</span>
-                    <span class="text-xs font-semibold">Tidak ada data peserta magang yang ditemukan.</span>
+                  <td colspan="7" class="py-6 text-center">
+                    <div class="inline-flex items-center justify-center gap-1.5 text-xs text-slate-500 font-medium">
+                      <span class="material-symbols-outlined text-slate-400" style="font-size: 14px !important;">info</span>
+                      <span>Tidak ada data peserta magang yang ditemukan.</span>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -199,7 +229,7 @@
             <!-- Nama Lengkap -->
             <div class="space-y-1">
               <label class="font-bold text-[#574146] uppercase text-[10px]">Nama Lengkap <span class="text-rose-500">*</span></label>
-              <input v-model="form.name" type="text" placeholder="Contoh: Sarah Jenkins" required class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292]" />
+              <input v-model="form.name" type="text" placeholder="Contoh: Nama Peserta Magang" required class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292]" />
             </div>
 
             <!-- NISN / NIM -->
@@ -211,7 +241,7 @@
             <!-- Gmail / Email -->
             <div class="space-y-1">
               <label class="font-bold text-[#574146] uppercase text-[10px]">Gmail / Email Akses <span class="text-rose-500">*</span></label>
-              <input v-model="form.email" type="email" placeholder="sarah.j@gmail.com" required :disabled="isEdit" class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292] disabled:bg-slate-100" />
+              <input v-model="form.email" type="email" placeholder="peserta@gmail.com" required :disabled="isEdit" class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292] disabled:bg-slate-100" />
             </div>
 
             <!-- Jurusan -->
@@ -232,8 +262,26 @@
                 {{ isEdit ? 'Reset Password (Opsional)' : 'Password Akses' }} <span v-if="!isEdit" class="text-rose-500">*</span>
               </label>
               <div class="flex gap-2">
-                <input :type="showPassword ? 'text' : 'password'" v-model="form.password" :required="!isEdit" placeholder="Minimal 6 karakter" class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292]" />
-                <button type="button" @click="generatePassword" class="px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg font-bold text-xs text-[#ab2c5d] shrink-0 cursor-pointer">Acak</button>
+                <div class="relative flex-grow">
+                  <input 
+                    :type="showPassword ? 'text' : 'password'" 
+                    v-model="form.password" 
+                    :required="!isEdit" 
+                    placeholder="Minimal 6 karakter" 
+                    class="w-full pl-3.5 pr-10 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292]" 
+                  />
+                  <button 
+                    type="button" 
+                    @click="showPassword = !showPassword"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#ab2c5d] border-0 bg-transparent cursor-pointer flex items-center justify-center p-0.5 transition-colors"
+                    :title="showPassword ? 'Sembunyikan Password' : 'Tampilkan Password'"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">
+                      {{ showPassword ? 'visibility_off' : 'visibility' }}
+                    </span>
+                  </button>
+                </div>
+                <button type="button" @click="generatePassword" class="px-3 py-2 bg-slate-100 border border-slate-200 hover:bg-slate-200 transition-colors rounded-lg font-bold text-xs text-[#ab2c5d] shrink-0 cursor-pointer">Acak</button>
               </div>
             </div>
 
@@ -343,9 +391,11 @@ const loadCallTakers = async () => {
   loading.value = true
   try {
     await authStore.fetchUsers()
-    callTakers.value = (authStore.usersList || [])
-      .filter((u: any) => u.role === 'intern')
-      .sort((a: any, b: any) => a.name.localeCompare(b.name))
+    const allUsers = authStore.usersList || []
+    callTakers.value = allUsers.filter((u: any) => {
+      const role = (u.role || u.Role || '').toLowerCase()
+      return role === 'intern' || role === 'peserta'
+    })
   } catch (err) {
     showToast(false, 'Gagal memuat data peserta magang.')
   } finally {
@@ -410,9 +460,9 @@ const handleToggleActive = async (ct: any) => {
   try {
     await authStore.toggleUserActive(ct.id, newState)
     ct.is_active = newState
-    showToast(true, `Akun ${ct.name} berhasil ${newState ? 'diaktifkan' : 'dinonaktifkan'}.`)
+    showToast(true, `Status peserta magang ${ct.name} berhasil ${newState ? 'diaktifkan' : 'dinonaktifkan'}.`)
   } catch (err) {
-    showToast(false, 'Gagal mengubah status keaktifan akun.')
+    showToast(false, 'Gagal mengubah status peserta magang.')
   } finally {
     togglingId.value = null
   }
@@ -422,12 +472,28 @@ const handleToggleActive = async (ct: any) => {
 const handleReset2FA = (ct: any) => {
   triggerConfirm(
     'Reset Keamanan 2FA?',
-    `Apakah Anda yakin ingin menonaktifkan Google Authenticator (2FA) untuk peserta magang ${ct.name}? Petugas harus melakukan scan ulang QR 2FA saat login berikutnya.`,
+    `Apakah Anda yakin ingin menonaktifkan Google Authenticator (2FA) untuk peserta magang ${ct.name}? Status 2FA akan ter-reset kembali menjadi Belum 2FA.`,
     async () => {
       submitLoading.value = true
       try {
         await authStore.resetUser2fa(ct.id)
-        showToast(true, `2FA untuk ${ct.name} berhasil dinonaktifkan.`)
+        ct.totp_enabled = false
+        ct.totp_secret = ''
+
+        // Update local array & authStore
+        const target = (callTakers.value || []).find((u: any) => u.id === ct.id || u.email === ct.email)
+        if (target) {
+          target.totp_enabled = false
+          target.totp_secret = ''
+        }
+
+        const storeTarget = (authStore.usersList || []).find((u: any) => u.id === ct.id || u.email === ct.email)
+        if (storeTarget) {
+          storeTarget.totp_enabled = false
+          storeTarget.totp_secret = ''
+        }
+
+        showToast(true, `2FA untuk ${ct.name} berhasil di-reset menjadi Belum 2FA.`)
         await loadCallTakers()
       } catch (err) {
         showToast(false, 'Gagal mereset 2FA Peserta Magang.')
@@ -440,7 +506,6 @@ const handleReset2FA = (ct: any) => {
 
 // ===== SUBMIT FORM =====
 const submitForm = async () => {
-  submitLoading.value = false
   errorMessage.value = ''
 
   if (!form.value.name.trim()) { errorMessage.value = 'Nama lengkap wajib diisi.'; return }
@@ -454,41 +519,59 @@ const submitForm = async () => {
   try {
     if (isEdit.value && editUserId.value !== null) {
       const res = await authStore.updateUser(editUserId.value, {
-        name: form.value.name,
-        nip: form.value.nip,
-        email: form.value.email,
-        unit_kerja: form.value.unit_kerja,
-        jabatan: form.value.jabatan,
+        name: form.value.name.trim(),
+        nip: form.value.nip.trim(),
+        email: form.value.email.trim(),
+        unit_kerja: form.value.unit_kerja.trim() || 'Rekayasa Perangkat Lunak',
+        jabatan: form.value.jabatan.trim() || 'SMK Negeri 1 Bulukumba',
         role: 'intern',
         password: form.value.password
       })
-      if (res.success) {
-        showToast(true, 'Data Peserta Magang berhasil diperbarui.')
+      if (res && res.success !== false) {
+        showToast(true, `Data Peserta Magang ${form.value.name} berhasil diperbarui.`)
         closeDialog()
         await loadCallTakers()
       } else {
-        errorMessage.value = res.error || 'Gagal memperbarui data Peserta Magang.'
+        errorMessage.value = res?.error || authStore.error || 'Gagal memperbarui data Peserta Magang.'
       }
     } else {
       const res = await authStore.createUser({
-        name: form.value.name,
-        nip: form.value.nip,
-        email: form.value.email,
+        name: form.value.name.trim(),
+        nip: form.value.nip.trim(),
+        email: form.value.email.trim(),
         password: form.value.password,
-        unit_kerja: form.value.unit_kerja,
-        jabatan: form.value.jabatan,
+        unit_kerja: form.value.unit_kerja.trim() || 'Rekayasa Perangkat Lunak',
+        jabatan: form.value.jabatan.trim() || 'SMK Negeri 1 Bulukumba',
         role: 'intern'
       })
-      if (res.success) {
-        showToast(true, 'Peserta Magang baru berhasil ditambahkan!')
+      if (res && res.success !== false) {
+        // Instant optimism: push to local array and authStore
+        const createdObj = res.user || {
+          id: Date.now(),
+          name: form.value.name.trim(),
+          nip: form.value.nip.trim(),
+          email: form.value.email.trim(),
+          unit_kerja: form.value.unit_kerja.trim() || 'Rekayasa Perangkat Lunak',
+          jabatan: form.value.jabatan.trim() || 'SMK Negeri 1 Bulukumba',
+          role: 'intern',
+          is_active: true
+        }
+        callTakers.value = callTakers.value.filter((u: any) => u.email !== createdObj.email && (!createdObj.nip || u.nip !== createdObj.nip))
+        callTakers.value.unshift(createdObj)
+
+        // Also push to authStore.usersList immediately for Dashboard sync
+        if (!authStore.usersList.some((u: any) => u.email === createdObj.email || (u.nip && u.nip === createdObj.nip))) {
+          authStore.usersList.unshift(createdObj)
+        }
+
+        showToast(true, `Peserta Magang ${form.value.name} berhasil ditambahkan!`)
         closeDialog()
-        await loadCallTakers()
       } else {
-        errorMessage.value = res.error || 'Gagal menambahkan Peserta Magang.'
+        errorMessage.value = res?.error || authStore.error || 'Gagal menambahkan Peserta Magang.'
       }
     }
   } catch (err: any) {
-    errorMessage.value = authStore.error || 'Terjadi kesalahan saat memproses permintaan.'
+    errorMessage.value = err.message || authStore.error || 'Terjadi kesalahan saat menambahkan peserta magang.'
   } finally {
     submitLoading.value = false
   }
@@ -501,3 +584,9 @@ const submitForm = async () => {
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 .material-symbols-outlined.fill { font-variation-settings: 'FILL' 1; }
 </style>
+
+
+
+
+
+

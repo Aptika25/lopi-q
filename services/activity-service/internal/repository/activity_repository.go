@@ -38,39 +38,7 @@ func NewActivityRepository(db *sql.DB) ActivityRepository {
 }
 
 func (r *activityRepository) initSeedData() {
-	seed := []*model.DailyActivity{
-		{
-			ID:           1,
-			UserID:       1,
-			UserNIP:      "IN-294",
-			UserName:     "Sarah Jenkins",
-			Title:        "Penginputan Data Laporan Harian Posko 112",
-			Description:  "Melakukan verifikasi dan penginputan 15 laporan darurat masyarakat ke dalam database sistem LOPI-Q.",
-			ActivityDate: "2026-08-26",
-			PhotoURL:     "",
-			Status:       "APPROVED",
-			CreatedAt:    time.Now().Add(-2 * time.Hour),
-			UpdatedAt:    time.Now().Add(-2 * time.Hour),
-		},
-		{
-			ID:           2,
-			UserID:       2,
-			UserNIP:      "IN-291",
-			UserName:     "Marcus Doe",
-			Title:        "Pemeliharaan Perangkat Jaringan Siaga",
-			Description:  "Pemeriksaan rutin kabel LAN dan router komunikasi darurat di ruang operator Posko NTPD 112.",
-			ActivityDate: "2026-08-26",
-			PhotoURL:     "",
-			Status:       "PENDING",
-			CreatedAt:    time.Now().Add(-1 * time.Hour),
-			UpdatedAt:    time.Now().Add(-1 * time.Hour),
-		},
-	}
-
-	for _, item := range seed {
-		r.memStore[item.ID] = item
-		r.autoIncID = item.ID + 1
-	}
+	// No dummy activity seeds
 }
 
 func (r *activityRepository) Create(act *model.DailyActivity) (*model.DailyActivity, error) {

@@ -1,290 +1,198 @@
 <template>
   <InternLayout>
-    <div class="space-y-6 select-none font-sans w-full pb-28 sm:pb-8">
-      <!-- Page Header -->
-      <div class="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
-        <div>
-          <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Laporan Kehadiran Saya</h2>
-          <p class="font-sans text-slate-500 mt-1 text-xs hidden sm:block">Riwayat absensi dan log presensi harian petugas Peserta Magang di Posko Siaga NTPD 112 Bulukumba.</p>
-        </div>
-      </div>
-      <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div class="flex items-start gap-4">
-          <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-700 via-rose-600 to-amber-500 text-white font-display font-black text-2xl flex items-center justify-center shrink-0 shadow-md">
-            {{ authStore.user?.name ? authStore.user.name.charAt(0).toUpperCase() : 'C' }}
-          </div>
-          <div class="flex-1 min-w-0 space-y-1">
-            <!-- 1. Nama -->
-            <h2 class="text-lg font-display font-black text-slate-900 leading-tight">
-              {{ authStore.user?.name || 'Peserta Magang 112' }}
-            </h2>
-            
-            <!-- 2. NIP. -->
-            <div class="text-xs text-rose-700 font-mono font-bold">
-              NIP. {{ authStore.user?.nip || '-' }}
-            </div>
-
-            <!-- 3. Jabatan (Tanpa Badge, Plain Text) -->
-            <div class="text-xs text-slate-800 font-bold uppercase tracking-wide">
-              {{ authStore.user?.jabatan || 'OPERATOR LAYANAN OPERASIONAL' }}
-            </div>
-
-            <!-- 4. Unit Kerja -->
-            <div class="text-xs text-slate-500 font-medium pt-0.5">
-              {{ authStore.user?.unit_kerja || 'Diskominfo Kabupaten Bulukumba' }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Keluar Sesi Button (Mobile Only - Inside Profile Card) -->
-        <div class="sm:hidden w-full pt-3 border-t border-slate-100">
-          <button 
-            @click="handleLogout"
-            class="w-full py-2.5 px-4 bg-rose-50/80 hover:bg-rose-100 border border-rose-200/80 text-rose-600 font-bold text-xs rounded-full transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs group"
-          >
-            <span>Keluar Sesi</span>
-            <span class="material-symbols-outlined text-[16px] text-rose-600 group-hover:translate-x-0.5 transition-transform">logout</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- History Table Container -->
-      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-        <!-- Card Header: Title on 1 Single Line + Refresh Button -->
-        <div class="flex items-center justify-between pb-4 border-b border-slate-200 gap-2">
-          <div class="min-w-0 flex-1">
-            <h3 class="text-xs sm:text-base md:text-lg font-display font-black text-slate-900 flex items-center gap-1.5 sm:gap-2">
-              <span class="material-symbols-outlined text-rose-700 text-[18px] sm:text-[22px] shrink-0">description</span>
-              <span class="truncate">Laporan Riwayat Kehadiran</span>
-            </h3>
-            <p class="text-xs text-slate-500 mt-1 hidden sm:block">Daftar rekapitulasi presensi siaga 112 yang terverifikasi Geofence.</p>
-          </div>
-
-          <button 
-            @click="fetchHistory"
-            class="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl border border-slate-300 flex items-center gap-1 cursor-pointer border-0 shrink-0"
-          >
-            <span class="material-symbols-outlined text-[14px] sm:text-[16px]">refresh</span>
-            <span>Refresh</span>
-          </button>
-        </div>
-
-        <!-- Filter & Sorting Toolbar (Bulan, Tahun, Tampilkan Per Halaman) -->
-        <div class="bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-200 text-xs space-y-2.5 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-3 overflow-hidden">
-          <!-- Left: Month & Year Filters (2-col grid on mobile) -->
-          <div class="grid grid-cols-2 sm:flex sm:items-center gap-2 flex-1">
-            <select v-model="selectedMonth" class="w-full sm:w-auto px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 shadow-2xs focus:ring-2 focus:ring-rose-500 text-xs">
-              <option v-for="m in monthOptions" :key="m.value" :value="m.value">{{ m.label }}</option>
-            </select>
-
-            <select v-model="selectedYear" class="w-full sm:w-auto px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 shadow-2xs focus:ring-2 focus:ring-rose-500 text-xs">
-              <option v-for="y in yearOptions" :key="y.value" :value="y.value">{{ y.label }}</option>
-            </select>
-          </div>
-
-          <!-- Right: Page Size & Reset Filter -->
-          <div class="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-0 border-slate-200/80">
-            <div class="flex items-center gap-1 text-slate-600 font-bold">
-              <span class="text-[11px] text-slate-500 shrink-0">Tampilkan:</span>
-              <select v-model="pageSize" class="px-2 py-1.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 shadow-2xs focus:ring-2 focus:ring-rose-500 text-xs">
-                <option v-for="size in pageSizeOptions" :key="size" :value="size">{{ size }} Data</option>
-              </select>
-            </div>
-
-            <button 
-              v-if="selectedMonth !== 'ALL' || selectedYear !== 'ALL'"
-              @click="selectedMonth = 'ALL'; selectedYear = 'ALL'"
-              class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-extrabold rounded-xl border border-rose-200 text-xs cursor-pointer whitespace-nowrap shrink-0"
-            >
-              Reset Filter
-            </button>
-          </div>
-        </div>
-
-        <!-- Mobile Card View (No Horizontal Scroll Needed) -->
-        <div class="block sm:hidden space-y-3">
-          <div 
-            v-for="item in paginatedHistoryList" 
-            :key="item.id"
-            class="bg-white rounded-3xl p-4 border border-slate-200/90 shadow-2xs space-y-3 hover:border-slate-300 transition-all"
-          >
-            <!-- Card Header: Date & Shift -->
-            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <div class="flex items-center gap-1.5 font-mono font-bold text-slate-900 text-xs">
-                <span class="material-symbols-outlined text-[16px] text-rose-600">calendar_today</span>
-                <span>{{ item.date }}</span>
-              </div>
-              <span class="px-2.5 py-0.5 bg-rose-50 border border-rose-200/80 text-rose-700 rounded-full text-[10px] font-extrabold">
-                {{ item.shiftName }}
+    <div class="space-y-6 select-none font-sans w-full max-w-[1200px] mx-auto pb-28 sm:pb-8">
+      
+      <!-- ===== 1. PROFILE CARD SECTION ===== -->
+      <section class="mt-2">
+        <div class="bg-white border border-[#ddbfc5] rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+          <div class="flex items-center gap-4">
+            <!-- Avatar Box -->
+            <div class="w-16 h-16 rounded-xl bg-[#f06292] flex items-center justify-center shadow-sm shrink-0">
+              <span class="text-white font-bold text-2xl">
+                {{ authStore.user?.name ? authStore.user.name.charAt(0).toUpperCase() : 'A' }}
               </span>
             </div>
 
-            <!-- Card Body: Clock In & Clock Out Grid with Symmetrical Equal-Height Boxes -->
-            <div class="grid grid-cols-2 gap-2.5 text-xs">
-              <!-- Jam Masuk Box -->
-              <div class="bg-emerald-50/60 p-3 rounded-2xl border border-emerald-100/90 flex flex-col justify-between space-y-2 min-h-[92px]">
-                <div class="flex items-center justify-between">
-                  <span class="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Jam Masuk
-                  </span>
-                </div>
+            <!-- Profile Info -->
+            <div class="flex flex-col justify-center min-w-0">
+              <h3 class="text-lg font-bold text-[#1b1c1c] leading-tight truncate">
+                {{ authStore.user?.name || 'adhe anisa' }}
+              </h3>
+              <p class="text-[10px] font-bold text-[#ab2c5d] uppercase tracking-wider mt-0.5">
+                NISN. {{ authStore.user?.nip || '0091755987' }}
+              </p>
+              <p class="text-xs text-[#574146] font-semibold mt-0.5 truncate">
+                {{ authStore.user?.unit_kerja || 'SMKS TI BULUKUMBA' }}
+              </p>
+            </div>
+          </div>
 
-                <div class="font-mono text-xs font-black text-slate-900">
-                  {{ item.clockIn }}
-                </div>
+          <div class="h-px w-full bg-[#ddbfc5]/50"></div>
 
-                <div>
-                  <span v-if="item.clockIn !== '--:--:--'" class="text-[10px] font-bold text-emerald-800 bg-white/90 px-2 py-0.5 rounded-md border border-emerald-200/70 inline-flex items-center gap-1 shadow-2xs">
-                    📍 {{ item.masukDistance }}
-                  </span>
-                  <span v-else class="text-[10px] font-semibold text-slate-400 italic">
-                    --
-                  </span>
-                </div>
+          <!-- Keluar Sesi Button -->
+          <button 
+            @click="handleLogout"
+            class="w-full py-2.5 px-4 border border-[#f06292] rounded-full flex items-center justify-center gap-2 text-[#ab2c5d] font-bold text-xs hover:bg-[#f06292]/10 transition-colors active:scale-[0.98] cursor-pointer bg-transparent"
+          >
+            <span>Keluar Sesi</span>
+            <span class="material-symbols-outlined text-lg">logout</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ===== 2. MONTH FILTER SECTION ===== -->
+      <section class="py-2 flex items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#ddbfc5] shadow-xs">
+        <button 
+          @click="prevMonth"
+          class="w-10 h-10 flex items-center justify-center rounded-full bg-[#f5f3f3] hover:bg-[#eae8e7] transition-colors active:scale-95 text-[#574146] border-0 cursor-pointer"
+        >
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+
+        <div class="flex items-center gap-2">
+          <select 
+            v-model="selectedMonth" 
+            class="px-3 py-1.5 bg-[#f5f3f3] border border-[#ddbfc5] rounded-xl font-bold text-[#1b1c1c] text-xs focus:outline-none focus:border-[#f06292]"
+          >
+            <option v-for="m in monthOptions" :key="m.value" :value="m.value">{{ m.label }}</option>
+          </select>
+
+          <select 
+            v-model="selectedYear" 
+            class="px-3 py-1.5 bg-[#f5f3f3] border border-[#ddbfc5] rounded-xl font-bold text-[#1b1c1c] text-xs focus:outline-none focus:border-[#f06292]"
+          >
+            <option v-for="y in yearOptions" :key="y.value" :value="y.value">{{ y.label }}</option>
+          </select>
+        </div>
+
+        <button 
+          @click="nextMonth"
+          class="w-10 h-10 flex items-center justify-center rounded-full bg-[#f5f3f3] hover:bg-[#eae8e7] transition-colors active:scale-95 text-[#574146] border-0 cursor-pointer"
+        >
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </section>
+
+      <!-- ===== 3. HISTORY LIST SECTION ===== -->
+      <section class="flex flex-col gap-3">
+        <article 
+          v-for="item in paginatedHistoryList" 
+          :key="item.id"
+          class="bg-white border border-[#ddbfc5] rounded-2xl p-4 flex flex-col gap-3 hover:bg-[#ffd9e4]/10 transition-colors shadow-sm"
+        >
+          <!-- Item Header: Date & Badge -->
+          <div class="flex justify-between items-start">
+            <h3 class="text-xs font-bold text-[#574146] flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm text-[#f06292]">calendar_today</span>
+              <span>{{ item.date }}</span>
+            </h3>
+
+            <!-- Status Badge (Hadir, Terlambat, Izin/Cuti) -->
+            <span 
+              class="text-[10px] font-extrabold uppercase px-3 py-1 rounded-full tracking-wider border"
+              :class="{
+                'bg-[#E8F5E9] text-[#1B5E20] border-emerald-200': item.statusBadge === 'HADIR',
+                'bg-[#FFF8E1] text-[#FF8F00] border-amber-200': item.statusBadge === 'TERLAMBAT',
+                'bg-[#FCE4EC] text-[#F06292] border-rose-200': item.statusBadge === 'IZIN' || item.statusBadge === 'SAKIT'
+              }"
+            >
+              {{ item.statusBadge }}
+            </span>
+          </div>
+
+          <!-- Item Body: Clock In & Clock Out Grid -->
+          <div class="flex items-center gap-6 mt-1">
+            <!-- Masuk Box -->
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#ab2c5d] text-xl">login</span>
+              <div class="flex flex-col">
+                <span class="text-[10px] font-bold text-[#574146] uppercase tracking-wider">Masuk</span>
+                <span class="text-base font-black font-mono text-[#1b1c1c] leading-tight">{{ item.clockIn }}</span>
               </div>
+            </div>
 
-              <!-- Jam Pulang Box -->
-              <div 
-                class="p-3 rounded-2xl border flex flex-col justify-between space-y-2 min-h-[92px] transition-colors"
-                :class="item.clockOut !== '--:--:--' ? 'bg-amber-50/60 border-amber-100/90' : 'bg-slate-50/70 border-slate-200/70'"
-              >
-                <div class="flex items-center justify-between">
-                  <span 
-                    class="text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1"
-                    :class="item.clockOut !== '--:--:--' ? 'text-amber-800' : 'text-slate-400'"
-                  >
-                    <span class="w-1.5 h-1.5 rounded-full" :class="item.clockOut !== '--:--:--' ? 'bg-amber-500' : 'bg-slate-300'"></span> Jam Pulang
-                  </span>
-                </div>
+            <!-- Divider Line -->
+            <div class="h-8 w-px bg-[#ddbfc5]/60"></div>
 
-                <div class="font-mono text-xs font-black" :class="item.clockOut !== '--:--:--' ? 'text-slate-900' : 'text-slate-400'">
+            <!-- Keluar Box -->
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#8a7176] text-xl">logout</span>
+              <div class="flex flex-col">
+                <span class="text-[10px] font-bold text-[#574146] uppercase tracking-wider">Keluar</span>
+                <span class="text-base font-black font-mono leading-tight" :class="item.clockOut !== '--:--' ? 'text-[#1b1c1c]' : 'text-slate-400'">
                   {{ item.clockOut }}
-                </div>
-
-                <div>
-                  <span v-if="item.clockOut !== '--:--:--'" class="text-[10px] font-bold text-amber-800 bg-white/90 px-2 py-0.5 rounded-md border border-amber-200/70 inline-flex items-center gap-1 shadow-2xs">
-                    📍 {{ item.pulangDistance }}
-                  </span>
-                  <span v-else class="text-[10px] font-medium text-slate-400 bg-white/70 px-2 py-0.5 rounded-md border border-slate-200/60 inline-flex items-center gap-1">
-                    ⏳ Belum Scan
-                  </span>
-                </div>
+                </span>
               </div>
             </div>
           </div>
+        </article>
 
-          <div v-if="filteredHistoryList.length === 0" class="py-10 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-            <div class="flex flex-col items-center gap-2">
-              <span class="material-symbols-outlined text-[36px] text-slate-300">history</span>
-              <span class="text-xs font-semibold">Tidak ada riwayat presensi yang sesuai dengan filter.</span>
-            </div>
+        <!-- Empty State -->
+        <div v-if="filteredHistoryList.length === 0" class="py-10 text-center bg-white rounded-2xl border border-dashed border-[#ddbfc5]">
+          <div class="inline-flex items-center justify-center gap-2 text-xs text-[#8a7176] font-medium">
+            <span class="material-symbols-outlined text-[#f06292]">info</span>
+            <span>Tidak ada riwayat presensi yang ditemukan untuk periode ini.</span>
           </div>
         </div>
 
-        <!-- Desktop History Table (Hidden on Mobile) -->
-        <div class="hidden sm:block overflow-x-auto rounded-2xl border border-slate-200 shadow-xs">
-          <table class="w-full text-left text-xs text-slate-700">
-            <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
-              <tr>
-                <th class="py-3.5 px-4">Tanggal Siaga</th>
-                <th class="py-3.5 px-4">Jadwal Shift</th>
-                <th class="py-3.5 px-4">Jam Masuk (Jarak)</th>
-                <th class="py-3.5 px-4">Jam Pulang (Jarak)</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-200 bg-white">
-              <tr v-for="item in paginatedHistoryList" :key="item.id" class="hover:bg-slate-50 transition-colors">
-                <td class="py-3.5 px-4 font-mono font-bold text-slate-900 whitespace-nowrap">{{ item.date }}</td>
-                <td class="py-3.5 px-4 font-bold text-rose-800">
-                  <span class="px-2.5 py-0.5 bg-rose-50 border border-rose-200/80 text-rose-700 rounded-full text-[10px] font-extrabold">
-                    {{ item.shiftName }}
-                  </span>
-                </td>
-                <td class="py-3.5 px-4 font-mono whitespace-nowrap">
-                  <div class="font-extrabold text-emerald-700">{{ item.clockIn }}</div>
-                  <div v-if="item.clockIn !== '--:--:--'" class="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 inline-block mt-0.5">
-                    📍 {{ item.masukDistance }}
-                  </div>
-                </td>
-                <td class="py-3.5 px-4 font-mono whitespace-nowrap">
-                  <div class="font-extrabold text-amber-700">{{ item.clockOut }}</div>
-                  <div v-if="item.clockOut !== '--:--:--'" class="text-[10px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 inline-block mt-0.5">
-                    📍 {{ item.pulangDistance }}
-                  </div>
-                </td>
-              </tr>
-              <tr v-if="filteredHistoryList.length === 0">
-                <td colspan="5" class="py-12 text-center text-slate-400">
-                  <div class="flex flex-col items-center gap-2">
-                    <span class="material-symbols-outlined text-[36px] text-slate-300">history</span>
-                    <span class="text-xs font-semibold">Tidak ada riwayat presensi yang sesuai dengan filter.</span>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination Controls Footer -->
-        <div v-if="filteredHistoryList.length > 0" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200 text-xs">
-          <div class="text-slate-500 font-semibold text-center sm:text-left">
-            Menampilkan <strong class="text-slate-900 font-mono font-bold">{{ ((currentPage - 1) * pageSize) + 1 }}</strong> - <strong class="text-slate-900 font-mono font-bold">{{ Math.min(currentPage * pageSize, filteredHistoryList.length) }}</strong> dari <strong class="text-slate-900 font-mono font-bold">{{ filteredHistoryList.length }}</strong> riwayat presensi
-          </div>
+        <!-- Pagination Footer -->
+        <div v-if="filteredHistoryList.length > 0" class="flex items-center justify-between pt-3 text-xs">
+          <span class="text-[#574146] font-medium">
+            Data {{ ((currentPage - 1) * pageSize) + 1 }} - {{ Math.min(currentPage * pageSize, filteredHistoryList.length) }} dari {{ filteredHistoryList.length }}
+          </span>
 
           <div class="flex items-center gap-1.5">
             <button 
               @click="currentPage--" 
               :disabled="currentPage === 1"
-              class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 text-xs"
+              class="px-3 py-1.5 bg-[#f5f3f3] hover:bg-[#eae8e7] text-[#ab2c5d] font-bold rounded-xl border border-[#ddbfc5] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed text-xs"
             >
-              <span class="material-symbols-outlined text-[16px]">chevron_left</span>
-              <span>Sebelumnya</span>
+              Prev
             </button>
 
-            <span class="px-3 py-1.5 bg-rose-50 border border-rose-200 text-rose-800 font-extrabold font-mono rounded-xl text-xs">
+            <span class="px-3 py-1.5 bg-[#ab2c5d] text-white font-mono font-bold rounded-xl text-xs">
               {{ currentPage }} / {{ totalPages }}
             </span>
 
             <button 
               @click="currentPage++" 
               :disabled="currentPage >= totalPages"
-              class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 text-xs"
+              class="px-3 py-1.5 bg-[#f5f3f3] hover:bg-[#eae8e7] text-[#ab2c5d] font-bold rounded-xl border border-[#ddbfc5] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed text-xs"
             >
-              <span>Berikutnya</span>
-              <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+              Next
             </button>
           </div>
         </div>
 
-      </div>
+      </section>
 
     </div>
 
-    <!-- ========== MODAL KONFIRMASI KELUAR SESI ========== -->
+    <!-- ===== MODAL KONFIRMASI KELUAR SESI ===== -->
     <Teleport to="body">
-      <div v-if="showLogoutModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200 select-none">
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 text-center space-y-4 animate-in zoom-in-95 duration-150">
-          <div class="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-inner">
+      <div v-if="showLogoutModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs select-none">
+        <div class="bg-white rounded-3xl border border-[#ddbfc5] shadow-2xl max-w-sm w-full p-6 text-center space-y-4">
+          <div class="w-14 h-14 rounded-full bg-[#FCE4EC] text-[#ab2c5d] flex items-center justify-center mx-auto shadow-inner">
             <span class="material-symbols-outlined text-3xl">logout</span>
           </div>
           
           <div class="space-y-1">
-            <h3 class="text-base font-extrabold text-slate-900">Konfirmasi Keluar Sesi</h3>
-            <p class="text-xs text-slate-500 leading-relaxed">
-              Apakah Anda yakin ingin keluar dari akun <strong class="text-slate-800">{{ authStore.user?.name || 'Peserta Magang' }}</strong>? Anda harus memasukkan kredensial login kembali untuk masuk.
+            <h3 class="text-base font-extrabold text-[#1b1c1c]">Konfirmasi Keluar Sesi</h3>
+            <p class="text-xs text-[#574146] leading-relaxed">
+              Apakah Anda yakin ingin keluar dari akun <strong class="text-[#1b1c1c]">{{ authStore.user?.name || 'Peserta Magang' }}</strong>?
             </p>
           </div>
 
           <div class="grid grid-cols-2 gap-2.5 pt-2">
             <button
               @click="showLogoutModal = false"
-              class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer border-0"
+              class="w-full py-2.5 px-4 bg-[#f5f3f3] hover:bg-slate-200 text-[#574146] font-bold text-xs rounded-xl transition-all cursor-pointer border-0"
             >
               Batal
             </button>
             <button
               @click="executeLogout"
-              class="w-full py-2.5 px-4 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-extrabold text-xs rounded-xl shadow-md transition-all cursor-pointer border-0 active:scale-95"
+              class="w-full py-2.5 px-4 bg-[#ab2c5d] hover:bg-[#881b47] text-white font-extrabold text-xs rounded-xl shadow-md transition-all cursor-pointer border-0 active:scale-95"
             >
               Ya, Keluar
             </button>
@@ -295,25 +203,24 @@
   </InternLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
 import InternLayout from '@/layouts/InternLayout.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const router = useRouter()
-const schedulesData = ref(null)
 
 const now = new Date()
-const currentMonthStr = String(now.getMonth() + 1).padStart(2, '0')
-const currentYearStr = String(now.getFullYear())
+const currentMonthVal = String(now.getMonth() + 1).padStart(2, '0')
+const currentYearVal = String(now.getFullYear())
 
-const selectedMonth = ref('ALL')
-const selectedYear = ref('ALL')
+const selectedMonth = ref(currentMonthVal)
+const selectedYear = ref(currentYearVal)
 const pageSize = ref(10)
 const currentPage = ref(1)
+const showLogoutModal = ref(false)
 
 const monthOptions = [
   { value: 'ALL', label: 'Semua Bulan' },
@@ -339,69 +246,40 @@ const yearOptions = [
   { value: '2027', label: '2027' }
 ]
 
-const pageSizeOptions = [5, 10, 20, 50, 100]
-
-watch([selectedMonth, selectedYear, pageSize], () => {
+watch([selectedMonth, selectedYear], () => {
   currentPage.value = 1
 })
 
-const fetchSchedulesData = async () => {
-  try {
-    const res = await axios.get('/api/admin/schedules')
-    schedulesData.value = res.data?.schedules
-  } catch (e) {}
+const prevMonth = () => {
+  if (selectedMonth.value === 'ALL') {
+    selectedMonth.value = '01'
+    return
+  }
+  let m = parseInt(selectedMonth.value, 10) - 1
+  if (m < 1) {
+    m = 12
+    let y = parseInt(selectedYear.value, 10) - 1
+    selectedYear.value = String(y)
+  }
+  selectedMonth.value = String(m).padStart(2, '0')
 }
 
-const getShiftNameForDate = (dateStr) => {
-  let isoDate = dateStr
-  if (dateStr.includes('-') && dateStr.split('-')[0].length === 2) {
-    const [d, m, y] = dateStr.split('-')
-    isoDate = `${y}-${m}-${d}`
+const nextMonth = () => {
+  if (selectedMonth.value === 'ALL') {
+    selectedMonth.value = '12'
+    return
   }
-
-  const cleanUserNip = (authStore.user?.nip || '').replace(/\s+/g, '')
-  const cleanUserName = (authStore.user?.name || '').toLowerCase()
-  const teams = schedulesData.value?.teams || []
-
-  let userTeamCode = ''
-  for (const t of teams) {
-    if (t.members && Array.isArray(t.members)) {
-      const isMember = t.members.some((m) => {
-        if (typeof m === 'string') {
-          const cleanM = m.replace(/\s+/g, '')
-          return (cleanUserNip && cleanM.includes(cleanUserNip)) || (cleanUserName && cleanM.toLowerCase().includes(cleanUserName))
-        } else if (typeof m === 'object' && m !== null) {
-          const mNip = (m.nip || m.Nip || m.NIP || '').replace(/\s+/g, '')
-          const mName = (m.name || m.Name || '').toLowerCase()
-          return (cleanUserNip && mNip.includes(cleanUserNip)) || (cleanUserName && mName.includes(cleanUserName))
-        }
-        return false
-      })
-      if (isMember) {
-        userTeamCode = t.code || t.id || t.name
-        break
-      }
-    }
+  let m = parseInt(selectedMonth.value, 10) + 1
+  if (m > 12) {
+    m = 1
+    let y = parseInt(selectedYear.value, 10) + 1
+    selectedYear.value = String(y)
   }
-
-  if (schedulesData.value && Array.isArray(schedulesData.value.daysInMonth)) {
-    const dayEntry = schedulesData.value.daysInMonth.find((d) => d.date === isoDate || d.dateStr === isoDate)
-    if (dayEntry && userTeamCode) {
-      if (dayEntry.shift1 === userTeamCode || dayEntry.shift1Team === userTeamCode) return 'Shift 1 (Pagi)'
-      if (dayEntry.shift2 === userTeamCode || dayEntry.shift2Team === userTeamCode) {
-        const mode = schedulesData.value?.shiftMode || 2
-        return mode === 3 ? 'Shift 2 (Sore)' : 'Shift 2 (Malam)'
-      }
-      if (dayEntry.shift3 === userTeamCode || dayEntry.shift3Team === userTeamCode) return 'Shift 3 (Malam)'
-      if (dayEntry.offTeams && Array.isArray(dayEntry.offTeams) && dayEntry.offTeams.includes(userTeamCode)) return 'OFF (Libur)'
-    }
-  }
-
-  return 'Shift Siaga 112'
+  selectedMonth.value = String(m).padStart(2, '0')
 }
 
-const parseTs = (rawTs) => {
-  if (!rawTs) return { dateKey: '--', isoDate: '', month: '', year: '', timeFormatted: '--:--:--', hour: 0 }
+const parseTs = (rawTs: string) => {
+  if (!rawTs) return { dateKey: '--', isoDate: '', month: '', year: '', timeFormatted: '--:--', hour: 0, min: 0 }
   const clean = rawTs.replace('T', ' ').split('.')[0].replace('Z', '')
   const [datePart = '', timePart = ''] = clean.split(' ')
 
@@ -419,14 +297,16 @@ const parseTs = (rawTs) => {
     }
   }
 
-  const dateKey = (day && month && year) ? `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${year}` : datePart
+  const dateKey = (day && month && year) ? `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}` : datePart
   const isoDate = (year && month && day) ? `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}` : datePart
-  let cleanTime = timePart ? timePart.substring(0, 8) : '--:--:--'
-  let timeFormatted = cleanTime !== '--:--:--' ? (cleanTime.includes('WITA') ? cleanTime : `${cleanTime} WITA`) : '--:--:--'
+  let cleanTime = timePart ? timePart.substring(0, 5) : '--:--'
 
   let hour = 0
+  let min = 0
   if (cleanTime && cleanTime.includes(':')) {
-    hour = parseInt(cleanTime.split(':')[0], 10)
+    const parts = cleanTime.split(':')
+    hour = parseInt(parts[0], 10)
+    min = parseInt(parts[1], 10)
   }
 
   return {
@@ -434,8 +314,9 @@ const parseTs = (rawTs) => {
     isoDate,
     month: month ? month.padStart(2, '0') : '',
     year: year || '',
-    timeFormatted,
-    hour
+    timeFormatted: cleanTime,
+    hour,
+    min
   }
 }
 
@@ -444,16 +325,17 @@ const allPairedRows = computed(() => {
     return []
   }
 
-  // Sort history ascending by ID / timestamp so we pair chronologically
-  const sortedHistory = [...authStore.presensiHistory].sort((a, b) => (a.id || 0) - (b.id || 0))
+  const sortedHistory = [...authStore.presensiHistory].sort((a: any, b: any) => (a.id || 0) - (b.id || 0))
   const dateMap = new Map()
 
-  sortedHistory.forEach((item) => {
+  sortedHistory.forEach((item: any) => {
     const parsed = parseTs(item.timestamp || '')
-    const distanceFormatted = (item.distance_meters !== undefined && item.distance_meters !== null) ? `${item.distance_meters.toFixed(1)} Meter` : '0.8 Meter'
 
     if (item.type === 'MASUK') {
       const existing = dateMap.get(parsed.dateKey)
+      const isLate = parsed.hour > 8 || (parsed.hour === 8 && parsed.min > 15)
+      const status = isLate ? 'TERLAMBAT' : 'HADIR'
+
       if (!existing) {
         dateMap.set(parsed.dateKey, {
           id: item.id,
@@ -461,29 +343,16 @@ const allPairedRows = computed(() => {
           isoDate: parsed.isoDate,
           month: parsed.month,
           year: parsed.year,
-          shiftName: getShiftNameForDate(parsed.dateKey),
+          statusBadge: status,
           clockIn: parsed.timeFormatted,
-          masukDistance: distanceFormatted,
-          clockOut: '--:--:--',
-          pulangDistance: '--'
+          clockOut: '--:--'
         })
       } else {
         existing.clockIn = parsed.timeFormatted
-        existing.masukDistance = distanceFormatted
+        existing.statusBadge = status
       }
     } else if (item.type === 'PULANG') {
-      // Check if this PULANG belongs to yesterday's night shift (scan PULANG between 00:00 - 12:00 WITA)
       let targetDateKey = parsed.dateKey
-      if (parsed.hour < 12 && parsed.isoDate) {
-        const d = new Date(parsed.isoDate)
-        d.setDate(d.getDate() - 1)
-        const prevDateKey = `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`
-        const prevEntry = dateMap.get(prevDateKey)
-        if (prevEntry && prevEntry.clockOut === '--:--:--') {
-          targetDateKey = prevDateKey
-        }
-      }
-
       let targetEntry = dateMap.get(targetDateKey)
       if (!targetEntry) {
         targetEntry = {
@@ -492,23 +361,19 @@ const allPairedRows = computed(() => {
           isoDate: parsed.isoDate,
           month: parsed.month,
           year: parsed.year,
-          shiftName: getShiftNameForDate(targetDateKey),
-          clockIn: '--:--:--',
-          masukDistance: '--',
-          clockOut: parsed.timeFormatted,
-          pulangDistance: distanceFormatted
+          statusBadge: 'HADIR',
+          clockIn: '--:--',
+          clockOut: parsed.timeFormatted
         }
         dateMap.set(targetDateKey, targetEntry)
       } else {
         targetEntry.clockOut = parsed.timeFormatted
-        targetEntry.pulangDistance = distanceFormatted
       }
     }
   })
 
-  // Convert map values to array and sort descending by date
   const result = Array.from(dateMap.values())
-  result.sort((a, b) => {
+  result.sort((a: any, b: any) => {
     const keyA = a.isoDate || a.date
     const keyB = b.isoDate || b.date
     return keyB.localeCompare(keyA)
@@ -518,13 +383,9 @@ const allPairedRows = computed(() => {
 })
 
 const filteredHistoryList = computed(() => {
-  return allPairedRows.value.filter((row) => {
-    if (selectedMonth.value !== 'ALL' && row.month !== selectedMonth.value) {
-      return false
-    }
-    if (selectedYear.value !== 'ALL' && row.year !== selectedYear.value) {
-      return false
-    }
+  return allPairedRows.value.filter((row: any) => {
+    if (selectedMonth.value !== 'ALL' && row.month !== selectedMonth.value) return false
+    if (selectedYear.value !== 'ALL' && row.year !== selectedYear.value) return false
     return true
   })
 })
@@ -539,12 +400,6 @@ const paginatedHistoryList = computed(() => {
   return filteredHistoryList.value.slice(startIdx, endIdx)
 })
 
-const fetchHistory = async () => {
-  await authStore.fetchHistory()
-}
-
-const showLogoutModal = ref(false)
-
 function handleLogout() {
   showLogoutModal.value = true
 }
@@ -552,13 +407,12 @@ function handleLogout() {
 function executeLogout() {
   showLogoutModal.value = false
   authStore.logout()
-  window.location.href = '/login'
+  router.push('/login')
 }
 
 onMounted(async () => {
   await authStore.fetchProfile()
-  await fetchSchedulesData()
-  await fetchHistory()
+  await authStore.fetchHistory()
 })
 </script>
 

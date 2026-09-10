@@ -42,7 +42,7 @@ func (r *UserRepository) LoadDB() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	// Build real-time 2FA status map from auth_users in db_lopiq_auth
+	// Build real-time 2FA status map from auth_users in db_garda112_auth
 	totpMap := make(map[string]bool)
 	if r.sqlAuthDB != nil {
 		authRows, err := r.sqlAuthDB.Query("SELECT COALESCE(email, ''), COALESCE(nip, ''), COALESCE(totp_enabled, false) FROM auth_users;")
@@ -105,7 +105,7 @@ func (r *UserRepository) LoadDB() {
 					}
 				}
 				if !hasSuperAdmin {
-					aswanHash, _ := bcrypt.GenerateFromPassword([]byte("Asw&a198"), bcrypt.DefaultCost)
+					superAdminHash := "$2a$10$EwQk2ADnVXXIVSSSueM4sOnO9Py1TQB0l5Bynadgn1Ke7TXT6W/vO"
 					totpVal := false
 					if enabled, ok := totpMap["aswan@bulukumbakab.go.id"]; ok {
 						totpVal = enabled
@@ -117,7 +117,7 @@ func (r *UserRepository) LoadDB() {
 						Role:         "superadmin",
 						Jabatan:      "JF Pranata Komputer Ahli Pertama",
 						UnitKerja:    "Diskominfo Kab. Bulukumba",
-						PasswordHash: string(aswanHash),
+						PasswordHash: superAdminHash,
 						Permissions:  []string{"manage_users", "manage_attendance", "manage_locations", "view_reports"},
 						TotpEnabled:  totpVal,
 						IsActive:     true,
@@ -126,7 +126,7 @@ func (r *UserRepository) LoadDB() {
 					var id int
 					err := r.sqlDB.QueryRow(
 						`INSERT INTO users (nip, email, name, role, jabatan, unit_kerja, password_hash, totp_enabled, is_active)
-						 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (email) DO UPDATE SET nip='199708192025061003', name='Muhammad Aswan, S.T.', role='superadmin' RETURNING id`,
+						 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (email) DO UPDATE SET role='superadmin' RETURNING id`,
 						superAdmin.NIP, superAdmin.Email, superAdmin.Name, superAdmin.Role, superAdmin.Jabatan, superAdmin.UnitKerja, superAdmin.PasswordHash, superAdmin.TotpEnabled, superAdmin.IsActive,
 					).Scan(&id)
 					if err == nil {
@@ -170,13 +170,13 @@ func (r *UserRepository) LoadDB() {
 	}
 
 	// 3. Fallback: Seed users if database and JSON file are empty
-	log.Println("[User-Service] Seeding default single superadmin user...")
+	log.Println("[User-Service] Seeding default users (superadmin + call takers)...")
 	r.seedUsers()
 	r.SaveDBLocked()
 }
 
 func (r *UserRepository) seedUsers() {
-	aswanHash, _ := bcrypt.GenerateFromPassword([]byte("Asw&a198"), bcrypt.DefaultCost)
+	superAdminHash := "$2a$10$EwQk2ADnVXXIVSSSueM4sOnO9Py1TQB0l5Bynadgn1Ke7TXT6W/vO"
 
 	// Super Admin Aswan
 	superAdmin := model.User{
@@ -187,7 +187,7 @@ func (r *UserRepository) seedUsers() {
 		Role:         "superadmin",
 		Jabatan:      "JF Pranata Komputer Ahli Pertama",
 		UnitKerja:    "Diskominfo Kab. Bulukumba",
-		PasswordHash: string(aswanHash),
+		PasswordHash: superAdminHash,
 		Permissions:  []string{"manage_users", "manage_attendance", "manage_locations", "view_reports"},
 		IsActive:     true,
 		CreatedAt:    time.Now(),
@@ -200,7 +200,7 @@ func (r *UserRepository) seedUsers() {
 		for _, u := range r.users {
 			_, _ = r.sqlDB.Exec(
 				`INSERT INTO users (nip, email, name, role, jabatan, unit_kerja, password_hash, is_active)
-				 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (email) DO UPDATE SET nip=$1, name=$3;`,
+				 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (email) DO NOTHING;`,
 				u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.PasswordHash, u.IsActive,
 			)
 		}

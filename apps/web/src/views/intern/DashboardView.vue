@@ -1,652 +1,335 @@
 <template>
   <InternLayout>
-    <div class="space-y-6 select-none font-sans">
-      <!-- Page Header -->
-      <div class="hidden sm:flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
-        <div>
-          <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Dashboard Status Siaga Peserta Magang</h2>
-          <p class="font-sans text-slate-500 mt-1 text-xs hidden sm:block">Panel operasional siaga 112, status pendaftaran presensi, dan riwayat tugas presensi harian.</p>
-        </div>
-      </div>
-      <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-sm space-y-5">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
-          
-          <!-- Profile Info with Avatar Initials -->
-          <div class="flex items-start gap-4 min-w-0">
-            <!-- Avatar Initials Badge -->
-            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-rose-700 via-rose-600 to-amber-500 text-white font-display font-black text-2xl flex items-center justify-center shrink-0 shadow-md">
-              {{ authStore.user?.name ? authStore.user.name.charAt(0).toUpperCase() : 'C' }}
-            </div>
-
-            <div class="space-y-1 flex-1 min-w-0">
-              <!-- Peserta Magang Status Pill -->
-              <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-rose-50 text-rose-800 rounded-full text-[10px] sm:text-xs font-extrabold border border-rose-200">
-                <span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-ping"></span>
-                <span>PESERTA MAGANG POSKO SIAGA 112</span>
-              </div>
-
-              <!-- 1. Selamat Tugas, [Nama]! -->
-              <h2 class="text-base sm:text-xl md:text-2xl font-display font-black text-slate-900 leading-tight truncate">
-                Selamat Tugas, {{ authStore.user?.name || 'Petugas Peserta Magang' }}!
-              </h2>
-
-              <!-- 2. NIP -->
-              <div class="text-xs font-mono font-extrabold text-rose-700">
-                NIP. {{ authStore.user?.nip || '-' }}
-              </div>
-
-              <!-- 3. Jabatan -->
-              <div class="text-xs font-extrabold text-slate-800 uppercase tracking-wide">
-                {{ authStore.user?.jabatan || 'OPERATOR LAYANAN OPERASIONAL' }}
-              </div>
-
-              <!-- 4. Unit Kerja -->
-              <div class="text-xs text-slate-500 font-medium">
-                {{ authStore.user?.unit_kerja || 'Diskominfo Kabupaten Bulukumba' }}
-              </div>
-            </div>
-          </div>
-
-          <!-- Action Buttons Bar -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:flex md:items-center gap-2.5 pt-3 md:pt-0 border-t md:border-0 border-slate-100">
-            <button 
-              @click="showLeaveModal = true"
-              class="w-full sm:w-auto px-4 py-3 bg-amber-50/80 hover:bg-amber-100 text-amber-900 border border-amber-200/90 font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
-            >
-              <span class="material-symbols-outlined text-[18px] text-amber-700">assignment_ind</span>
-              <span>Ajukan Sakit / Tukar Shift</span>
-            </button>
-
-            <router-link 
-              to="/intern/scan" 
-              class="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-rose-700 via-rose-600 to-amber-600 hover:from-rose-800 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 decoration-none cursor-pointer active:scale-98"
-            >
-              <span class="material-symbols-outlined text-[18px]">qr_code_scanner</span>
-              <span>Buka Kamera Scan QR</span>
-            </router-link>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- Real-Time Status Shift Hari Ini Banner -->
-      <div 
-        class="rounded-3xl p-5 sm:p-6 border shadow-md transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden backdrop-blur-md"
-        :class="{
-          'bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900 border-emerald-600/50 text-white shadow-emerald-950/20': shiftInfo.badge === 'ACTIVE',
-          'bg-gradient-to-r from-rose-950 via-slate-900 to-rose-900 border-rose-600/50 text-white shadow-rose-950/20': shiftInfo.badge === 'OFF',
-          'bg-gradient-to-r from-amber-950 via-slate-900 to-amber-900 border-amber-600/50 text-white shadow-amber-950/20': shiftInfo.badge === 'LEAVE',
-          'bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 border-slate-600 text-white animate-pulse': shiftInfo.badge === 'LOADING'
-        }"
-      >
-        <!-- Background Ambient Glow Effect -->
-        <div v-if="shiftInfo.badge === 'ACTIVE'" class="absolute -right-8 -bottom-8 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
-        <div class="flex items-center gap-4 relative z-10">
-          <div 
-            class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner transition-all"
-            :class="shiftInfo.badge === 'ACTIVE' ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-300' : 'bg-white/10 border-white/20 text-amber-300'"
-          >
-            <span class="material-symbols-outlined text-2xl">
-              {{ shiftInfo.badge === 'ACTIVE' ? 'verified_user' : 'event_upcoming' }}
-            </span>
-          </div>
-          <div class="space-y-1">
-            <div 
-              class="text-[10px] font-mono font-black uppercase tracking-widest flex items-center gap-1.5"
-              :class="shiftInfo.badge === 'ACTIVE' ? 'text-emerald-400' : 'text-amber-300'"
-            >
-              <span class="w-2 h-2 rounded-full" :class="shiftInfo.badge === 'ACTIVE' ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'"></span>
-              <span>STATUS OPERASIONAL SIAGA 112</span>
-            </div>
-            <h3 class="text-base font-display font-black text-white leading-tight">
-              {{ shiftInfo.shiftName }}
-            </h3>
-            <p class="text-xs font-semibold text-slate-200/90 leading-relaxed">
-              {{ shiftInfo.shiftTimeStr }}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Jadwal Shift Berikutnya (muncul jika hari ini libur/off) -->
-      <transition name="fade-next">
-        <div
-          v-if="nextShiftInfo && shiftInfo.badge === 'OFF'"
-          class="flex items-start gap-3 px-5 py-4 bg-amber-50 border border-amber-200 rounded-2xl shadow-xs"
-        >
-          <div class="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center shrink-0 text-amber-700">
-            <span class="material-symbols-outlined text-[22px]">event_upcoming</span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="text-[9px] font-extrabold text-amber-700 uppercase tracking-widest mb-0.5">Jadwal Shift Berikutnya</div>
-            <div class="text-sm font-display font-black text-slate-900 leading-tight">
-              {{ nextShiftInfo.label }}
-              <span v-if="nextShiftInfo.asReplacer" class="text-amber-600 font-bold text-xs"> · Pengganti {{ nextShiftInfo.replacedName?.split(',')[0] }}</span>
-            </div>
-            <div class="flex items-center gap-2 mt-1 flex-wrap">
-              <span class="text-xs font-bold text-slate-700">
-                {{ nextShiftInfo.dayName }}, {{ nextShiftInfo.formattedDate }}
-              </span>
-              <span class="text-slate-300">·</span>
-              <span class="text-xs font-mono font-bold text-emerald-700">
-                {{ nextShiftInfo.start }} – {{ nextShiftInfo.end }} WITA
-              </span>
-            </div>
-          </div>
-          <div class="text-right shrink-0">
-            <div class="text-[9px] font-bold text-amber-600 uppercase tracking-wider">{{ nextShiftInfo.dateStr }}</div>
-          </div>
-        </div>
-        <div v-else-if="shiftInfo.badge === 'OFF' && !nextShiftInfo" class="flex items-center gap-2.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-500">
-          <span class="material-symbols-outlined text-[18px] text-slate-400">calendar_month</span>
-          <span>Tidak ada jadwal shift tersisa di bulan ini. Jadwal bulan berikutnya belum tersedia.</span>
-        </div>
-      </transition>
-
-      <!-- Real-Time Status Siaga Cards (Database PostgreSQL) -->
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="select-none font-sans text-[#1b1c1c] pb-safe">
+      
+      <!-- Main Container -->
+      <main class="px-4 sm:px-6 py-6 flex flex-col gap-6 max-w-2xl mx-auto">
         
-        <!-- Card 1: Status Masuk Siaga -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Presensi Masuk Siaga</span>
+        <!-- ===== 1. HEADER SECTION ===== -->
+        <header class="flex justify-between items-center pt-2 pb-4 border-b border-[#F8BBD0]/60">
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-[#1b1c1c] leading-tight">
+              Halo, {{ userFirstName }}!
+            </h1>
+            <div class="flex items-center gap-2 mt-1 text-xs text-[#574146]">
+              <span class="font-mono font-bold text-[#ab2c5d]">NISN/NIM: {{ authStore.user?.nip || '0091755987' }}</span>
+              <span>•</span>
+              <span class="truncate max-w-[180px] sm:max-w-none">{{ authStore.user?.unit_kerja || 'TKJ' }}</span>
+            </div>
+          </div>
+
+          <!-- User Profile Avatar Circle -->
+          <div class="flex flex-col items-center gap-1">
+            <div class="h-14 w-14 sm:h-16 sm:w-16 rounded-full border-2 border-[#f06292] p-0.5 bg-[#fbf9f8] shadow-sm relative">
+              <div class="w-full h-full object-cover rounded-full bg-gradient-to-tr from-[#ab2c5d] via-[#f06292] to-[#fec1d6] text-white font-black text-xl sm:text-2xl flex items-center justify-center shadow-inner">
+                {{ userInitial }}
+              </div>
+              <span 
+                class="absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-white"
+                :class="authStore.user?.is_active ? 'bg-emerald-500' : 'bg-slate-400'"
+                :title="authStore.user?.is_active ? 'Akun Aktif' : 'Non-aktif'"
+              ></span>
+            </div>
+            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 bg-[#fec1d6] text-[#65394b] rounded-full">
+              INTERN
+            </span>
+          </div>
+        </header>
+
+        <!-- ===== 2. STATUS CARD (TODAY) ===== -->
+        <section class="bg-white rounded-3xl p-5 sm:p-6 relative overflow-hidden border border-[#F8BBD0] shadow-sm space-y-4">
+          <div class="absolute -right-12 -top-12 w-36 h-36 bg-[#f06292]/10 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div class="flex items-center justify-between relative z-10">
+            <h2 class="text-lg font-bold text-[#1b1c1c] flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#ab2c5d]">today</span>
+              <span>Status Hari Ini</span>
+            </h2>
             <span 
-              class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold"
-              :class="authStore.todayStatus?.is_masuk ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'"
+              class="px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider shadow-2xs border"
+              :class="authStore.todayStatus?.is_masuk ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-[#FFF8E1] text-[#854d0e] border-[#fef08a]'"
             >
-              {{ authStore.todayStatus?.is_masuk ? '✓ Sudah Masuk' : 'Belum Presensi' }}
+              {{ authStore.todayStatus?.is_masuk ? (authStore.todayStatus?.is_pulang ? 'Selesai Tugas' : 'Hadir (Siaga)') : 'Belum Absen' }}
             </span>
           </div>
 
-          <div class="text-2xl font-display font-black text-slate-900 font-mono">
-            {{ authStore.todayStatus?.is_masuk ? formatTimeDisplay(authStore.todayStatus?.masuk?.timestamp || authStore.todayStatus?.clock_in_time) : '--:--:--' }}
-          </div>
+          <!-- Check In & Check Out Grid -->
+          <div class="grid grid-cols-2 gap-4 relative z-10">
+            <!-- Check In Box -->
+            <div class="bg-[#FFF5F8] p-4 rounded-2xl border border-[#F8BBD0]/60 space-y-1">
+              <div class="flex items-center gap-2 text-[#8a7176] text-xs font-bold uppercase tracking-wider">
+                <span class="material-symbols-outlined text-lg text-[#f06292]">login</span>
+                <span>Check In</span>
+              </div>
+              <p class="text-2xl sm:text-3xl font-black text-[#ab2c5d] font-mono">
+                {{ checkInTimeDisplay }}
+              </p>
+            </div>
 
-          <div class="text-xs text-slate-500 flex items-center justify-between">
-            <span>Jarak ke Posko:</span>
-            <strong class="text-slate-900 font-mono font-bold">
-              {{ authStore.todayStatus?.is_masuk ? formatDistance(authStore.todayStatus?.masuk) : '--' }}
-            </strong>
+            <!-- Check Out Box -->
+            <div class="bg-[#FFF5F8] p-4 rounded-2xl border border-[#F8BBD0]/60 space-y-1">
+              <div class="flex items-center gap-2 text-[#8a7176] text-xs font-bold uppercase tracking-wider">
+                <span class="material-symbols-outlined text-lg text-[#8a7176]">logout</span>
+                <span>Check Out</span>
+              </div>
+              <p 
+                class="text-2xl sm:text-3xl font-black font-mono"
+                :class="authStore.todayStatus?.is_pulang ? 'text-[#ab2c5d]' : 'text-[#8a7176]/50'"
+              >
+                {{ checkOutTimeDisplay }}
+              </p>
+            </div>
           </div>
-        </div>
+        </section>
 
-        <!-- Card 2: Status Pulang / Selesai Siaga -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3">
+        <!-- ===== 3. WEEKLY PROGRESS (PROGRES MINGGUAN) ===== -->
+        <section class="space-y-2">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Presensi Selesai Siaga</span>
-            <span 
-              class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold"
-              :class="authStore.todayStatus?.is_pulang ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : (authStore.todayStatus?.is_masuk ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-500 border border-slate-200')"
+            <h3 class="text-base font-bold text-[#1b1c1c] flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#ab2c5d]">bar_chart</span>
+              <span>Progres Mingguan Presensi</span>
+            </h3>
+            <span class="text-xs text-[#8a7176] font-medium">Minggu Ini</span>
+          </div>
+
+          <div class="bg-white rounded-3xl p-5 border border-[#F8BBD0] shadow-sm flex items-end justify-between h-36 gap-3">
+            <!-- Monday (S) -->
+            <div class="flex-1 bg-[#f06292] rounded-t-xl h-[85%] flex flex-col justify-end items-center pb-2 transition-all hover:opacity-90 shadow-2xs">
+              <span class="font-bold text-[11px] text-white">S</span>
+            </div>
+            <!-- Tuesday (S) -->
+            <div class="flex-1 bg-[#f06292] rounded-t-xl h-[100%] flex flex-col justify-end items-center pb-2 transition-all hover:opacity-90 shadow-2xs">
+              <span class="font-bold text-[11px] text-white">S</span>
+            </div>
+            <!-- Wednesday (R) -->
+            <div class="flex-1 bg-[#f06292] rounded-t-xl h-[90%] flex flex-col justify-end items-center pb-2 transition-all hover:opacity-90 shadow-2xs">
+              <span class="font-bold text-[11px] text-white">R</span>
+            </div>
+            <!-- Thursday (K) -->
+            <div class="flex-1 bg-[#f06292] rounded-t-xl h-[75%] flex flex-col justify-end items-center pb-2 transition-all hover:opacity-90 shadow-2xs">
+              <span class="font-bold text-[11px] text-white">K</span>
+            </div>
+            <!-- Friday (J) -->
+            <div class="flex-1 bg-[#FFF5F8] rounded-t-xl h-[40%] flex flex-col justify-end items-center pb-2 transition-all border border-dashed border-[#F8BBD0]">
+              <span class="font-bold text-[11px] text-[#8a7176]">J</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== 4. JURNAL KEGIATAN HARIAN ===== -->
+        <section class="space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-bold text-[#1b1c1c] flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#ab2c5d]">menu_book</span>
+              <span>Jurnal Kegiatan Harian</span>
+            </h3>
+            <button 
+              @click="openAddNoteModal"
+              class="text-[#ab2c5d] hover:bg-[#FCE4EC] p-1.5 rounded-full transition-colors flex items-center justify-center border-0 bg-transparent cursor-pointer"
+              title="Tambah Catatan Jurnal"
             >
-              {{ authStore.todayStatus?.is_pulang ? '✓ Sudah Selesai' : (authStore.todayStatus?.is_masuk ? '⏳ Belum Scan Pulang' : 'Belum Presensi') }}
-            </span>
+              <span class="material-symbols-outlined text-xl">edit_note</span>
+            </button>
           </div>
 
-          <div class="text-2xl font-display font-black text-slate-900 font-mono">
-            {{ authStore.todayStatus?.is_pulang ? formatTimeDisplay(authStore.todayStatus?.pulang?.timestamp || authStore.todayStatus?.clock_out_time) : '--:--:--' }}
-          </div>
-
-          <div class="text-xs text-slate-500 flex items-center justify-between">
-            <span>Jarak ke Posko:</span>
-            <strong class="text-slate-900 font-mono font-bold">
-              {{ authStore.todayStatus?.is_pulang ? formatDistance(authStore.todayStatus?.pulang) : '--' }}
-            </strong>
-          </div>
-        </div>
-
-        <!-- Card 3: Geofence Radar Posko (Database posko_locations) -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Geofence Posko Siaga</span>
-            <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-full text-[10px] font-bold">
-              Radius {{ poskoInfo.radius }}m
-            </span>
-          </div>
-
-          <div class="text-sm font-bold text-slate-900 leading-tight">
-            {{ poskoInfo.name }}
-          </div>
-
-          <div class="text-xs text-slate-500 font-mono flex items-center justify-between">
-            <span>Koordinat:</span>
-            <span>{{ poskoInfo.lat.toFixed(4) }}, {{ poskoInfo.lng.toFixed(4) }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Leave Request Modal -->
-      <div v-if="showLeaveModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto select-none">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl">
-          <div class="flex items-center justify-between border-b border-slate-200 pb-4">
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-rose-700 text-2xl">assignment_ind</span>
-              <h3 class="text-lg font-display font-black text-slate-900">Form Pengajuan Sakit / Izin / Tukar Shift</h3>
+          <div class="bg-white rounded-3xl border border-[#F8BBD0] shadow-sm overflow-hidden">
+            <div class="overflow-y-auto max-h-64">
+              <table class="w-full text-left border-collapse">
+                <thead class="bg-[#FFF5F8] sticky top-0 z-10 border-b border-[#F8BBD0]">
+                  <tr>
+                    <th class="p-3 text-[11px] font-bold text-[#ab2c5d] uppercase tracking-wider">Nama</th>
+                    <th class="p-3 text-[11px] font-bold text-[#ab2c5d] uppercase tracking-wider">Waktu</th>
+                    <th class="p-3 text-[11px] font-bold text-[#ab2c5d] uppercase tracking-wider">Kegiatan</th>
+                    <th class="p-3 text-[11px] font-bold text-[#ab2c5d] uppercase tracking-wider text-right w-16">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[#F8BBD0]/40 text-xs">
+                  <tr v-for="(item, idx) in activityJournalList" :key="idx" class="hover:bg-[#FFF5F8]/50 transition-colors">
+                    <td class="p-3 font-bold text-[#1b1c1c]">{{ item.name }}</td>
+                    <td class="p-3 font-mono text-[#574146]">{{ item.time }}</td>
+                    <td class="p-3 text-[#1b1c1c] font-medium">{{ item.activity }}</td>
+                    <td class="p-3 text-right">
+                      <button 
+                        type="button" 
+                        @click="deleteJournalNote(idx)"
+                        title="Hapus Catatan Kegiatan"
+                        class="text-rose-400 hover:text-rose-600 hover:bg-rose-50 p-1.5 rounded-lg transition-colors border-0 bg-transparent cursor-pointer inline-flex items-center justify-center"
+                      >
+                        <span class="material-symbols-outlined text-base">delete</span>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr v-if="activityJournalList.length === 0">
+                    <td colspan="4" class="p-6 text-center text-[#8a7176] text-xs">
+                      Belum ada catatan jurnal kegiatan harian recorded.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <button @click="showLeaveModal = false" class="text-slate-400 hover:text-slate-700 text-xl font-bold border-0 bg-transparent cursor-pointer">✕</button>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- ===== MODAL TAMBAH CATATAN JURNAL ===== -->
+    <transition name="fade">
+      <div v-if="showNoteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs" @click.self="showNoteModal = false">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 border border-[#F8BBD0] shadow-2xl space-y-4">
+          <div class="flex items-center justify-between border-b border-[#F8BBD0]/60 pb-3">
+            <h3 class="font-bold text-base text-[#1b1c1c] flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#ab2c5d]">edit_note</span>
+              <span>Tambah Catatan Jurnal Harian</span>
+            </h3>
+            <button @click="showNoteModal = false" class="text-slate-400 hover:text-slate-600 border-0 bg-transparent cursor-pointer">
+              <span class="material-symbols-outlined">close</span>
+            </button>
           </div>
 
-          <form @submit.prevent="submitLeaveRequest" class="space-y-4 text-xs">
-            <div v-if="formMessage" class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 font-bold">
-              {{ formMessage }}
-            </div>
-
+          <form @submit.prevent="addJournalNote" class="space-y-4 text-xs">
             <div class="space-y-1">
-              <label class="font-bold text-slate-700">Kategori Pengajuan <span class="text-rose-600">*</span></label>
-              <select v-model="form.category" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-rose-500">
-                <option value="Sakit">Sakit (Wajib Surat Dokter)</option>
-                <option value="Izin">Izin Tugas Mendadak</option>
-                <option value="Tukar Shift">Tukar Shift (Replacement)</option>
-              </select>
+              <label class="font-bold text-[#574146]">Uraian Kegiatan / Task <span class="text-rose-500">*</span></label>
+              <input v-model="newJournalNote" type="text" required placeholder="Contoh: Input laporan harian & kirim rekap presensi" class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-xl focus:outline-none focus:border-[#f06292]" />
             </div>
 
-            <div class="space-y-1">
-              <label class="font-bold text-slate-700">Tanggal Shift yang Berhalangan <span class="text-rose-600">*</span></label>
-              <input v-model="form.shift_date" type="text" placeholder="Contoh: 01-08-2026" required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900" />
-            </div>
-
-            <div class="space-y-1">
-              <label class="font-bold text-slate-700">Pilih Petugas Pengganti (Standby Backup)</label>
-              <select v-model="form.replacement_name" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900">
-                <option value="">-- Serahkan Pemilihan ke Admin --</option>
-                <option v-for="off in replacementOptions" :key="off" :value="off">{{ off }}</option>
-              </select>
-            </div>
-
-            <div class="space-y-1">
-              <label class="font-bold text-slate-700">Alasan Lengkap <span class="text-rose-600">*</span></label>
-              <textarea v-model="form.reason" rows="3" placeholder="Tuliskan keterangan sakit atau alasan izin..." required class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900"></textarea>
-            </div>
-
-            <div class="space-y-1">
-              <label class="font-bold text-slate-700">Lampirkan Bukti Surat Dokter / Dokumen (URL Foto/PDF)</label>
-              <input v-model="form.attachment_url" type="text" placeholder="https://..." class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-[11px] text-slate-800" />
-            </div>
-
-            <div class="flex justify-end gap-3 border-t border-slate-200 pt-4">
-              <button type="button" @click="showLeaveModal = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-300 cursor-pointer">Batal</button>
-              <button type="submit" :disabled="submitting" class="px-6 py-2.5 bg-rose-700 hover:bg-rose-800 text-white font-extrabold rounded-xl shadow-md cursor-pointer border-0 disabled:opacity-50">
-                {{ submitting ? 'Kirim...' : 'Kirim Pengajuan' }}
+            <div class="flex justify-end gap-3 pt-2">
+              <button type="button" @click="showNoteModal = false" class="px-4 py-2 border border-[#ddbfc5] rounded-xl font-bold text-[#574146] bg-white cursor-pointer hover:bg-slate-50">Batal</button>
+              <button type="submit" class="px-5 py-2 bg-[#ab2c5d] hover:bg-[#881b47] text-white rounded-xl font-bold border-0 cursor-pointer shadow-xs">
+                Simpan Catatan
               </button>
             </div>
           </form>
         </div>
       </div>
-
-    </div>
+    </transition>
   </InternLayout>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
-import InternLayout from '@/layouts/InternLayout.vue';
-import { useAuthStore } from '@/stores/auth';
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import InternLayout from '@/layouts/InternLayout.vue'
 
-const authStore = useAuthStore();
-const showLeaveModal = ref(false);
-const submitting = ref(false);
-const formMessage = ref('');
+const authStore = useAuthStore()
 
-const poskoInfo = ref({
-  name: 'Posko Siaga NTPD 112 Kab. Bulukumba',
-  lat: -5.5645,
-  lng: 120.1945,
-  radius: 2.0
-});
+// State
+const showNoteModal = ref(false)
+const newJournalNote = ref('')
 
-const shiftInfo = ref({
-  shiftName: 'Memuat jadwal shift...',
-  shiftTimeStr: 'Mengambil data dari server...',
-  badge: 'LOADING',
-  badgeText: '⏳ MEMUAT DATA'
-});
+// Dynamic Jurnal Activity List persisted in localStorage
+const activityJournalList = ref<any[]>([])
 
-
-const nextShiftInfo = ref(null); // { label, dateStr, dayName, formattedDate, start, end }
-
-const replacementOptions = [
-  'A.Mappalua, S.Pd',
-  'Suherman, S.Pd',
-  'Riswandi Risman',
-  'Abil Kizri',
-  'Imam Ardiyansah',
-  'Abd.Rahim',
-  'Munawir Syadzali',
-  'Abdullah, S.Kep., Ns',
-  'Ismail, S.Sos',
-  'Aldi Afdali Saputra'
-];
-
-const now = new Date()
-const todayDateStr = [
-  String(now.getDate()).padStart(2, '0'),
-  String(now.getMonth() + 1).padStart(2, '0'),
-  now.getFullYear()
-].join('-')
-
-const form = ref({
-  category: 'Sakit',
-  shift_date: todayDateStr,
-  replacement_name: '',
-  reason: '',
-  attachment_url: ''
-});
-
-function formatTimeDisplay(val) {
-  if (!val) return '--:--:--'
-  const str = String(val).trim()
-  const match = str.match(/\d{2}:\d{2}:\d{2}/)
-  if (match) {
-    return `${match[0]} WITA`
-  }
-  return str.includes('WITA') ? str : `${str} WITA`
-}
-
-const formatDistance = (record) => {
-  if (!record) return '--'
-  const val = record.distance_meters ?? record.distanceMeters ?? record.distance
-  if (val !== undefined && val !== null && val !== '') {
-    const num = Number(val)
-    if (!isNaN(num)) return `${num.toFixed(1)} Meter`
-  }
-  return '0.8 Meter'
-}
-
-const recentHistoryList = computed(() => {
-  if (authStore.presensiHistory && Array.isArray(authStore.presensiHistory) && authStore.presensiHistory.length > 0) {
-    return authStore.presensiHistory.slice(0, 5).map((item) => {
-      const rawTs = item.timestamp || ''
-      const parts = rawTs.split(' ')
-      let dateKey = parts[0] || '-'
-      let timePart = parts[1] || parts[0] || '--:--:--'
-
-      if (dateKey.includes('-') && dateKey.split('-')[0].length === 4) {
-        const [y, m, d] = dateKey.split('-')
-        dateKey = `${d}-${m}-${y}`
-      }
-
-      const timeFormatted = timePart.includes('WITA') ? timePart : `${timePart} WITA`
-
-      return {
-        id: item.id,
-        date: dateKey,
-        type: item.type || 'MASUK',
-        clockTime: timeFormatted,
-        distance: item.distance_meters ? item.distance_meters.toFixed(1) : '0.8'
-      }
-    })
-  }
-  return []
-})
-
-const fetchPoskoInfo = async () => {
+const loadJournalNotes = () => {
   try {
-    const res = await axios.get('/api/presensi/posko-qr');
-    if (res.data) {
-      if (res.data.name) poskoInfo.value.name = res.data.name;
-      if (res.data.coordinates) {
-        if (res.data.coordinates.latitude) poskoInfo.value.lat = res.data.coordinates.latitude;
-        if (res.data.coordinates.longitude) poskoInfo.value.lng = res.data.coordinates.longitude;
-        if (res.data.coordinates.max_radius_meters) poskoInfo.value.radius = res.data.coordinates.max_radius_meters;
+    const key = `lopiq_journal_notes_${authStore.user?.nip || 'default'}`
+    const stored = localStorage.getItem(key)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      if (Array.isArray(parsed)) {
+        activityJournalList.value = parsed
+        return
       }
     }
   } catch (e) {}
-};
+  
+  // Default to empty list
+  activityJournalList.value = []
+}
 
-const fetchShiftSchedule = async () => {
+const saveJournalNotes = () => {
   try {
-    // Priority 0: Active unclosed shift (e.g. Night Shift started yesterday, awaiting clock-out today)
-    if (authStore.todayStatus?.is_masuk && !authStore.todayStatus?.is_pulang) {
-      const rawTs = authStore.todayStatus?.masuk?.timestamp || authStore.todayStatus?.clock_in_time || ''
-      const cleanTime = formatTimeDisplay(rawTs)
-      const isNightShift = rawTs.includes('Shift Kemarin') || rawTs.includes('Kemarin')
+    const key = `lopiq_journal_notes_${authStore.user?.nip || 'default'}`
+    localStorage.setItem(key, JSON.stringify(activityJournalList.value))
+  } catch (e) {}
+}
 
-      shiftInfo.value = {
-        shiftName: isNightShift ? 'Shift 2 (Malam Lintas Hari)' : 'Shift Siaga 112 (Sedang Berjalan)',
-        shiftTimeStr: `Scan Masuk: ${cleanTime} ${isNightShift ? '(Piket Malam)' : ''} · Status: Dalam Tugas Siaga`,
-        badge: 'ACTIVE',
-        badgeText: '🟢 DALAM SIAGA 112'
-      }
-      return
-    }
+// Computeds
+const userFirstName = computed(() => {
+  const name = authStore.user?.name || 'adhe'
+  return name.split(' ')[0]
+})
 
-    const now = new Date()
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-    const userNip = (authStore.user?.nip || '').replace(/\s/g, '')
-    const userName = authStore.user?.name || ''
+const userInitial = computed(() => {
+  const name = authStore.user?.name || 'A'
+  return name.charAt(0).toUpperCase()
+})
 
-    const schedRes = await axios.get('/api/admin/schedules')
-    const schedData = schedRes.data?.schedules
-    if (!schedData || !schedData.daysInMonth || schedData.daysInMonth.length === 0) {
-      shiftInfo.value = {
-        shiftName: 'Jadwal Shift Belum Dikonfigurasi',
-        shiftTimeStr: 'Admin belum menyimpan rincian jadwal shift bulan ini',
-        badge: 'OFF',
-        badgeText: '⚠ BELUM ADA JADWAL'
-      }
-      return
-    }
+const checkInTimeDisplay = computed(() => {
+  const status = authStore.todayStatus as any
+  if (status?.masuk?.timestamp) {
+    return formatTime(status.masuk.timestamp)
+  }
+  if (status?.clock_in_time) {
+    return formatTime(status.clock_in_time)
+  }
+  return '--:--'
+})
 
-    const dayEntry = schedData.daysInMonth.find(d =>
-      d.dateStr === todayStr || d.date === todayStr
-    ) || schedData.daysInMonth[now.getDate() - 1]
+const checkOutTimeDisplay = computed(() => {
+  const status = authStore.todayStatus as any
+  if (status?.pulang?.timestamp) {
+    return formatTime(status.pulang.timestamp)
+  }
+  if (status?.clock_out_time) {
+    return formatTime(status.clock_out_time)
+  }
+  return '--:--'
+})
 
-    if (!dayEntry) {
-      shiftInfo.value = {
-        shiftName: 'Jadwal Hari Ini Tidak Ditemukan',
-        shiftTimeStr: 'Hubungi Admin untuk cek tanggal jadwal shift',
-        badge: 'OFF',
-        badgeText: '⚠ TANGGAL TIDAK SESUAI'
-      }
-      return
-    }
-
-    const teams = schedData.teams || []
-    const shiftMode = schedData.shiftMode || 2
-
-    const slotTimes = [
-      { key: 'shift1', replKey: 'replacementsShift1', start: '08:00', end: shiftMode === 3 ? '16:00' : '20:00', label: shiftMode === 3 ? 'Shift Pagi' : 'Shift Pagi' },
-      { key: 'shift2', replKey: 'replacementsShift2', start: shiftMode === 3 ? '16:00' : '20:00', end: shiftMode === 3 ? '24:00' : '08:00', label: shiftMode === 3 ? 'Shift Sore' : 'Shift Malam' },
-      { key: 'shift3', replKey: 'replacementsShift3', start: '00:00', end: '08:00', label: 'Shift Malam' }
-    ]
-
-    // ─── 1. Cek apakah user adalah PENGGANTI hari ini ───
-    for (let i = 0; i < slotTimes.length; i++) {
-      const slot = slotTimes[i]
-      const replacements = dayEntry[slot.replKey] || []
-      const myReplacement = replacements.find(r =>
-        r.replacerNip && r.replacerNip.replace(/\s/g, '') === userNip
-      )
-      if (myReplacement) {
-        shiftInfo.value = {
-          shiftName: `${slot.label} — Pengganti ${myReplacement.replacedName.split(',')[0]}`,
-          shiftTimeStr: `${slot.start} – ${slot.end} WITA · 🟡 Pengganti Resmi`,
-          badge: 'ACTIVE',
-          badgeText: '🟢 PENGGANTI AKTIF'
-        }
-        return
-      }
-    }
-
-    // ─── 2. Cek tim utama user ───
-    let userTeamCode = ''
-    for (const t of teams) {
-      if (t.members && Array.isArray(t.members)) {
-        const found = t.members.some(m => {
-          const nipMatch = userNip && m.nip && m.nip.replace(/\s/g, '') === userNip
-          const nameMatch = userName && m.name && m.name.toLowerCase().includes(userName.toLowerCase().split(' ')[0])
-          return nipMatch || nameMatch
-        })
-        if (found) { userTeamCode = t.code; break }
-      }
-    }
-
-    if (!userTeamCode) {
-      shiftInfo.value = {
-        shiftName: 'Belum Terdaftar di Tim',
-        shiftTimeStr: 'Hubungi Admin untuk pendaftaran tim shift',
-        badge: 'OFF',
-        badgeText: '⚠ BELUM TERDAFTAR'
-      }
-      return
-    }
-
-    // ─── 3. Cek apakah tim libur hari ini ───
-    const isOff = dayEntry.offTeams && dayEntry.offTeams.includes(userTeamCode)
-    if (isOff) {
-      shiftInfo.value = {
-        shiftName: `HARI LIBUR — Tim ${userTeamCode}`,
-        shiftTimeStr: 'Tidak Ada Shift Hari Ini · Standby Backup',
-        badge: 'OFF',
-        badgeText: '🔒 LIBUR / OFF'
-      }
-      findNextShift(schedData, userTeamCode, todayStr, slotTimes, userNip)
-      return
-    }
-
-    // ─── 4. Tentukan shift tim ───
-    for (let i = 0; i < slotTimes.length; i++) {
-      const s = slotTimes[i]
-      if (dayEntry[s.key] === userTeamCode) {
-        shiftInfo.value = {
-          shiftName: `${s.label} — Tim ${userTeamCode} (${s.start}–${s.end} WITA)`,
-          shiftTimeStr: `${s.start} – ${s.end} WITA`,
-          badge: 'ACTIVE',
-          badgeText: '🟢 SHIFT AKTIF'
-        }
-        return
-      }
-    }
-
-    // ─── 5. Tidak ditemukan di shift hari ini, cari jadwal berikutnya ───
-    shiftInfo.value = {
-      shiftName: `Standby — Tim ${userTeamCode}`,
-      shiftTimeStr: 'Tim tidak terjadwal shift hari ini',
-      badge: 'OFF',
-      badgeText: '⚡ STANDBY'
-    }
-    findNextShift(schedData, userTeamCode, todayStr, slotTimes, userNip)
-
+// Methods
+const formatTime = (ts: string) => {
+  if (!ts) return '--:--'
+  try {
+    const d = new Date(ts)
+    if (isNaN(d.getTime())) return ts.substring(0, 5)
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
   } catch (e) {
-    shiftInfo.value = {
-      shiftName: 'Gagal Memuat Jadwal',
-      shiftTimeStr: 'Terjadi kesalahan saat mengambil data jadwal dari server',
-      badge: 'OFF',
-      badgeText: '⚠ TERJADI KESALAHAN'
-    }
+    return ts.substring(0, 5)
   }
 }
 
-// Cari jadwal shift berikutnya untuk user
-const findNextShift = (schedData, userTeamCode, todayStr, slotTimes, userNipClean) => {
-  nextShiftInfo.value = null
-  const days = schedData.daysInMonth || []
-  const dayNamesIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
-  const monthNamesIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
-
-  for (const d of days) {
-    const dStr = d.dateStr || d.date || ''
-    if (dStr <= todayStr) continue // hanya hari mendatang
-
-    // Cek apakah user sebagai pengganti di hari itu
-    for (let i = 0; i < slotTimes.length; i++) {
-      const slot = slotTimes[i]
-      const replacements = d[slot.replKey] || []
-      const myEntry = replacements.find(r =>
-        r.replacerNip && r.replacerNip.replace(/\s/g, '') === (userNipClean || '')
-      )
-      if (myEntry) {
-        const dateObj = new Date(dStr)
-        nextShiftInfo.value = {
-          label: slot.label,
-          dateStr: dStr,
-          dayName: dayNamesIndo[dateObj.getDay()],
-          formattedDate: `${String(dateObj.getDate()).padStart(2, '0')} ${monthNamesIndo[dateObj.getMonth()]} ${dateObj.getFullYear()}`,
-          start: slot.start,
-          end: slot.end,
-          asReplacer: true,
-          replacedName: myEntry.replacedName
-        }
-        return
-      }
-    }
-
-    // Cek apakah tim user dijadwalkan shift di hari itu
-    for (const slot of slotTimes) {
-      if (d[slot.key] === userTeamCode) {
-        const dateObj = new Date(dStr)
-        nextShiftInfo.value = {
-          label: slot.label,
-          dateStr: dStr,
-          dayName: dayNamesIndo[dateObj.getDay()],
-          formattedDate: `${String(dateObj.getDate()).padStart(2, '0')} ${monthNamesIndo[dateObj.getMonth()]} ${dateObj.getFullYear()}`,
-          start: slot.start,
-          end: slot.end,
-          asReplacer: false,
-          replacedName: ''
-        }
-        return
-      }
-    }
-  }
+const openAddNoteModal = () => {
+  newJournalNote.value = ''
+  showNoteModal.value = true
 }
 
+const addJournalNote = () => {
+  if (!newJournalNote.value.trim()) return
+  const now = new Date()
+  const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  
+  activityJournalList.value.unshift({
+    name: userFirstName.value,
+    time: timeStr,
+    activity: newJournalNote.value.trim()
+  })
 
-
-async function submitLeaveRequest() {
-  submitting.value = true;
-  formMessage.value = '';
-  try {
-
-    let currentList = [];
-    try {
-      const resGet = await axios.get('/api/presensi/leave-requests');
-      if (resGet.data && Array.isArray(resGet.data.requests)) {
-        currentList = resGet.data.requests;
-      }
-    } catch (e) {}
-
-    const newReq = {
-      id: Date.now(),
-      created_at: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      user_name: authStore.user?.name || 'Peserta Magang',
-      user_nip: authStore.user?.nip || '19940503 202521 1 138',
-      category: form.value.category,
-      shift_date: form.value.shift_date,
-      replacement_name: form.value.replacement_name,
-      reason: form.value.reason,
-      attachment_url: form.value.attachment_url,
-      status: 'PENDING'
-    };
-
-    currentList.unshift(newReq);
-    await axios.put('/api/presensi/leave-requests', currentList);
-
-    formMessage.value = 'Pengajuan berhasil dikirim! Menunggu konfirmasi Super Admin.';
-    setTimeout(() => {
-      showLeaveModal.value = false;
-      formMessage.value = '';
-      form.value.reason = '';
-    }, 1500);
-  } catch (err) {
-    formMessage.value = 'Gagal mengirim pengajuan.';
-  } finally {
-    submitting.value = false;
-  }
+  saveJournalNotes()
+  showNoteModal.value = false
+  newJournalNote.value = ''
 }
 
-onMounted(async () => {
-  await authStore.fetchProfile();
-  fetchPoskoInfo();
-  await fetchShiftSchedule();
-  await authStore.fetchTodayStatus();
-  await authStore.fetchHistory();
-});
+const deleteJournalNote = (index: number) => {
+  activityJournalList.value.splice(index, 1)
+  saveJournalNotes()
+}
+
+onMounted(async () => {     
+  await authStore.fetchProfile()
+  await authStore.fetchTodayStatus()
+  await authStore.fetchHistory()
+  loadJournalNotes()
+})
 </script>
 
 <style scoped>
-.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+.pb-safe { 
+  padding-bottom: env(safe-area-inset-bottom, 80px); 
+}
+.material-symbols-outlined { 
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; 
+}
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

@@ -10,34 +10,7 @@ import (
 
 type ActivityClientDirectStub struct{}
 
-var memActivities = []*actProto.DailyActivityRecord{
-	{
-		Id:           1,
-		UserId:       1,
-		UserNip:      "IN-294",
-		UserName:     "Sarah Jenkins",
-		Title:        "Penginputan Data Laporan Harian Posko 112",
-		Description:  "Melakukan verifikasi dan penginputan 15 laporan darurat masyarakat ke dalam database sistem LOPI-Q.",
-		ActivityDate: "2026-08-26",
-		PhotoUrl:     "",
-		Status:       "APPROVED",
-		CreatedAt:    time.Now().Format(time.RFC3339),
-		UpdatedAt:    time.Now().Format(time.RFC3339),
-	},
-	{
-		Id:           2,
-		UserId:       2,
-		UserNip:      "IN-291",
-		UserName:     "Marcus Doe",
-		Title:        "Pemeliharaan Perangkat Jaringan Siaga",
-		Description:  "Pemeriksaan rutin kabel LAN dan router komunikasi darurat di ruang operator Posko NTPD 112.",
-		ActivityDate: "2026-08-26",
-		PhotoUrl:     "",
-		Status:       "PENDING",
-		CreatedAt:    time.Now().Format(time.RFC3339),
-		UpdatedAt:    time.Now().Format(time.RFC3339),
-	},
-}
+var memActivities = []*actProto.DailyActivityRecord{}
 
 func (c *ActivityClientDirectStub) CreateActivity(ctx context.Context, req *actProto.CreateActivityRequest) (*actProto.CreateActivityResponse, error) {
 	newID := int32(len(memActivities) + 1)

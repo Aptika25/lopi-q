@@ -8,4 +8,5 @@ use (
 	./services/user-service
 	./services/activity-service
 	./services/reporting-service
+	./services/attendance-service
 )

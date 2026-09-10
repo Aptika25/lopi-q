@@ -10,6 +10,16 @@ export interface LoginResult {
   error?: string
 }
 
+export interface TodayStatus {
+  masuk?: any
+  pulang?: any
+  is_masuk: boolean
+  is_pulang: boolean
+  clock_in_time?: string
+  clock_out_time?: string
+  [key: string]: any
+}
+
 export const useAuthStore = defineStore('auth', {
   state: () => {
     const savedToken = localStorage.getItem('garda_token') || ''
@@ -36,8 +46,10 @@ export const useAuthStore = defineStore('auth', {
         masuk: null as any,
         pulang: null as any,
         is_masuk: false,
-        is_pulang: false
-      }
+        is_pulang: false,
+        clock_in_time: undefined,
+        clock_out_time: undefined
+      } as TodayStatus
     }
   },
 
@@ -45,7 +57,7 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: (state) => !!state.token,
     isSuperAdmin: (state) => state.user?.role === 'superadmin',
     isAdmin: (state) => state.user?.role === 'superadmin' || state.user?.role === 'admin',
-    isIntern: (state) => state.user?.role === 'intern'
+    isCallTaker: (state) => state.user?.role === 'call_taker'
   },
 
   actions: {
@@ -216,36 +228,57 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async fetchUsers() {
-      if (!this.isAdmin) return
+      const token = this.token || localStorage.getItem('garda_token') || ''
       try {
-        const response = await axios.get(`${API_BASE}/admin/users`, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
-        this.usersList = response.data.users
-      } catch (err) {
+        const headers: any = {}
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`
+        }
+        const response = await axios.get(`${API_BASE}/admin/users`, { headers })
+        if (response.data && Array.isArray(response.data.users)) {
+          this.usersList = response.data.users
+        }
+      } catch (err: any) {
         console.error('[AuthStore] Fetch users failed:', err)
+        if (err.response && err.response.status === 401) {
+          this.logout()
+        }
       }
     },
 
     async createUser(payload: any) {
       try {
+        const token = this.token || localStorage.getItem('garda_token') || ''
+        const headers: any = {}
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`
+        }
         const response = await axios.post(`${API_BASE}/admin/users`, {
           nip: payload.nip || '',
           email: payload.email,
-          password: payload.password,
+          password: payload.password || 'password123',
           name: payload.name,
-          jabatan: payload.jabatan || '',
-          unit_kerja: payload.unit_kerja || '',
-          role: payload.role || 'admin',
-          permissions: payload.permissions || []
-        }, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        })
+          jabatan: payload.jabatan || 'SMK Negeri 1 Bulukumba',
+          unit_kerja: payload.unit_kerja || 'Rekayasa Perangkat Lunak',
+          role: payload.role || 'intern',
+          permissions: payload.permissions || ['submit_attendance']
+        }, { headers })
+
+        if (response.data && response.data.user) {
+          const newUser = response.data.user
+          const idx = this.usersList.findIndex((u: any) => u.email === newUser.email || (u.nip && u.nip === newUser.nip))
+          if (idx >= 0) {
+            this.usersList[idx] = newUser
+          } else {
+            this.usersList.unshift(newUser)
+          }
+        }
         await this.fetchUsers()
-        return response.data
+        return response.data || { success: true }
       } catch (err: any) {
-        this.error = err.response?.data?.error || 'Gagal menambahkan user.'
-        throw err
+        console.error('[AuthStore] createUser error:', err)
+        this.error = err.response?.data?.error || err.message || 'Gagal menambahkan user.'
+        return { success: false, error: this.error }
       }
     },
 

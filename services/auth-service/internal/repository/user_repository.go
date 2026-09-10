@@ -10,8 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"auth-service/internal/model"
 )
 
@@ -63,6 +61,16 @@ func (r *UserRepository) LoadDB() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
+	// Ensure 2FA columns exist in PostgreSQL if database connection is available
+	if r.sqlDB != nil {
+		_, _ = r.sqlDB.Exec("ALTER TABLE auth_users ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN DEFAULT false;")
+		_, _ = r.sqlDB.Exec("ALTER TABLE auth_users ADD COLUMN IF NOT EXISTS totp_secret TEXT;")
+	}
+	if r.sqlUserDB != nil {
+		_, _ = r.sqlUserDB.Exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN DEFAULT false;")
+		_, _ = r.sqlUserDB.Exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret TEXT;")
+	}
+
 	// 1. Try loading from PostgreSQL if database connection is available
 	if r.sqlDB != nil {
 		rows, err := r.sqlDB.Query("SELECT id, COALESCE(nip, ''), email, name, role, COALESCE(jabatan, ''), COALESCE(unit_kerja, ''), password, COALESCE(totp_secret, ''), COALESCE(totp_enabled, false), COALESCE(is_active, true), created_at FROM auth_users;")
@@ -72,6 +80,17 @@ func (r *UserRepository) LoadDB() {
 			for rows.Next() {
 				var u model.User
 				if err := rows.Scan(&u.ID, &u.NIP, &u.Email, &u.Name, &u.Role, &u.Jabatan, &u.UnitKerja, &u.PasswordHash, &u.TotpSecret, &u.TotpEnabled, &u.IsActive, &u.CreatedAt); err == nil {
+					// Preserve active 2FA state if in-memory has it enabled
+					for _, existing := range r.users {
+						if (existing.ID == u.ID || (existing.Email != "" && strings.EqualFold(existing.Email, u.Email))) && existing.TotpEnabled {
+							u.TotpEnabled = true
+							if u.TotpSecret == "" {
+								u.TotpSecret = existing.TotpSecret
+							}
+							u.BackupCodes = existing.BackupCodes
+							break
+						}
+					}
 					loaded = append(loaded, u)
 					if u.ID >= r.nextID {
 						r.nextID = u.ID + 1
@@ -114,9 +133,9 @@ func (r *UserRepository) saveDBLocked() {
 }
 
 func (r *UserRepository) seedUsers() {
-	aswanHash, _ := bcrypt.GenerateFromPassword([]byte("Asw&a198"), bcrypt.DefaultCost)
+	superAdminHash := "$2a$10$EwQk2ADnVXXIVSSSueM4sOnO9Py1TQB0l5Bynadgn1Ke7TXT6W/vO"
 
-	// Super Admin Aswan
+	// Super Admin Aswan (Strictly from 002_seed_super_admin.up.sql)
 	r.users = append(r.users, model.User{
 		ID:           r.nextID,
 		NIP:          "199708192025061003",
@@ -125,7 +144,7 @@ func (r *UserRepository) seedUsers() {
 		Role:         "superadmin",
 		Jabatan:      "JF Pranata Komputer Ahli Pertama",
 		UnitKerja:    "Diskominfo Kab. Bulukumba",
-		PasswordHash: string(aswanHash),
+		PasswordHash: superAdminHash,
 		IsActive:     true,
 		CreatedAt:    time.Now(),
 	})
@@ -137,11 +156,13 @@ func (r *UserRepository) FindByIdentifier(identifier string) *model.User {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	cleanEmail := strings.ToLower(strings.TrimSpace(identifier))
+	clean := strings.TrimSpace(identifier)
+	cleanNIP := strings.ReplaceAll(clean, " ", "")
+	cleanEmail := strings.ToLower(clean)
 
 	for i := range r.users {
 		u := &r.users[i]
-		if strings.ToLower(strings.TrimSpace(u.Email)) == cleanEmail {
+		if strings.ReplaceAll(u.NIP, " ", "") == cleanNIP || strings.ToLower(u.Email) == cleanEmail {
 			return u
 		}
 	}
@@ -166,16 +187,25 @@ func (r *UserRepository) Save(u *model.User) {
 	defer r.mu.Unlock()
 
 	if r.sqlDB != nil {
-		_, _ = r.sqlDB.Exec("UPDATE auth_users SET totp_enabled = $1, totp_secret = $2 WHERE id = $3 OR email = $4 OR nip = $5;", u.TotpEnabled, u.TotpSecret, u.ID, u.Email, u.NIP)
+		res, err := r.sqlDB.Exec("UPDATE auth_users SET totp_enabled = $1, totp_secret = $2 WHERE id = $3 OR LOWER(email) = LOWER($4) OR REPLACE(nip, ' ', '') = REPLACE($5, ' ', '');", u.TotpEnabled, u.TotpSecret, u.ID, u.Email, u.NIP)
+		if err != nil {
+			log.Printf("[Auth-Service Error] Failed to update auth_users DB: %v", err)
+		} else if n, _ := res.RowsAffected(); n > 0 {
+			log.Printf("[Auth-Service] Successfully persisted 2FA state (enabled=%v) in auth_users DB for user ID %d (%s)", u.TotpEnabled, u.ID, u.Email)
+		}
 	}
 	if r.sqlUserDB != nil {
-		_, _ = r.sqlUserDB.Exec("UPDATE users SET totp_enabled = $1, totp_secret = $2 WHERE id = $3 OR email = $4 OR nip = $5;", u.TotpEnabled, u.TotpSecret, u.ID, u.Email, u.NIP)
+		_, err := r.sqlUserDB.Exec("UPDATE users SET totp_enabled = $1, totp_secret = $2 WHERE id = $3 OR LOWER(email) = LOWER($4) OR REPLACE(nip, ' ', '') = REPLACE($5, ' ', '');", u.TotpEnabled, u.TotpSecret, u.ID, u.Email, u.NIP)
+		if err != nil {
+			log.Printf("[Auth-Service Error] Failed to update users DB: %v", err)
+		}
 	}
 
 	for i := range r.users {
-		if r.users[i].ID == u.ID {
+		if r.users[i].ID == u.ID || (u.Email != "" && strings.EqualFold(r.users[i].Email, u.Email)) {
 			r.users[i] = *u
 			r.saveDBLocked()
+			log.Printf("[Auth-Service] Saved user 2FA state to JSON file repository (enabled=%v) for %s", u.TotpEnabled, u.Email)
 			return
 		}
 	}

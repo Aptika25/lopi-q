@@ -8,7 +8,6 @@ import (
 	"math"
 	"net/http"
 	"strings"
-	"time"
 
 	"api-gateway/internal/client"
 	"api-gateway/internal/middleware"
@@ -79,6 +78,7 @@ func (h *AttendanceHTTPHandler) HandleAdminLocation(w http.ResponseWriter, r *ht
 			Latitude     float64 `json:"latitude"`
 			Longitude    float64 `json:"longitude"`
 			RadiusMeters float64 `json:"radius_meters"`
+			QRToken      string  `json:"qr_token"`
 		}
 		if err := json.Unmarshal(bodyBytes, &req); err != nil {
 			middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Payload JSON tidak valid: " + err.Error()})
@@ -103,9 +103,9 @@ func (h *AttendanceHTTPHandler) HandleAdminLocation(w http.ResponseWriter, r *ht
 			if req.RadiusMeters > 0 {
 				cfg.RadiusMeters = req.RadiusMeters
 			}
-
-			// Generate a new unique QR Code token automatically whenever location is updated
-			cfg.QRToken = fmt.Sprintf("LOPI-Q-POSKO-BULUKUMBA-%X", time.Now().UnixNano()%1000000)
+			if req.QRToken != "" {
+				cfg.QRToken = req.QRToken
+			}
 			updatedToken = cfg.QRToken
 			_ = stub.SaveLocationConfig(cfg)
 		}
@@ -138,9 +138,9 @@ func (h *AttendanceHTTPHandler) HandleClockIn(w http.ResponseWriter, r *http.Req
 	_ = json.NewDecoder(bytes.NewBuffer(bodyBytes)).Decode(&body)
 
 	posko, _ := h.attendanceSvc.GetPoskoQR(r.Context(), &attendanceProto.GetPoskoQRRequest{})
-	poskoLat := -5.5645
-	poskoLon := 120.1945
-	maxRad := 2.0
+	poskoLat := -5.5578602
+	poskoLon := 120.1937020
+	maxRad := 25.0
 	if posko != nil && posko.Latitude != 0 {
 		poskoLat = posko.Latitude
 		poskoLon = posko.Longitude
@@ -205,9 +205,9 @@ func (h *AttendanceHTTPHandler) HandleClockOut(w http.ResponseWriter, r *http.Re
 	_ = json.NewDecoder(bytes.NewBuffer(bodyBytes)).Decode(&body)
 
 	posko, _ := h.attendanceSvc.GetPoskoQR(r.Context(), &attendanceProto.GetPoskoQRRequest{})
-	poskoLat := -5.5645
-	poskoLon := 120.1945
-	maxRad := 2.0
+	poskoLat := -5.5578602
+	poskoLon := 120.1937020
+	maxRad := 25.0
 	if posko != nil && posko.Latitude != 0 {
 		poskoLat = posko.Latitude
 		poskoLon = posko.Longitude

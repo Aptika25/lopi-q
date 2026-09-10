@@ -68,9 +68,9 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, requiresAdmin: true, hideNavbarFooter: true },
   },
   {
-    path: '/admin/schedules',
-    name: 'AdminSchedules',
-    component: () => import('@/views/super-admin/SchedulesView.vue'),
+    path: '/admin/activities',
+    name: 'AdminActivities',
+    component: () => import('@/views/super-admin/ActivitiesView.vue'),
     meta: { requiresAuth: true, requiresAdmin: true, hideNavbarFooter: true },
   },
   {

@@ -1,0 +1,1 @@
+-- No default intern seeds

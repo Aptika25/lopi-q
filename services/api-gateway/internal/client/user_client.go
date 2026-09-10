@@ -54,32 +54,48 @@ func syncPostgresCreateUser(req *userProto.CreateUserRequest, passwordHash strin
 		dbHost = "postgres_apps"
 	}
 
-	// 1. Insert into auth_users in db_lopiq_auth
-	authConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_auth password=lopiqauthPassword@2k26# dbname=db_lopiq_auth sslmode=disable", dbHost)
-	if dbAuth, err := sql.Open("postgres", authConn); err == nil {
-		defer dbAuth.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		_, _ = dbAuth.ExecContext(ctx,
-			`INSERT INTO auth_users (nip, email, name, role, jabatan, unit_kerja, password, is_active)
-			 VALUES ($1, $2, $3, $4, $5, $6, $7, true)
-			 ON CONFLICT (email) DO UPDATE SET password=$7, role=$4, name=$3, jabatan=$5, unit_kerja=$6;`,
-			req.Nip, req.Email, req.Name, req.Role, req.Jabatan, req.UnitKerja, passwordHash,
-		)
+	cleanEmail := strings.ToLower(strings.TrimSpace(req.Email))
+
+	// 1. Insert/Update into auth_users in db_lopiq_auth / db_garda112_auth
+	for _, conn := range getAuthConnStrings(dbHost) {
+		if dbAuth, err := sql.Open("postgres", conn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			_, errIns := dbAuth.ExecContext(ctx,
+				`INSERT INTO auth_users (nip, email, name, role, jabatan, unit_kerja, password, is_active)
+				 VALUES ($1, $2, $3, $4, $5, $6, $7, true);`,
+				req.Nip, cleanEmail, req.Name, req.Role, req.Jabatan, req.UnitKerja, passwordHash,
+			)
+			if errIns != nil {
+				_, _ = dbAuth.ExecContext(ctx,
+					`UPDATE auth_users SET nip=$1, name=$3, role=$4, jabatan=$5, unit_kerja=$6, password=$7, is_active=true
+					 WHERE LOWER(email)=$2 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ',''));`,
+					req.Nip, cleanEmail, req.Name, req.Role, req.Jabatan, req.UnitKerja, passwordHash,
+				)
+			}
+			cancel()
+			dbAuth.Close()
+		}
 	}
 
-	// 2. Insert into users in db_lopiq_user
-	userConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_user password=lopiquserPassword@2k26# dbname=db_lopiq_user sslmode=disable", dbHost)
-	if dbUser, err := sql.Open("postgres", userConn); err == nil {
-		defer dbUser.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		_, _ = dbUser.ExecContext(ctx,
-			`INSERT INTO users (nip, email, name, role, jabatan, unit_kerja, password_hash, is_active)
-			 VALUES ($1, $2, $3, $4, $5, $6, $7, true)
-			 ON CONFLICT (email) DO UPDATE SET password_hash=$7, role=$4, name=$3, jabatan=$5, unit_kerja=$6;`,
-			req.Nip, req.Email, req.Name, req.Role, req.Jabatan, req.UnitKerja, passwordHash,
-		)
+	// 2. Insert/Update into users in db_lopiq_user / db_garda112_user
+	for _, conn := range getUserConnStrings(dbHost) {
+		if dbUser, err := sql.Open("postgres", conn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			_, errIns := dbUser.ExecContext(ctx,
+				`INSERT INTO users (nip, email, name, role, jabatan, unit_kerja, password_hash, is_active)
+				 VALUES ($1, $2, $3, $4, $5, $6, $7, true);`,
+				req.Nip, cleanEmail, req.Name, req.Role, req.Jabatan, req.UnitKerja, passwordHash,
+			)
+			if errIns != nil {
+				_, _ = dbUser.ExecContext(ctx,
+					`UPDATE users SET nip=$1, name=$3, role=$4, jabatan=$5, unit_kerja=$6, password_hash=$7, is_active=true
+					 WHERE LOWER(email)=$2 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ',''));`,
+					req.Nip, cleanEmail, req.Name, req.Role, req.Jabatan, req.UnitKerja, passwordHash,
+				)
+			}
+			cancel()
+			dbUser.Close()
+		}
 	}
 }
 
@@ -89,46 +105,48 @@ func syncPostgresUpdateUser(u *UserDataJSON) {
 		dbHost = "postgres_apps"
 	}
 
-	authConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_auth password=lopiqauthPassword@2k26# dbname=db_lopiq_auth sslmode=disable", dbHost)
-	if dbAuth, err := sql.Open("postgres", authConn); err == nil {
-		defer dbAuth.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		if u.PasswordHash != "" {
-			_, _ = dbAuth.ExecContext(ctx,
-				`UPDATE auth_users SET nip=$1, email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6, password=$7 WHERE id=$8 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ','')) OR email=$2;`,
-				u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.PasswordHash, u.ID,
-			)
-		} else {
-			_, _ = dbAuth.ExecContext(ctx,
-				`UPDATE auth_users SET nip=$1, email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6 WHERE id=$7 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ','')) OR email=$2;`,
-				u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.ID,
-			)
+	for _, authConn := range getAuthConnStrings(dbHost) {
+		if dbAuth, err := sql.Open("postgres", authConn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			if u.PasswordHash != "" {
+				_, _ = dbAuth.ExecContext(ctx,
+					`UPDATE auth_users SET nip=$1, email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6, password=$7 WHERE id=$8 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ','')) OR email=$2;`,
+					u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.PasswordHash, u.ID,
+				)
+			} else {
+				_, _ = dbAuth.ExecContext(ctx,
+					`UPDATE auth_users SET nip=$1, email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6 WHERE id=$7 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ','')) OR email=$2;`,
+					u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.ID,
+				)
+			}
+			cancel()
+			dbAuth.Close()
 		}
 	}
 
-	userConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_user password=lopiquserPassword@2k26# dbname=db_lopiq_user sslmode=disable", dbHost)
-	if dbUser, err := sql.Open("postgres", userConn); err == nil {
-		defer dbUser.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		if u.PasswordHash != "" {
-			_, _ = dbUser.ExecContext(ctx,
-				`UPDATE users SET nip=$1, email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6, password_hash=$7 WHERE id=$8 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ','')) OR email=$2;`,
-				u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.PasswordHash, u.ID,
-			)
-		} else {
-			_, _ = dbUser.ExecContext(ctx,
-				`UPDATE users SET nip=$1, email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6 WHERE id=$7 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ','')) OR email=$2;`,
-				u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.ID,
-			)
-		}
+	for _, userConn := range getUserConnStrings(dbHost) {
+		if dbUser, err := sql.Open("postgres", userConn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			if u.PasswordHash != "" {
+				_, _ = dbUser.ExecContext(ctx,
+					`UPDATE users SET nip=$1, email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6, password_hash=$7 WHERE id=$8 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ','')) OR email=$2;`,
+					u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.PasswordHash, u.ID,
+				)
+			} else {
+				_, _ = dbUser.ExecContext(ctx,
+					`UPDATE users SET nip=$1, email=$2, name=$3, role=$4, jabatan=$5, unit_kerja=$6 WHERE id=$7 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($1,' ','')) OR email=$2;`,
+					u.NIP, u.Email, u.Name, u.Role, u.Jabatan, u.UnitKerja, u.ID,
+				)
+			}
 
-		// Also update user_name in presensi_records so past/existing presensi records reflect the updated name!
-		_, _ = dbUser.ExecContext(ctx,
-			`UPDATE presensi_records SET user_name=$1 WHERE user_id=$2 OR (user_nip <> '' AND REPLACE(user_nip,' ','')=REPLACE($3,' ',''));`,
-			u.Name, u.ID, u.NIP,
-		)
+			// Also update user_name in presensi_records so past/existing presensi records reflect the updated name!
+			_, _ = dbUser.ExecContext(ctx,
+				`UPDATE presensi_records SET user_name=$1 WHERE user_id=$2 OR (user_nip <> '' AND REPLACE(user_nip,' ','')=REPLACE($3,' ',''));`,
+				u.Name, u.ID, u.NIP,
+			)
+			cancel()
+			dbUser.Close()
+		}
 	}
 }
 
@@ -139,20 +157,28 @@ func syncPostgresToggleActive(email, nip string, isActive bool) {
 		dbHost = "postgres_apps"
 	}
 
-	authConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_auth password=lopiqauthPassword@2k26# dbname=db_lopiq_auth sslmode=disable", dbHost)
-	if dbAuth, err := sql.Open("postgres", authConn); err == nil {
-		defer dbAuth.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		_, _ = dbAuth.ExecContext(ctx, `UPDATE auth_users SET is_active=$1 WHERE email=$2 OR nip=$3;`, isActive, email, nip)
+	for _, authConn := range getAuthConnStrings(dbHost) {
+		if dbAuth, err := sql.Open("postgres", authConn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			_, _ = dbAuth.ExecContext(ctx,
+				`UPDATE auth_users SET is_active=$1 WHERE email=$2 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($3,' ',''));`,
+				isActive, email, nip,
+			)
+			cancel()
+			dbAuth.Close()
+		}
 	}
 
-	userConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_user password=lopiquserPassword@2k26# dbname=db_lopiq_user sslmode=disable", dbHost)
-	if dbUser, err := sql.Open("postgres", userConn); err == nil {
-		defer dbUser.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		_, _ = dbUser.ExecContext(ctx, `UPDATE users SET is_active=$1 WHERE email=$2 OR nip=$3;`, isActive, email, nip)
+	for _, userConn := range getUserConnStrings(dbHost) {
+		if dbUser, err := sql.Open("postgres", userConn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			_, _ = dbUser.ExecContext(ctx,
+				`UPDATE users SET is_active=$1 WHERE email=$2 OR (nip <> '' AND REPLACE(nip,' ','')=REPLACE($3,' ',''));`,
+				isActive, email, nip,
+			)
+			cancel()
+			dbUser.Close()
+		}
 	}
 }
 
@@ -162,20 +188,25 @@ func syncPostgresReset2FA(email, nip string) {
 		dbHost = "postgres_apps"
 	}
 
-	authConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_auth password=lopiqauthPassword@2k26# dbname=db_lopiq_auth sslmode=disable", dbHost)
-	if dbAuth, err := sql.Open("postgres", authConn); err == nil {
-		defer dbAuth.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		_, _ = dbAuth.ExecContext(ctx, `UPDATE auth_users SET totp_enabled=false, totp_secret=NULL WHERE email=$1 OR nip=$2;`, email, nip)
+	cleanEmail := strings.ToLower(strings.TrimSpace(email))
+	cleanNIP := strings.ReplaceAll(nip, " ", "")
+
+	for _, conn := range getAuthConnStrings(dbHost) {
+		if dbAuth, err := sql.Open("postgres", conn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			_, _ = dbAuth.ExecContext(ctx, `UPDATE auth_users SET totp_enabled=false, totp_secret='' WHERE LOWER(email)=LOWER($1) OR (REPLACE(nip, ' ', '')=$2 AND $2 != '');`, cleanEmail, cleanNIP)
+			cancel()
+			dbAuth.Close()
+		}
 	}
 
-	userConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_user password=lopiquserPassword@2k26# dbname=db_lopiq_user sslmode=disable", dbHost)
-	if dbUser, err := sql.Open("postgres", userConn); err == nil {
-		defer dbUser.Close()
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		_, _ = dbUser.ExecContext(ctx, `UPDATE users SET totp_enabled=false, totp_secret=NULL WHERE email=$1 OR nip=$2;`, email, nip)
+	for _, conn := range getUserConnStrings(dbHost) {
+		if dbUser, err := sql.Open("postgres", conn); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			_, _ = dbUser.ExecContext(ctx, `UPDATE users SET totp_enabled=false, totp_secret='' WHERE LOWER(email)=LOWER($1) OR (REPLACE(nip, ' ', '')=$2 AND $2 != '');`, cleanEmail, cleanNIP)
+			cancel()
+			dbUser.Close()
+		}
 	}
 }
 
@@ -204,11 +235,11 @@ func (s *UserClientDirectStub) GetProfile(ctx context.Context, req *userProto.Ge
 		Success: true,
 		User: &userProto.User{
 			Id:        req.UserId,
-			Nip:       "199708192025061003",
+			Nip:       "199501012020011000",
 			Email:     "aswan@bulukumbakab.go.id",
-			Name:      "Muhammad Aswan, S.T.",
+			Name:      "Muhammad Aswan",
 			Role:      "superadmin",
-			Jabatan:   "JF Pranata Komputer Ahli Pertama",
+			Jabatan:   "HEAD OF DISKOMINFO",
 			UnitKerja: "Diskominfo Kab. Bulukumba",
 			IsActive:  true,
 		},
@@ -220,6 +251,51 @@ func (s *UserClientDirectStub) ListUsers(ctx context.Context, req *userProto.Lis
 	defer s.mu.Unlock()
 
 	users, _ := loadUsersJSON()
+
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		dbHost = "postgres_apps"
+	}
+
+	existingEmails := make(map[string]bool)
+	for _, u := range users {
+		existingEmails[strings.ToLower(u.Email)] = true
+	}
+
+	for _, conn := range getUserConnStrings(dbHost) {
+		if dbUser, err := sql.Open("postgres", conn); err == nil {
+			ctxQ, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			rows, errQ := dbUser.QueryContext(ctxQ, `SELECT id, nip, email, name, role, jabatan, unit_kerja, is_active FROM users;`)
+			if errQ == nil {
+				for rows.Next() {
+					var id int32
+					var nip, email, name, role, jabatan, unitKerja string
+					var isActive bool
+					if errS := rows.Scan(&id, &nip, &email, &name, &role, &jabatan, &unitKerja, &isActive); errS == nil {
+						cleanE := strings.ToLower(email)
+						if !existingEmails[cleanE] {
+							existingEmails[cleanE] = true
+							users = append(users, UserDataJSON{
+								ID:          int(id),
+								NIP:         nip,
+								Email:       email,
+								Name:        name,
+								Role:        role,
+								Jabatan:     jabatan,
+								UnitKerja:   unitKerja,
+								Permissions: []string{"submit_attendance"},
+								IsActive:    isActive,
+							})
+						}
+					}
+				}
+				rows.Close()
+			}
+			cancel()
+			dbUser.Close()
+		}
+	}
+
 	result := make([]*userProto.User, 0, len(users))
 	for i := range users {
 		result = append(result, s.toProtoUser(&users[i]))
@@ -236,17 +312,49 @@ func (s *UserClientDirectStub) CreateUser(ctx context.Context, req *userProto.Cr
 	defer s.mu.Unlock()
 
 	users, path := loadUsersJSON()
-	nextID := 1
-	for _, u := range users {
-		if u.ID >= nextID {
-			nextID = u.ID + 1
+
+	cleanEmail := strings.ToLower(strings.TrimSpace(req.Email))
+	cleanNIP := strings.ReplaceAll(req.Nip, " ", "")
+
+	var existingIdx = -1
+	for i := range users {
+		if strings.ToLower(users[i].Email) == cleanEmail || (cleanNIP != "" && strings.ReplaceAll(users[i].NIP, " ", "") == cleanNIP) {
+			existingIdx = i
+			break
 		}
 	}
 
 	hash, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	perms := req.Permissions
 	if perms == nil {
-		perms = []string{}
+		perms = []string{"submit_attendance"}
+	}
+
+	if existingIdx >= 0 {
+		users[existingIdx].Name = req.Name
+		users[existingIdx].NIP = req.Nip
+		users[existingIdx].Email = req.Email
+		users[existingIdx].Role = req.Role
+		users[existingIdx].Jabatan = req.Jabatan
+		users[existingIdx].UnitKerja = req.UnitKerja
+		users[existingIdx].PasswordHash = string(hash)
+		users[existingIdx].IsActive = true
+		saveUsersJSON(users, path)
+
+		syncPostgresCreateUser(req, string(hash))
+
+		return &userProto.UserResponse{
+			Success: true,
+			User:    s.toProtoUser(&users[existingIdx]),
+			Message: "Data akun peserta magang berhasil diperbarui.",
+		}, nil
+	}
+
+	nextID := 1
+	for _, u := range users {
+		if u.ID >= nextID {
+			nextID = u.ID + 1
+		}
 	}
 
 	newUser := UserDataJSON{
@@ -265,12 +373,12 @@ func (s *UserClientDirectStub) CreateUser(ctx context.Context, req *userProto.Cr
 	users = append(users, newUser)
 	saveUsersJSON(users, path)
 
-	go syncPostgresCreateUser(req, string(hash))
+	syncPostgresCreateUser(req, string(hash))
 
 	return &userProto.UserResponse{
 		Success: true,
 		User:    s.toProtoUser(&newUser),
-		Message: "User berhasil ditambahkan.",
+		Message: "Peserta magang berhasil ditambahkan.",
 	}, nil
 }
 
@@ -347,22 +455,26 @@ func (s *UserClientDirectStub) Reset2FA(ctx context.Context, req *userProto.Rese
 	defer s.mu.Unlock()
 
 	users, path := loadUsersJSON()
+	var targetEmail, targetNIP string
 	for i := range users {
 		if users[i].ID == int(req.Id) {
 			users[i].TotpEnabled = false
 			users[i].TotpSecret = ""
 			users[i].BackupCodes = nil
-			saveUsersJSON(users, path)
-			go syncPostgresReset2FA(users[i].Email, users[i].NIP)
-
-			return &userProto.Reset2FAResponse{
-				Success: true,
-				Message: "2FA berhasil direset.",
-			}, nil
+			targetEmail = users[i].Email
+			targetNIP = users[i].NIP
+			break
 		}
 	}
+	saveUsersJSON(users, path)
 
-	return &userProto.Reset2FAResponse{Success: false, Error: "User tidak ditemukan."}, nil
+	// Always sync reset to PostgreSQL database
+	syncPostgresReset2FA(targetEmail, targetNIP)
+
+	return &userProto.Reset2FAResponse{
+		Success: true,
+		Message: "Keamanan 2FA pengguna berhasil direset.",
+	}, nil
 }
 
 type ActivityLogItem struct {
@@ -409,7 +521,7 @@ func RecordActivityLog(userID int, userNIP, userName, action, details, ip, userA
 		dbHost = "postgres_apps"
 	}
 
-	authConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_auth password=lopiqauthPassword@2k26# dbname=db_lopiq_auth sslmode=disable", dbHost)
+	authConn := fmt.Sprintf("host=%s port=5432 user=user_garda112_auth password=garda112authPassword@2k26# dbname=db_garda112_auth sslmode=disable", dbHost)
 	go func() {
 		db, err := sql.Open("postgres", authConn)
 		if err != nil {
@@ -448,7 +560,7 @@ func (s *UserClientDirectStub) GetActivityLogs(ctx context.Context) ([]ActivityL
 	}
 
 	list := make([]ActivityLogItem, 0)
-	authConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_auth password=lopiqauthPassword@2k26# dbname=db_lopiq_auth sslmode=disable", dbHost)
+	authConn := fmt.Sprintf("host=%s port=5432 user=user_garda112_auth password=garda112authPassword@2k26# dbname=db_garda112_auth sslmode=disable", dbHost)
 	if dbAuth, err := sql.Open("postgres", authConn); err == nil {
 		defer dbAuth.Close()
 		queryCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
@@ -485,8 +597,8 @@ func (s *UserClientDirectStub) GetActivityLogs(ctx context.Context) ([]ActivityL
 		}
 	}
 
-	// Merge real presensi records from db_lopiq_user so presensi scans show up as activity logs
-	userConn := fmt.Sprintf("host=%s port=5432 user=user_lopiq_user password=lopiquserPassword@2k26# dbname=db_lopiq_user sslmode=disable", dbHost)
+	// Merge real presensi records from db_garda112_user so presensi scans show up as activity logs
+	userConn := fmt.Sprintf("host=%s port=5432 user=user_garda112_user password=garda112userPassword@2k26# dbname=db_garda112_user sslmode=disable", dbHost)
 	if dbUser, err := sql.Open("postgres", userConn); err == nil {
 		defer dbUser.Close()
 		queryCtx, cancel := context.WithTimeout(ctx, 3*time.Second)

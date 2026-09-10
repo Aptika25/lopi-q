@@ -113,7 +113,7 @@
                     min="0.5" 
                     max="500" 
                     required 
-                    @input="updateMapCircle"
+                    @input="handleRadiusChange"
                     class="w-full rounded-lg px-3 py-2 bg-white border border-[#F8BBD0] text-xs font-mono font-bold text-[#1b1c1c] pr-8 focus:outline-none focus:border-[#f06292] focus:ring-1 focus:ring-[#f06292]/30 transition-all"
                   />
                   <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#574146]">m</span>
@@ -160,7 +160,7 @@
           </div>
         </section>
 
-        <!-- RIGHT COLUMN: QR Management & Active Zones List (Span 5) -->
+        <!-- RIGHT COLUMN: QR Management (Span 5) -->
         <section class="lg:col-span-5 flex flex-col gap-6">
           
           <!-- Master Access QR Card -->
@@ -175,7 +175,7 @@
             </div>
 
             <div class="font-mono text-xs font-extrabold text-[#1b1c1c] tracking-wider mb-6 bg-[#f5f3f3] px-3 py-1.5 rounded-md border border-[#F8BBD0]">
-              {{ qrToken }}
+              PRESENSI MAGANG
             </div>
 
             <div class="flex gap-3 w-full px-2">
@@ -207,64 +207,6 @@
             </div>
           </div>
 
-          <!-- Active Locations / Zones List -->
-          <div class="bg-white/85 backdrop-blur-md rounded-xl p-6 border border-[#F8BBD0] shadow-[0px_10px_30px_rgba(240,98,146,0.05)] flex-1">
-            <h3 class="font-bold text-sm text-[#1b1c1c] mb-4">Active Zones</h3>
-            
-            <div class="overflow-x-auto w-full">
-              <table class="w-full text-left border-collapse">
-                <thead>
-                  <tr class="bg-[#FCE4EC] border-b border-[#F8BBD0]">
-                    <th class="py-2.5 px-4 text-[10px] font-bold text-[#574146] uppercase tracking-wider rounded-l-lg">Zone Name</th>
-                    <th class="py-2.5 px-4 text-[10px] font-bold text-[#574146] uppercase tracking-wider">Radius</th>
-                    <th class="py-2.5 px-4 text-[10px] font-bold text-[#574146] uppercase tracking-wider text-right rounded-r-lg">Status</th>
-                  </tr>
-                </thead>
-                <tbody class="text-xs text-[#1b1c1c] divide-y divide-[#F8BBD0]">
-                  <!-- Row 1 -->
-                  <tr class="hover:bg-[#FCE4EC]/30 transition-colors">
-                    <td class="px-4 py-3.5">
-                      <div class="font-bold text-[#1b1c1c]">Main Lobby</div>
-                      <div class="text-[10px] text-[#574146]">Posko Siaga NTPD 112 Bulukumba</div>
-                    </td>
-                    <td class="px-4 py-3.5 font-mono text-[#574146] font-bold">{{ radiusMeters }}m</td>
-                    <td class="px-4 py-3.5 text-right">
-                      <span class="bg-[#E8F5E9] text-[#1B5E20] text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full border border-[#A5D6A7]">
-                        Active
-                      </span>
-                    </td>
-                  </tr>
-                  <!-- Row 2 -->
-                  <tr class="hover:bg-[#FCE4EC]/30 transition-colors">
-                    <td class="px-4 py-3.5">
-                      <div class="font-bold text-[#1b1c1c]">North Wing</div>
-                      <div class="text-[10px] text-[#574146]">Building B - Diskominfo</div>
-                    </td>
-                    <td class="px-4 py-3.5 font-mono text-[#574146] font-bold">50m</td>
-                    <td class="px-4 py-3.5 text-right">
-                      <span class="bg-[#E8F5E9] text-[#1B5E20] text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full border border-[#A5D6A7]">
-                        Active
-                      </span>
-                    </td>
-                  </tr>
-                  <!-- Row 3 -->
-                  <tr class="hover:bg-[#FCE4EC]/30 transition-colors">
-                    <td class="px-4 py-3.5">
-                      <div class="font-bold text-[#1b1c1c]">Remote Site A</div>
-                      <div class="text-[10px] text-[#574146]">Posko Kecamatan Ujung Bulu</div>
-                    </td>
-                    <td class="px-4 py-3.5 font-mono text-[#574146] font-bold">200m</td>
-                    <td class="px-4 py-3.5 text-right">
-                      <span class="bg-[#FCE4EC] text-[#F06292] text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full border border-[#F8BBD0]">
-                        Inactive
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
         </section>
 
       </div>
@@ -281,12 +223,12 @@ import AdminLayout from '@/layouts/AdminLayout.vue'
 const API_BASE = '/api'
 
 // ===== STATE =====
-const poskoName = ref('Posko Siaga NTPD 112 Kabupaten Bulukumba')
-const poskoAddress = ref('Jl. Jend. Sudirman No. 1, Caile, Kec. Ujung Bulu, Kabupaten Bulukumba, Sulawesi Selatan')
-const latitude = ref(-5.5645)
-const longitude = ref(120.1945)
-const radiusMeters = ref(2.0)
-const qrToken = ref('LOPI-Q-POSKO-BULUKUMBA-2026-NTPD112')
+const poskoName = ref('POSKO SIAGA NTPD 112 KABUPATEN BULUKUMBA')
+const poskoAddress = ref('Gedung Pinisi Lt 3, JL. jend sudirman, bentengnge, kec. ujung bulu, kabupaten bulukumba, sulawesi selatan, 92511, indonesia.')
+const latitude = ref(-5.5578602)
+const longitude = ref(120.1937020)
+const radiusMeters = ref(25.0)
+const qrToken = ref('PRESENSI MAGANG')
 
 const gpsLoading = ref(false)
 const saveLoading = ref(false)
@@ -325,9 +267,18 @@ const fetchLocationConfig = async () => {
   }
 }
 
-const refreshQrToken = () => {
+const generateDynamicToken = () => {
   const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase()
-  qrToken.value = `LOPI-Q-POSKO-BULUKUMBA-2026-${randomSuffix}`
+  qrToken.value = `GARDA112-POSKO-BULUKUMBA-${randomSuffix}`
+}
+
+const handleRadiusChange = () => {
+  updateMapCircle()
+  generateDynamicToken()
+}
+
+const refreshQrToken = () => {
+  generateDynamicToken()
   showToast(true, 'Master Access QR berhasil di-refresh!')
 }
 
@@ -348,7 +299,7 @@ const initLeafletMap = () => {
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
-    attribution: '© OpenStreetMap'
+    attribution: 'Â© OpenStreetMap'
   }).addTo(mapInstance)
 
   markerInstance = L.marker([latitude.value, longitude.value], { draggable: true }).addTo(mapInstance)
@@ -388,14 +339,18 @@ const updateMapCircle = () => {
 const setRadiusPreset = (r: number) => {
   radiusMeters.value = r
   updateMapCircle()
+  generateDynamicToken()
 }
 
 const resetDefaultLocation = () => {
-  latitude.value = -5.5645
-  longitude.value = 120.1945
-  radiusMeters.value = 2.0
+  poskoName.value = 'POSKO SIAGA NTPD 112 KABUPATEN BULUKUMBA'
+  poskoAddress.value = 'Gedung Pinisi Lt 3, JL. jend sudirman, bentengnge, kec. ujung bulu, kabupaten bulukumba, sulawesi selatan, 92511, indonesia.'
+  latitude.value = -5.5578602
+  longitude.value = 120.1937020
+  radiusMeters.value = 25.0
+  generateDynamicToken()
   updateMapMarker()
-  showToast(true, 'Koordinat di-reset ke default Posko Bulukumba.')
+  showToast(true, 'Koordinat & konfigurasi di-reset ke Posko Siaga Garda 112 Bulukumba.')
 }
 
 const getCurrentLocation = () => {
@@ -439,16 +394,141 @@ const saveLocation = async () => {
   }
 }
 
-const downloadOfficialQrImage = () => {
+const downloadOfficialQrImage = async () => {
   downloadLoading.value = true
-  setTimeout(() => {
+  
+  try {
+    const canvas = document.createElement('canvas')
+    canvas.width = 1200
+    canvas.height = 1600
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Canvas context not available')
+
+    // 1. Background White
+    ctx.fillStyle = '#FFFFFF'
+    ctx.fillRect(0, 0, 1200, 1600)
+
+    // 2. Header Band (LOPI-Q Theme Gradient: #7a113d -> #ab2c5d -> #c44075)
+    const headerGrad = ctx.createLinearGradient(0, 0, 1200, 0)
+    headerGrad.addColorStop(0, '#7a113d')
+    headerGrad.addColorStop(0.5, '#ab2c5d')
+    headerGrad.addColorStop(1, '#c44075')
+    ctx.fillStyle = headerGrad
+    ctx.fillRect(0, 0, 1200, 180)
+
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+
+    // Judul Diperbesar: PEMERINTAH KABUPATEN BULUKUMBA
+    ctx.fillStyle = '#FFFFFF'
+    ctx.font = 'bold 34px "Segoe UI", Arial, sans-serif'
+    ctx.fillText('PEMERINTAH KABUPATEN BULUKUMBA', 600, 48)
+
+    // Sub Judul Diperbesar: DINAS KOMUNIKASI INFORMATIKA DAN PERSANDIAN
+    ctx.font = 'bold 24px "Segoe UI", Arial, sans-serif'
+    ctx.fillText('DINAS KOMUNIKASI INFORMATIKA DAN PERSANDIAN', 600, 96)
+
+    // Tulisan Kuning Diperbesar: PRESENSI PESERTA MAGANG
+    ctx.fillStyle = '#fbbf24'
+    ctx.font = 'bold 22px "Segoe UI", Arial, sans-serif'
+    ctx.fillText('PRESENSI PESERTA MAGANG', 600, 142)
+
+    // 3. Outer Card Border (Tema Warna Project LOPI-Q #F8BBD0)
+    ctx.strokeStyle = '#F8BBD0'
+    ctx.lineWidth = 3
+    ctx.strokeRect(40, 205, 1120, 1355)
+
+    // 4. Big Title above Barcode Diperbesar: LOPI-Q
+    ctx.fillStyle = '#1b1c1c'
+    ctx.font = 'bold 40px "Segoe UI", Arial, sans-serif'
+    ctx.fillText('LOPI-Q', 600, 252)
+
+    // Pengertian Diperbesar: (Logbook, Online Presence, and Internship Quality Management System)
+    ctx.fillStyle = '#574146'
+    ctx.font = 'bold 22px "Segoe UI", Arial, sans-serif'
+    ctx.fillText('(Logbook, Online Presence, and Internship Quality Management System)', 600, 296)
+
+    // Small Address Text Diperbesar
+    ctx.fillStyle = '#64748b'
+    ctx.font = '19px "Segoe UI", Arial, sans-serif'
+    ctx.fillText('Gedung Pinisi Lt 3, JL. jend sudirman, bentengnge, kec. ujung bulu, kabupaten bulukumba,', 600, 338)
+    ctx.fillText('sulawesi selatan, 92511, indonesia.', 600, 366)
+
+    // 5. Barcode Frame & Image
+    ctx.strokeStyle = '#e2e8f0'
+    ctx.lineWidth = 2.5
+    ctx.strokeRect(310, 405, 580, 580)
+
+    const qrImg = new Image()
+    qrImg.crossOrigin = 'anonymous'
+    
+    await new Promise((resolve) => {
+      qrImg.onload = () => {
+        ctx.drawImage(qrImg, 325, 420, 550, 550)
+        resolve(true)
+      }
+      qrImg.onerror = () => {
+        const fallbackImg = new Image()
+        fallbackImg.crossOrigin = 'anonymous'
+        fallbackImg.onload = () => {
+          ctx.drawImage(fallbackImg, 310, 405, 580, 580, 325, 420, 550, 550)
+          resolve(true)
+        }
+        fallbackImg.onerror = () => resolve(false)
+        fallbackImg.src = '/qr-posko-official.jpg'
+      }
+      qrImg.src = qrImageUrl.value
+    })
+
+    // 6. Below Barcode (Semua Tulisan Lain Diperbesar)
+    // Teks: BULUKUMBA-1702E
+    ctx.fillStyle = '#ab2c5d'
+    ctx.font = 'bold 34px Consolas, monospace'
+    ctx.fillText('BULUKUMBA-1702E', 600, 1030)
+
+    // Koordinat Diperbesar
+    ctx.fillStyle = '#1e293b'
+    ctx.font = 'bold 23px "Segoe UI", Arial, sans-serif'
+    ctx.fillText(`KOORDINAT: ${latitude.value.toFixed(7)}, ${longitude.value.toFixed(7)}`, 600, 1080)
+
+    // Batas Radius Geofence Diperbesar
+    ctx.fillStyle = '#059669'
+    ctx.font = 'bold 23px "Segoe UI", Arial, sans-serif'
+    ctx.fillText(`BATAS RADIUS GEOFENCE: ${radiusMeters.value} METER`, 600, 1122)
+
+    // Instruksi Diperbesar
+    ctx.fillStyle = '#64748b'
+    ctx.font = 'italic 20px "Segoe UI", Arial, sans-serif'
+    ctx.fillText('Scan QR Code ini menggunakan aplikasi LOPI-Q untuk melakukan presensi siaga.', 600, 1178)
+
+    // Footer Diperbesar: official generated by LOPI-Q • <Tanggal saat QR di download>
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+    const now = new Date()
+    const dateStr = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`
+    
+    ctx.fillStyle = '#94a3b8'
+    ctx.font = '18px "Segoe UI", Arial, sans-serif'
+    ctx.fillText(`Official Generated by LOPI-Q • ${dateStr}`, 600, 1235)
+
+    // Trigger download
     const link = document.createElement('a')
-    link.href = qrImageUrl.value
-    link.download = `Master_QR_LOPI-Q_${poskoName.value.replace(/\s+/g, '_')}.png`
+    link.href = canvas.toDataURL('image/jpeg', 0.98)
+    link.download = `QRIS_Presensi_LOPI-Q_Bulukumba_${dateStr.replace(/\s+/g, '_')}.jpg`
+    document.body.appendChild(link)
     link.click()
+    document.body.removeChild(link)
+    showToast(true, `Poster QRIS resmi LOPI-Q (${dateStr}) berhasil diunduh.`)
+  } catch (err) {
+    const link = document.createElement('a')
+    link.href = '/qr-posko-official.jpg?t=' + Date.now()
+    link.download = 'QRIS_Presensi_LOPI-Q_Bulukumba.jpg'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    showToast(true, 'Poster QRIS resmi berhasil diunduh.')
+  } finally {
     downloadLoading.value = false
-    showToast(true, 'QR Code resmi berhasil diunduh.')
-  }, 1000)
+  }
 }
 
 onMounted(async () => {
@@ -476,3 +556,4 @@ onMounted(async () => {
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 .material-symbols-outlined.fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 </style>
+

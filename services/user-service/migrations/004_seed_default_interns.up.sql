@@ -1,0 +1,1 @@
+-- No default intern seeds (seed only for super admin)

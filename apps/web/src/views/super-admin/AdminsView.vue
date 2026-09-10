@@ -1,19 +1,22 @@
-<template>
+﻿<template>
   <AdminLayout>
     <div class="flex flex-col gap-6 w-full select-none">
 
       <!-- Page Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/60 pb-5 w-full">
         <div>
-          <h2 class="font-display font-bold text-slate-900 text-base md:text-lg">Manajemen Akun Administrator</h2>
-          <p class="font-sans text-slate-500 mt-1 text-xs">Kelola akun Super Admin &amp; Admin Posko NTPD 112 Bulukumba beserta hak akses masing-masing.</p>
+          <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-primary text-[32px] fill">admin_panel_settings</span>
+            Administrator &amp; Pembimbing
+          </h1>
+          <p class="text-xs md:text-sm text-slate-500 mt-1 font-medium">Kelola data akun Super Admin dan Pembimbing Magang beserta wewenang hak akses sistem.</p>
         </div>
         <button
           v-if="authStore.isSuperAdmin"
           @click="openAddDialog"
-          class="w-full sm:w-auto py-2.5 px-4 bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer border-0"
+          class="w-full sm:w-auto py-2.5 px-4 bg-primary hover:bg-primary/90 text-on-primary font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer border-0 active:scale-95"
         >
-          <span class="material-symbols-outlined text-[16px]">person_add</span>
+          <span class="material-symbols-outlined text-[18px]">person_add</span>
           <span>Tambah Administrator</span>
         </button>
       </div>
@@ -154,12 +157,17 @@
                       >
                         <span class="material-symbols-outlined text-[16px]">lock_reset</span>
                       </button>
-                      <span v-if="!authStore.isSuperAdmin" class="text-slate-300 text-[10px] italic">—</span>
+                      <span v-if="!authStore.isSuperAdmin" class="text-slate-300 text-[10px] italic">â€”</span>
                     </div>
                   </td>
                 </tr>
                 <tr v-if="admins.length === 0">
-                  <td colspan="6" class="py-12 text-center text-slate-400 font-medium">Belum ada administrator terdaftar.</td>
+                  <td colspan="6" class="py-6 text-center">
+                    <div class="inline-flex items-center justify-center gap-1.5 text-xs text-slate-500 font-medium">
+                      <span class="material-symbols-outlined text-slate-400" style="font-size: 14px !important;">info</span>
+                      <span>Belum ada administrator atau pembimbing terdaftar.</span>
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -505,6 +513,9 @@ const triggerConfirm = (title: string, description: string, onConfirm: () => voi
 const loadAdmins = async () => {
   loading.value = true
   try {
+    if (!authStore.user) {
+      await authStore.fetchProfile()
+    }
     await authStore.fetchUsers()
     // Filter only superadmin & admin, sort primary superadmin first, then role hierarchy & name
     const roleOrder: Record<string, number> = { superadmin: 1, admin: 2 }
@@ -692,3 +703,9 @@ const submitForm = async () => {
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 .material-symbols-outlined.fill { font-variation-settings: 'FILL' 1; }
 </style>
+
+
+
+
+
+

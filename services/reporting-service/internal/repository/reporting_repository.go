@@ -31,20 +31,16 @@ func NewReportingRepository(db *sql.DB) ReportingRepository {
 }
 
 func (r *reportingRepository) initSeedData() {
-	r.memStore = []*model.AttendanceReport{
-		{ID: 1, UserID: 101, UserName: "Budi Santoso", UserNIP: "IN-301", Department: "Engineering", Date: "24 Okt 2023", ClockIn: "08:50 AM", ClockOut: "05:15 PM", TotalHours: "8h 25m", Status: "HADIR"},
-		{ID: 2, UserID: 102, UserName: "Siti Aminah", UserNIP: "IN-302", Department: "Design", Date: "24 Okt 2023", ClockIn: "09:15 AM", ClockOut: "06:00 PM", TotalHours: "8h 45m", Status: "TERLAMBAT"},
-		{ID: 3, UserID: 103, UserName: "Andi Wijaya", UserNIP: "IN-303", Department: "Marketing", Date: "24 Okt 2023", ClockIn: "--:--", ClockOut: "--:--", TotalHours: "0h 0m", Status: "ABSEN"},
-		{ID: 4, UserID: 104, UserName: "Rina Permata", UserNIP: "IN-304", Department: "Engineering", Date: "24 Okt 2023", ClockIn: "--:--", ClockOut: "--:--", TotalHours: "0h 0m", Status: "CUTI"},
-	}
+	// No dummy attendance reports
+	r.memStore = []*model.AttendanceReport{}
 }
 
 func (r *reportingRepository) GetAttendanceRecap(month, department, search string, limit int32) (*repProto.ReportingStats, []*model.AttendanceReport, error) {
 	stats := &repProto.ReportingStats{
-		TotalHadir:     4821,
-		PctTepatWaktu:  92,
-		TotalTerlambat: 312,
-		TotalAbsen:     84,
+		TotalHadir:     0,
+		PctTepatWaktu:  0,
+		TotalTerlambat: 0,
+		TotalAbsen:     0,
 	}
 
 	if r.db != nil {
