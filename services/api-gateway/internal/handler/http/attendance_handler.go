@@ -1,7 +1,6 @@
 package http
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -121,47 +120,107 @@ func (h *AttendanceHTTPHandler) HandleAdminLocation(w http.ResponseWriter, r *ht
 	http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 }
 
-func (h *AttendanceHTTPHandler) HandleClockIn(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("user_id").(int)
-	nip := r.Context().Value("nip").(string)
+type presensiScanRequest struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+	QRToken   string  `json:"qr_token"`
+}
 
-	userRes, _ := h.userSvc.GetProfile(r.Context(), &userProto.GetProfileRequest{UserId: int32(userID)})
-
-	bodyBytes, _ := io.ReadAll(r.Body)
-	r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-
-	var body struct {
-		Latitude  float64 `json:"latitude"`
-		Longitude float64 `json:"longitude"`
-		QRToken   string  `json:"qr_token"`
+// validatePresensiScan checks the scanned posko QR and the reported GPS position. On rejection it writes
+// the response itself and returns ok=false, so nothing is recorded.
+func (h *AttendanceHTTPHandler) validatePresensiScan(w http.ResponseWriter, r *http.Request, label string) (body presensiScanRequest, dist, maxRad float64, ok bool) {
+	if r.Method != http.MethodPost {
+		middleware.RespondJSON(w, http.StatusMethodNotAllowed, map[string]interface{}{"success": false, "error": "Method not allowed"})
+		return
 	}
-	_ = json.NewDecoder(bytes.NewBuffer(bodyBytes)).Decode(&body)
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Payload presensi tidak valid."})
+		return
+	}
+	if body.Latitude == 0 && body.Longitude == 0 {
+		middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Lokasi GPS tidak terdeteksi. Aktifkan GPS dan izin lokasi, lalu coba lagi."})
+		return
+	}
 
 	posko, _ := h.attendanceSvc.GetPoskoQR(r.Context(), &attendanceProto.GetPoskoQRRequest{})
 	poskoLat := -5.5578602
 	poskoLon := 120.1937020
-	maxRad := 25.0
-	if posko != nil && posko.Latitude != 0 {
-		poskoLat = posko.Latitude
-		poskoLon = posko.Longitude
-		maxRad = posko.MaxRadiusMeters
+	maxRad = 25.0
+	expectedToken := ""
+	if posko != nil {
+		expectedToken = strings.TrimSpace(posko.QrToken)
+		if posko.Latitude != 0 {
+			poskoLat = posko.Latitude
+			poskoLon = posko.Longitude
+			maxRad = posko.MaxRadiusMeters
+		}
 	}
 
-	dist := calculateHaversine(poskoLat, poskoLon, body.Latitude, body.Longitude)
+	if expectedToken == "" || strings.TrimSpace(body.QRToken) != expectedToken {
+		middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": "QR Code tidak valid. Scan QR Code presensi resmi yang terpasang di Posko."})
+		return
+	}
+
+	dist = calculateHaversine(poskoLat, poskoLon, body.Latitude, body.Longitude)
 	if dist > maxRad {
 		middleware.RespondJSON(w, http.StatusForbidden, map[string]interface{}{
 			"success":           false,
-			"error":             fmt.Sprintf("Presensi Ditolak! Lokasi Anda berjarak %.2fm dari Posko 112 (Batas Radius <= %.1fm).", dist, maxRad),
+			"error":             fmt.Sprintf("%s Ditolak! Lokasi Anda berjarak %.2fm dari Posko 112 (Batas Radius <= %.1fm).", label, dist, maxRad),
 			"distance_meters":   dist,
 			"max_radius_meters": maxRad,
 		})
 		return
 	}
+	ok = true
+	return
+}
 
-	name := "Call Taker"
-	if userRes != nil && userRes.User != nil {
-		name = userRes.User.Name
+func (h *AttendanceHTTPHandler) presensiUserName(r *http.Request, userID int) string {
+	userRes, _ := h.userSvc.GetProfile(r.Context(), &userProto.GetProfileRequest{UserId: int32(userID)})
+	if userRes != nil && userRes.Success && userRes.User != nil && userRes.User.Name != "" {
+		return userRes.User.Name
 	}
+	return "Peserta Magang"
+}
+
+// respondPresensiResult maps the attendance service result to HTTP and logs successful scans.
+func respondPresensiResult(w http.ResponseWriter, r *http.Request, res *attendanceProto.AttendanceResponse, err error, userID int, nip, name string, dist, maxRad float64) {
+	if err != nil || res == nil {
+		errMsg := "Gagal menyimpan presensi ke database."
+		if err != nil {
+			errMsg = err.Error()
+		}
+		middleware.RespondJSON(w, http.StatusInternalServerError, map[string]interface{}{"success": false, "error": errMsg})
+		return
+	}
+	if !res.Success {
+		middleware.RespondJSON(w, http.StatusConflict, map[string]interface{}{"success": false, "error": res.Message})
+		return
+	}
+
+	recordType := "MASUK"
+	if res.Record != nil && res.Record.Type != "" {
+		recordType = res.Record.Type
+	}
+	client.RecordActivityLog(userID, nip, name, "PRESENSI_"+recordType+"_SCAN", fmt.Sprintf("Presensi %s via Scan QR Geofence Posko (Jarak: %.2fm)", recordType, dist), client.GetClientIP(r), r.UserAgent())
+
+	middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{
+		"success": true,
+		"type":    recordType,
+		"message": fmt.Sprintf("%s (Batas <= %.1fm).", strings.TrimSuffix(res.Message, "."), maxRad),
+		"record":  res.Record,
+	})
+}
+
+func (h *AttendanceHTTPHandler) HandleClockIn(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("user_id").(int)
+	nip, _ := r.Context().Value("nip").(string)
+
+	body, dist, maxRad, ok := h.validatePresensiScan(w, r, "Presensi")
+	if !ok {
+		return
+	}
+	name := h.presensiUserName(r, userID)
 
 	res, err := h.attendanceSvc.ClockIn(r.Context(), &attendanceProto.ClockInRequest{
 		UserId:    int32(userID),
@@ -171,59 +230,18 @@ func (h *AttendanceHTTPHandler) HandleClockIn(w http.ResponseWriter, r *http.Req
 		Longitude: body.Longitude,
 		QrToken:   body.QRToken,
 	})
-	if err != nil {
-		middleware.RespondJSON(w, http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
-		return
-	}
-
-	client.RecordActivityLog(userID, nip, name, "PRESENSI_MASUK_SCAN", fmt.Sprintf("Presensi MASUK Siaga Call Taker via Kamera Geofence Posko (Jarak: %.2fm)", dist), client.GetClientIP(r), r.UserAgent())
-
-	middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{
-		"success": true,
-		"message": fmt.Sprintf("Presensi MASUK Berhasil! Petugas: %s. Jarak: %.2fm (Batas <= %.1fm).", name, dist, maxRad),
-		"record":  res.Record,
-	})
+	respondPresensiResult(w, r, res, err, userID, nip, name, dist, maxRad)
 }
 
 func (h *AttendanceHTTPHandler) HandleClockOut(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("user_id").(int)
-	nip := r.Context().Value("nip").(string)
+	nip, _ := r.Context().Value("nip").(string)
 
-	userRes, _ := h.userSvc.GetProfile(r.Context(), &userProto.GetProfileRequest{UserId: int32(userID)})
-	name := "Call Taker"
-	if userRes != nil && userRes.User != nil {
-		name = userRes.User.Name
-	}
-
-	bodyBytes, _ := io.ReadAll(r.Body)
-	r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-
-	var body struct {
-		Latitude  float64 `json:"latitude"`
-		Longitude float64 `json:"longitude"`
-	}
-	_ = json.NewDecoder(bytes.NewBuffer(bodyBytes)).Decode(&body)
-
-	posko, _ := h.attendanceSvc.GetPoskoQR(r.Context(), &attendanceProto.GetPoskoQRRequest{})
-	poskoLat := -5.5578602
-	poskoLon := 120.1937020
-	maxRad := 25.0
-	if posko != nil && posko.Latitude != 0 {
-		poskoLat = posko.Latitude
-		poskoLon = posko.Longitude
-		maxRad = posko.MaxRadiusMeters
-	}
-
-	dist := calculateHaversine(poskoLat, poskoLon, body.Latitude, body.Longitude)
-	if dist > maxRad {
-		middleware.RespondJSON(w, http.StatusForbidden, map[string]interface{}{
-			"success":           false,
-			"error":             fmt.Sprintf("Presensi PULANG Ditolak! Lokasi Anda berjarak %.2fm dari Posko 112 (Batas Radius <= %.1fm).", dist, maxRad),
-			"distance_meters":   dist,
-			"max_radius_meters": maxRad,
-		})
+	body, dist, maxRad, ok := h.validatePresensiScan(w, r, "Presensi PULANG")
+	if !ok {
 		return
 	}
+	name := h.presensiUserName(r, userID)
 
 	res, err := h.attendanceSvc.ClockOut(r.Context(), &attendanceProto.ClockOutRequest{
 		UserId:    int32(userID),
@@ -232,18 +250,7 @@ func (h *AttendanceHTTPHandler) HandleClockOut(w http.ResponseWriter, r *http.Re
 		Latitude:  body.Latitude,
 		Longitude: body.Longitude,
 	})
-	if err != nil {
-		middleware.RespondJSON(w, http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
-		return
-	}
-
-	client.RecordActivityLog(userID, nip, name, "PRESENSI_PULANG_SCAN", fmt.Sprintf("Presensi PULANG Siaga Call Taker via Kamera Geofence Posko (Jarak: %.2fm)", dist), client.GetClientIP(r), r.UserAgent())
-
-	middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{
-		"success": true,
-		"message": fmt.Sprintf("Presensi PULANG Berhasil! Jarak: %.2fm (Batas <= %.1fm).", dist, maxRad),
-		"record":  res.Record,
-	})
+	respondPresensiResult(w, r, res, err, userID, nip, name, dist, maxRad)
 }
 
 func (h *AttendanceHTTPHandler) HandleGetHistory(w http.ResponseWriter, r *http.Request) {

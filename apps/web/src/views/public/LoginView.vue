@@ -48,7 +48,7 @@ const init2faSetup = async () => {
       totpSecret.value = data.secret
       qrCodeUrl.value = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.otpauth_url || '')}`
     } else {
-      setupError.value = 'Gagal menyiapkan data QR Code.'
+      setupError.value = authStore.error || 'Gagal menyiapkan data QR Code.'
     }
   } catch (err) {
     console.error(err)

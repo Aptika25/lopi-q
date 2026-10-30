@@ -79,9 +79,12 @@
             <video 
               ref="videoRef" 
               class="absolute inset-0 w-full h-full object-cover z-10" 
-              autoplay 
-              playsinline 
+              autoplay
+              muted
+              playsinline
             ></video>
+            <!-- Off-screen work area for the html5-qrcode fallback decoder -->
+            <div id="scan-fallback-decoder" class="hidden"></div>
 
             <!-- Animated Scanning Line -->
             <div class="absolute w-[80%] h-0.5 bg-[#f06292] rounded-full shadow-[0_0_8px_#f06292] scan-line z-20"></div>
@@ -266,15 +269,19 @@ const videoRef = ref<HTMLVideoElement | null>(null)
 const mediaStream = ref<MediaStream | null>(null)
 const scannedToken = ref('')
 
-const currentLat = ref<number | null>(-5.5578602)
-const currentLng = ref<number | null>(120.1937020)
+// null until the device reports a real GPS fix; never pre-filled with the posko coordinates
+const currentLat = ref<number | null>(null)
+const currentLng = ref<number | null>(null)
 const poskoLat = ref(-5.5578602)
 const poskoLng = ref(120.1937020)
 const maxRadius = ref(25.0)
-const poskoToken = ref('PRESENSI MAGANG')
+const poskoToken = ref('')
 const gpsLoading = ref(false)
 
-let scanLoopId: number | null = null
+const hasBarcodeDetector = typeof window !== 'undefined' && 'BarcodeDetector' in window
+let barcodeDetector: any = null
+let fallbackDecoder: any = null
+let scanTimer: number | null = null
 let mapInstance: any = null
 let poskoMarker: any = null
 let userMarker: any = null
@@ -446,13 +453,14 @@ const startCamera = async () => {
     startScanLoop()
   } catch (err: any) {
     console.warn('Auto start camera error:', err.message)
+    showToast('KAMERA TIDAK AKTIF', 'Izinkan akses kamera di browser agar QR Code presensi dapat discan.', 'warning')
   }
 }
 
 const stopCamera = () => {
-  if (scanLoopId !== null) {
-    cancelAnimationFrame(scanLoopId)
-    scanLoopId = null
+  if (scanTimer !== null) {
+    clearTimeout(scanTimer)
+    scanTimer = null
   }
   if (mediaStream.value) {
     mediaStream.value.getTracks().forEach(track => track.stop())
@@ -460,46 +468,85 @@ const stopCamera = () => {
   }
 }
 
+const scheduleNextScan = (delayMs: number) => {
+  if (scanTimer !== null) clearTimeout(scanTimer)
+  scanTimer = null
+  if (isSuccessModalOpen.value || !mediaStream.value) return
+  scanTimer = window.setTimeout(startScanLoop, delayMs)
+}
+
+// BarcodeDetector is missing on iOS Safari, Firefox and desktop Chrome on Windows,
+// so those browsers decode a snapshot of the video frame with html5-qrcode instead.
+const detectQrValue = async (): Promise<string | null> => {
+  const video = videoRef.value
+  if (!video || video.readyState < 2 || !video.videoWidth) return null
+
+  if (hasBarcodeDetector) {
+    try {
+      if (!barcodeDetector) barcodeDetector = new (window as any).BarcodeDetector({ formats: ['qr_code'] })
+      const barcodes = await barcodeDetector.detect(video)
+      return barcodes && barcodes.length > 0 ? barcodes[0].rawValue : null
+    } catch (e) {
+      return null
+    }
+  }
+
+  try {
+    if (!fallbackDecoder) {
+      const { Html5Qrcode } = await import('html5-qrcode')
+      fallbackDecoder = new Html5Qrcode('scan-fallback-decoder', false)
+    }
+    const canvas = document.createElement('canvas')
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height)
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9))
+    if (!blob) return null
+    return await fallbackDecoder.scanFile(new File([blob], 'frame.jpg', { type: 'image/jpeg' }), false)
+  } catch (e) {
+    return null
+  }
+}
+
 const startScanLoop = async () => {
+  scanTimer = null
   if (!videoRef.value || isSuccessModalOpen.value || loading.value) return
 
-  if ('BarcodeDetector' in window) {
-    try {
-      const barcodeDetector = new (window as any).BarcodeDetector({ formats: ['qr_code'] })
-      const barcodes = await barcodeDetector.detect(videoRef.value)
-      if (barcodes && barcodes.length > 0) {
-        scannedToken.value = barcodes[0].rawValue
-        submitScanPresensi()
-        return
-      }
-    } catch (e) {}
+  const value = await detectQrValue()
+  if (value) {
+    scannedToken.value = value.trim()
+    await submitScanPresensi()
+    // Pause after a rejected scan so the same QR does not flood the server with requests
+    scheduleNextScan(3000)
+    return
   }
 
-  if (!isSuccessModalOpen.value) {
-    scanLoopId = requestAnimationFrame(startScanLoop)
-  }
+  scheduleNextScan(hasBarcodeDetector ? 200 : 500)
 }
 
 // ===== GEOLOCATION =====
 const getGeolocation = () => {
-  if ('geolocation' in navigator) {
-    gpsLoading.value = true
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        gpsLoading.value = false
-        currentLat.value = parseFloat(pos.coords.latitude.toFixed(7))
-        currentLng.value = parseFloat(pos.coords.longitude.toFixed(7))
-        updateMapVisuals()
-      },
-      () => {
-        gpsLoading.value = false
-        currentLat.value = -5.5578602
-        currentLng.value = 120.1937020
-        updateMapVisuals()
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    )
+  if (!('geolocation' in navigator)) {
+    showToast('GPS TIDAK DIDUKUNG', 'Perangkat / browser ini tidak mendukung GPS. Gunakan browser lain untuk presensi.', 'error')
+    return
   }
+  gpsLoading.value = true
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      gpsLoading.value = false
+      currentLat.value = parseFloat(pos.coords.latitude.toFixed(7))
+      currentLng.value = parseFloat(pos.coords.longitude.toFixed(7))
+      updateMapVisuals()
+    },
+    () => {
+      gpsLoading.value = false
+      currentLat.value = null
+      currentLng.value = null
+      updateMapVisuals()
+      showToast('GPS TIDAK AKTIF', 'Lokasi tidak terdeteksi. Aktifkan GPS dan izinkan akses lokasi, lalu tekan Refresh GPS.', 'warning')
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  )
 }
 
 const fetchPoskoInfo = async () => {
@@ -511,7 +558,7 @@ const fetchPoskoInfo = async () => {
       if (res.data.coordinates.max_radius_meters) maxRadius.value = res.data.coordinates.max_radius_meters
     }
     if (res.data && res.data.qr_token) {
-      poskoToken.value = res.data.qr_token
+      poskoToken.value = String(res.data.qr_token).trim()
     }
     updateMapVisuals()
   } catch (e) {}
@@ -522,7 +569,18 @@ const submitScanPresensi = async () => {
   if (loading.value || isSuccessModalOpen.value) return
 
   if (autoDetectedMode.value === 'SELESAI') {
-    showToast('PRESENSI SELESAI', 'Anda telah menyelesaikan presensi Masuk & Pulang untuk siaga hari ini.', 'warning')
+    showToast('PRESENSI SELESAI', 'Anda telah menyelesaikan presensi Masuk & Pulang untuk hari ini.', 'warning')
+    return
+  }
+
+  if (poskoToken.value && scannedToken.value !== poskoToken.value) {
+    showToast('QR TIDAK DIKENALI', 'QR Code ini bukan QR presensi resmi Posko. Scan QR yang terpasang di lokasi.', 'error')
+    return
+  }
+
+  if (currentLat.value === null || currentLng.value === null) {
+    showToast('GPS BELUM SIAP', 'Lokasi Anda belum terdeteksi. Aktifkan GPS lalu tekan Refresh GPS.', 'warning')
+    getGeolocation()
     return
   }
 
@@ -531,20 +589,16 @@ const submitScanPresensi = async () => {
     return
   }
 
-  const token = scannedToken.value || poskoToken.value || 'PRESENSI MAGANG'
   loading.value = true
 
   try {
-    let res
     const mode = autoDetectedMode.value
-    if (mode === 'PULANG') {
-      res = await authStore.clockOut(currentLat.value || -5.5578602, currentLng.value || 120.1937020, token)
-    } else {
-      res = await authStore.clockIn(currentLat.value || -5.5578602, currentLng.value || 120.1937020, token)
-    }
+    const res = mode === 'PULANG'
+      ? await authStore.clockOut(currentLat.value, currentLng.value, scannedToken.value)
+      : await authStore.clockIn(currentLat.value, currentLng.value, scannedToken.value)
 
     if (res && res.success) {
-      const msg = res.message || `Presensi ${mode} Berhasil!`
+      const msg = res.message || `Presensi ${res.type || mode} Berhasil!`
       successMessage.value = msg
       showToast('PRESENSI BERHASIL', msg, 'success')
       isSuccessModalOpen.value = true
@@ -561,10 +615,16 @@ const submitScanPresensi = async () => {
         }
       }, 750)
     } else {
-      showToast('PRESENSI DITOLAK', res.error || 'Gagal verifikasi presensi.', 'error')
+      showToast('PRESENSI DITOLAK', res?.error || 'Gagal verifikasi presensi.', 'error')
     }
   } catch (err: any) {
-    showToast('KONEKSI GAGAL', err.response?.data?.error || 'Gagal terhubung ke server presensi.', 'error')
+    if (err.response) {
+      showToast('PRESENSI DITOLAK', err.response.data?.error || 'Presensi ditolak oleh server.', 'error')
+      // Keep the auto-detected mode in sync when the server says the state differs (e.g. already checked out)
+      await authStore.fetchTodayStatus()
+    } else {
+      showToast('KONEKSI GAGAL', 'Gagal terhubung ke server presensi. Periksa koneksi internet Anda.', 'error')
+    }
   } finally {
     loading.value = false
   }

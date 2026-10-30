@@ -37,7 +37,8 @@ func (h *UserHTTPHandler) HandleGetProfile(w http.ResponseWriter, r *http.Reques
 	userID := r.Context().Value("user_id").(int)
 	res, _ := h.userSvc.GetProfile(r.Context(), &userProto.GetProfileRequest{UserId: int32(userID)})
 	if !res.Success {
-		middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": res.Error})
+		// 401 so the web client drops a token that belongs to a deleted account
+		middleware.RespondJSON(w, http.StatusUnauthorized, map[string]interface{}{"success": false, "error": res.Error})
 		return
 	}
 	middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": true, "user": res.User})

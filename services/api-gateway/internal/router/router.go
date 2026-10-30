@@ -15,6 +15,7 @@ func NewRouter(authHandler *httpHandler.AuthHTTPHandler, userHandler *httpHandle
 	mux := http.NewServeMux()
 	cors := middleware.CORSHandler
 	authMw := middleware.AuthenticateMiddleware
+	adminMw := func(h http.HandlerFunc) http.HandlerFunc { return authMw(middleware.RequireAdmin(h)) }
 
 	// AUTH ENDPOINTS
 	mux.HandleFunc("/api/auth/login", cors(authHandler.HandleLogin))
@@ -26,16 +27,16 @@ func NewRouter(authHandler *httpHandler.AuthHTTPHandler, userHandler *httpHandle
 
 	// USER & ADMIN ENDPOINTS
 	mux.HandleFunc("/api/users/me", cors(authMw(userHandler.HandleGetProfile)))
-	mux.HandleFunc("/api/admin/users", cors(authMw(userHandler.HandleAdminUsers)))
-	mux.HandleFunc("/api/admin/users/", cors(authMw(userHandler.HandleAdminUserDetail)))
-	mux.HandleFunc("/api/admin/location", cors(authMw(attendanceHandler.HandleAdminLocation)))
-	mux.HandleFunc("/api/admin/schedules", cors(authMw(attendanceHandler.HandleAdminSchedules)))
-	mux.HandleFunc("/api/admin/leave-requests", cors(authMw(attendanceHandler.HandleLeaveRequests)))
-	mux.HandleFunc("/api/admin/presensi/cleanup-duplicates", cors(authMw(attendanceHandler.HandleCleanupDuplicates)))
-	mux.HandleFunc("/api/admin/presensi/manual-entry", cors(authMw(attendanceHandler.HandleAdminManualEntry)))
-	mux.HandleFunc("/api/admin/presensi/records/", cors(authMw(attendanceHandler.HandleDeleteRecord)))
-	mux.HandleFunc("/api/admin/activity-logs", cors(authMw(userHandler.HandleAdminActivityLogs)))
-	mux.HandleFunc("/api/admin/activities", cors(authMw(activityHandler.HandleActivities)))
+	mux.HandleFunc("/api/admin/users", cors(adminMw(userHandler.HandleAdminUsers)))
+	mux.HandleFunc("/api/admin/users/", cors(adminMw(userHandler.HandleAdminUserDetail)))
+	mux.HandleFunc("/api/admin/location", cors(adminMw(attendanceHandler.HandleAdminLocation)))
+	mux.HandleFunc("/api/admin/schedules", cors(adminMw(attendanceHandler.HandleAdminSchedules)))
+	mux.HandleFunc("/api/admin/leave-requests", cors(adminMw(attendanceHandler.HandleLeaveRequests)))
+	mux.HandleFunc("/api/admin/presensi/cleanup-duplicates", cors(adminMw(attendanceHandler.HandleCleanupDuplicates)))
+	mux.HandleFunc("/api/admin/presensi/manual-entry", cors(adminMw(attendanceHandler.HandleAdminManualEntry)))
+	mux.HandleFunc("/api/admin/presensi/records/", cors(adminMw(attendanceHandler.HandleDeleteRecord)))
+	mux.HandleFunc("/api/admin/activity-logs", cors(adminMw(userHandler.HandleAdminActivityLogs)))
+	mux.HandleFunc("/api/admin/activities", cors(adminMw(activityHandler.HandleActivities)))
 
 	// DAILY ACTIVITY LOGBOOK ENDPOINTS
 	mux.HandleFunc("/api/activities", cors(authMw(activityHandler.HandleActivities)))

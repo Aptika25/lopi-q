@@ -258,26 +258,8 @@ func (s *UserClientDirectStub) GetProfile(ctx context.Context, req *userProto.Ge
 		}
 	}
 
-	if len(users) > 0 {
-		return &userProto.UserResponse{
-			Success: true,
-			User:    s.toProtoUser(&users[0]),
-		}, nil
-	}
-
-	return &userProto.UserResponse{
-		Success: true,
-		User: &userProto.User{
-			Id:        req.UserId,
-			Nip:       "199501012020011000",
-			Email:     "aswan@bulukumbakab.go.id",
-			Name:      "Muhammad Aswan",
-			Role:      "superadmin",
-			Jabatan:   "HEAD OF DISKOMINFO",
-			UnitKerja: "Diskominfo Kab. Bulukumba",
-			IsActive:  true,
-		},
-	}, nil
+	// Never fall back to another account's profile: the caller would inherit that user's role.
+	return &userProto.UserResponse{Success: false, Error: "Pengguna tidak ditemukan."}, nil
 }
 
 func (s *UserClientDirectStub) ListUsers(ctx context.Context, req *userProto.ListUsersRequest) (*userProto.ListUsersResponse, error) {
