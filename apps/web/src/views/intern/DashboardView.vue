@@ -116,132 +116,68 @@
           </div>
         </section>
 
-        <!-- ===== 4. JURNAL KEGIATAN HARIAN ===== -->
+        <!-- ===== 4. JURNAL KEGIATAN HARIAN (hari ini) ===== -->
         <section class="space-y-2">
           <div class="flex items-center justify-between">
             <h3 class="text-base font-bold text-[#1b1c1c] flex items-center gap-2">
               <span class="material-symbols-outlined text-[#ab2c5d]">menu_book</span>
-              <span>Jurnal Kegiatan Harian</span>
+              <span>Jurnal Kegiatan Hari Ini</span>
             </h3>
-            <button 
-              @click="openAddNoteModal"
-              class="text-[#ab2c5d] hover:bg-[#FCE4EC] p-1.5 rounded-full transition-colors flex items-center justify-center border-0 bg-transparent cursor-pointer"
-              title="Tambah Catatan Jurnal"
+            <router-link
+              to="/intern/journal"
+              class="text-[#ab2c5d] hover:bg-[#FCE4EC] px-3 py-1.5 rounded-full transition-colors flex items-center gap-1 text-xs font-bold decoration-none"
+              title="Tambah / lihat jurnal kegiatan"
             >
-              <span class="material-symbols-outlined text-xl">edit_note</span>
-            </button>
+              <span class="material-symbols-outlined text-lg">edit_note</span>
+              <span>Isi Jurnal</span>
+            </router-link>
           </div>
 
           <div class="bg-white rounded-3xl border border-[#F8BBD0] shadow-sm overflow-hidden">
-            <div class="overflow-y-auto max-h-64">
-              <table class="w-full text-left border-collapse">
-                <thead class="bg-[#FFF5F8] sticky top-0 z-10 border-b border-[#F8BBD0]">
-                  <tr>
-                    <th class="p-3 text-[11px] font-bold text-[#ab2c5d] uppercase tracking-wider">Nama</th>
-                    <th class="p-3 text-[11px] font-bold text-[#ab2c5d] uppercase tracking-wider">Waktu</th>
-                    <th class="p-3 text-[11px] font-bold text-[#ab2c5d] uppercase tracking-wider">Kegiatan</th>
-                    <th class="p-3 text-[11px] font-bold text-[#ab2c5d] uppercase tracking-wider text-right w-16">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-[#F8BBD0]/40 text-xs">
-                  <tr v-for="(item, idx) in activityJournalList" :key="idx" class="hover:bg-[#FFF5F8]/50 transition-colors">
-                    <td class="p-3 font-bold text-[#1b1c1c]">{{ item.name }}</td>
-                    <td class="p-3 font-mono text-[#574146]">{{ item.time }}</td>
-                    <td class="p-3 text-[#1b1c1c] font-medium">{{ item.activity }}</td>
-                    <td class="p-3 text-right">
-                      <button 
-                        type="button" 
-                        @click="deleteJournalNote(idx)"
-                        title="Hapus Catatan Kegiatan"
-                        class="text-rose-400 hover:text-rose-600 hover:bg-rose-50 p-1.5 rounded-lg transition-colors border-0 bg-transparent cursor-pointer inline-flex items-center justify-center"
-                      >
-                        <span class="material-symbols-outlined text-base">delete</span>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr v-if="activityJournalList.length === 0">
-                    <td colspan="4" class="p-6 text-center text-[#8a7176] text-xs">
-                      Belum ada catatan jurnal kegiatan harian recorded.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div class="overflow-y-auto max-h-64 divide-y divide-[#F8BBD0]/40">
+              <router-link
+                v-for="item in todayJournal"
+                :key="item.id"
+                to="/intern/journal"
+                class="flex items-center gap-3 p-3 hover:bg-[#FFF5F8]/50 transition-colors decoration-none text-xs"
+              >
+                <span class="font-mono font-bold text-[#574146] w-12 shrink-0">{{ item.activity_time }}</span>
+                <span class="flex-1 min-w-0 text-[#1b1c1c] font-medium truncate">{{ item.title }}</span>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase border whitespace-nowrap" :class="journalStatusMeta[item.status]?.badge">
+                  {{ journalStatusMeta[item.status]?.label }}
+                </span>
+              </router-link>
+              <div v-if="todayJournal.length === 0" class="p-6 text-center text-[#8a7176] text-xs">
+                Belum ada kegiatan hari ini. Tekan <strong>Isi Jurnal</strong> untuk mencatat kegiatan beserta bukti dukung.
+              </div>
             </div>
           </div>
         </section>
 
       </main>
     </div>
-
-    <!-- ===== MODAL TAMBAH CATATAN JURNAL ===== -->
-    <transition name="fade">
-      <div v-if="showNoteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs" @click.self="showNoteModal = false">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 border border-[#F8BBD0] shadow-2xl space-y-4">
-          <div class="flex items-center justify-between border-b border-[#F8BBD0]/60 pb-3">
-            <h3 class="font-bold text-base text-[#1b1c1c] flex items-center gap-2">
-              <span class="material-symbols-outlined text-[#ab2c5d]">edit_note</span>
-              <span>Tambah Catatan Jurnal Harian</span>
-            </h3>
-            <button @click="showNoteModal = false" class="text-slate-400 hover:text-slate-600 border-0 bg-transparent cursor-pointer">
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          </div>
-
-          <form @submit.prevent="addJournalNote" class="space-y-4 text-xs">
-            <div class="space-y-1">
-              <label class="font-bold text-[#574146]">Uraian Kegiatan / Task <span class="text-rose-500">*</span></label>
-              <input v-model="newJournalNote" type="text" required placeholder="Contoh: Input laporan harian & kirim rekap presensi" class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-xl focus:outline-none focus:border-[#f06292]" />
-            </div>
-
-            <div class="flex justify-end gap-3 pt-2">
-              <button type="button" @click="showNoteModal = false" class="px-4 py-2 border border-[#ddbfc5] rounded-xl font-bold text-[#574146] bg-white cursor-pointer hover:bg-slate-50">Batal</button>
-              <button type="submit" class="px-5 py-2 bg-[#ab2c5d] hover:bg-[#881b47] text-white rounded-xl font-bold border-0 cursor-pointer shadow-xs">
-                Simpan Catatan
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </transition>
   </InternLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import InternLayout from '@/layouts/InternLayout.vue'
+import { type JournalEntry, journalStatusMeta, todayWita } from '@/utils/journal'
 
 const authStore = useAuthStore()
 
-// State
-const showNoteModal = ref(false)
-const newJournalNote = ref('')
+// Today's journal entries, stored server-side so the pembimbing can review them
+const todayJournal = ref<JournalEntry[]>([])
 
-// Dynamic Jurnal Activity List persisted in localStorage
-const activityJournalList = ref<any[]>([])
-
-const loadJournalNotes = () => {
+const loadTodayJournal = async () => {
   try {
-    const key = `lopiq_journal_notes_${authStore.user?.nip || 'default'}`
-    const stored = localStorage.getItem(key)
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      if (Array.isArray(parsed)) {
-        activityJournalList.value = parsed
-        return
-      }
-    }
-  } catch (e) {}
-  
-  // Default to empty list
-  activityJournalList.value = []
-}
-
-const saveJournalNotes = () => {
-  try {
-    const key = `lopiq_journal_notes_${authStore.user?.nip || 'default'}`
-    localStorage.setItem(key, JSON.stringify(activityJournalList.value))
-  } catch (e) {}
+    const res = await axios.get('/api/journal', { params: { date: todayWita() } })
+    todayJournal.value = res.data.entries || []
+  } catch (e) {
+    todayJournal.value = []
+  }
 }
 
 // Computeds
@@ -289,37 +225,11 @@ const formatTime = (ts: string) => {
   }
 }
 
-const openAddNoteModal = () => {
-  newJournalNote.value = ''
-  showNoteModal.value = true
-}
-
-const addJournalNote = () => {
-  if (!newJournalNote.value.trim()) return
-  const now = new Date()
-  const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-  
-  activityJournalList.value.unshift({
-    name: userFirstName.value,
-    time: timeStr,
-    activity: newJournalNote.value.trim()
-  })
-
-  saveJournalNotes()
-  showNoteModal.value = false
-  newJournalNote.value = ''
-}
-
-const deleteJournalNote = (index: number) => {
-  activityJournalList.value.splice(index, 1)
-  saveJournalNotes()
-}
-
 onMounted(async () => {     
   await authStore.fetchProfile()
   await authStore.fetchTodayStatus()
   await authStore.fetchHistory()
-  loadJournalNotes()
+  await loadTodayJournal()
 })
 </script>
 

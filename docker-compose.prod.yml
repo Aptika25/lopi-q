@@ -212,6 +212,12 @@ services:
       - USER_DB_USER=user_lopiq_user
       - USER_DB_PASSWORD=lopiquserPassword@2k26#
       - USER_DB_NAME=db_lopiq_user
+      - ATTENDANCE_DB_USER=user_lopiq_attendance
+      - ATTENDANCE_DB_PASSWORD=lopiqattendancePassword@2k26#
+      - ATTENDANCE_DB_NAME=db_lopiq_attendance
+      # Root account on postgres_apps; set SUPER_ADMIN_DB_PASSWORD in the untracked .env next to this file
+      - SUPER_ADMIN_DB_USER=${SUPER_ADMIN_DB_USER:-super_admin_apps}
+      - SUPER_ADMIN_DB_PASSWORD=${SUPER_ADMIN_DB_PASSWORD:-}
     restart: always
     networks:
       - lopiq-network

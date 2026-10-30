@@ -40,31 +40,15 @@ type AttendanceClientDirectStub struct {
 }
 
 func getPostgresDB(dbHost string) (*sql.DB, error) {
-	// 1. Try db_lopi-q_presensi with super_admin_apps
-	connSuper := fmt.Sprintf("host=%s port=5432 user='super_admin_apps' password='SuperAdminApps@2k26#' dbname='db_lopiq_attendance' sslmode=disable", dbHost)
-	if db, err := sql.Open("postgres", connSuper); err == nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-		defer cancel()
-		if err := db.PingContext(ctx); err == nil {
-			return db, nil
-		}
-		db.Close()
+	att := attendanceDBCreds()
+	conns := buildConnStrings(att)
+	// Legacy last resort kept from the previous implementation: the auth database (via the super admin
+	// account) may already hold presensi records written while the attendance database was unreachable.
+	if superPass := envOr([]string{"SUPER_ADMIN_DB_PASSWORD"}, ""); superPass != "" {
+		superUser := envOr([]string{"SUPER_ADMIN_DB_USER"}, "super_admin_apps")
+		conns = append(conns, connString(dbHost, dbCreds{user: superUser, pass: superPass, name: authDBCreds().name}))
 	}
-
-	// 2. Try db_lopi-q_presensi with user_lopi-q_presensi
-	connUser := fmt.Sprintf("host=%s port=5432 user='user_lopiq_attendance' password='lopiqattendancePassword@2k26#' dbname='db_lopiq_attendance' sslmode=disable", dbHost)
-	if db, err := sql.Open("postgres", connUser); err == nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-		defer cancel()
-		if err := db.PingContext(ctx); err == nil {
-			return db, nil
-		}
-		db.Close()
-	}
-
-	// 3. Fallback to db_lopiq_auth with super_admin_apps
-	connAuth := fmt.Sprintf("host=%s port=5432 user='super_admin_apps' password='SuperAdminApps@2k26#' dbname='db_lopiq_auth' sslmode=disable", dbHost)
-	return sql.Open("postgres", connAuth)
+	return openFirstReachable(att.name, conns)
 }
 
 func fetchPostgresLocationConfig() (LocationConfig, bool) {

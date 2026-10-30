@@ -73,6 +73,9 @@ type UserDataJSON struct {
 	TotpSecret   string   `json:"totp_secret,omitempty"`
 	BackupCodes  []string `json:"backup_codes,omitempty"`
 	IsActive     bool     `json:"is_active"`
+	// Internship period (YYYY-MM-DD), stored in auth_users.periode_mulai / periode_selesai
+	PeriodeMulai   string `json:"periode_mulai"`
+	PeriodeSelesai string `json:"periode_selesai"`
 }
 
 type AuthClientDirectStub struct {
@@ -115,101 +118,13 @@ func getSeedUsersJSON() []UserDataJSON {
 	return users
 }
 
+// getAuthConnStrings / getUserConnStrings keep their old signature; dbHost is already the first host candidate.
 func getAuthConnStrings(dbHost string) []string {
-	hosts := []string{dbHost, "postgres_apps", "localhost", "127.0.0.1", "host.docker.internal"}
-	envUser := os.Getenv("AUTH_DB_USER")
-	if envUser == "" {
-		envUser = os.Getenv("DB_USER")
-	}
-	if envUser == "" {
-		envUser = "user_lopiq_auth"
-	}
-
-	envPass := os.Getenv("AUTH_DB_PASSWORD")
-	if envPass == "" {
-		envPass = os.Getenv("DB_PASSWORD")
-	}
-	if envPass == "" {
-		envPass = "lopiqauthPassword@2k26#"
-	}
-
-	envDB := os.Getenv("AUTH_DB_NAME")
-	if envDB == "" {
-		envDB = os.Getenv("DB_NAME")
-	}
-	if envDB == "" {
-		envDB = "db_lopiq_auth"
-	}
-
-	var conns []string
-	seen := make(map[string]bool)
-	for _, h := range hosts {
-		if strings.TrimSpace(h) == "" {
-			continue
-		}
-		// Priority 1: Super admin apps root user (guaranteed to exist on postgres_apps)
-		cSuper := fmt.Sprintf("host=%s port=5432 user='super_admin_apps' password='SuperAdminApps@2k26#' dbname='%s' sslmode=disable", h, envDB)
-		if !seen[cSuper] {
-			conns = append(conns, cSuper)
-			seen[cSuper] = true
-		}
-		// Priority 2: Service specific user
-		if envPass != "" {
-			c := fmt.Sprintf("host=%s port=5432 user='%s' password='%s' dbname='%s' sslmode=disable", h, envUser, envPass, envDB)
-			if !seen[c] {
-				conns = append(conns, c)
-				seen[c] = true
-			}
-		}
-	}
-	return conns
+	return buildConnStrings(authDBCreds())
 }
 
 func getUserConnStrings(dbHost string) []string {
-	hosts := []string{dbHost, "postgres_apps", "localhost", "127.0.0.1", "host.docker.internal"}
-	envUser := os.Getenv("USER_DB_USER")
-	if envUser == "" {
-		envUser = os.Getenv("DB_USER")
-	}
-	if envUser == "" {
-		envUser = "user_lopiq_user"
-	}
-
-	envPass := os.Getenv("USER_DB_PASSWORD")
-	if envPass == "" {
-		envPass = os.Getenv("DB_PASSWORD")
-	}
-
-	envDB := os.Getenv("USER_DB_NAME")
-	if envDB == "" {
-		envDB = os.Getenv("DB_NAME")
-	}
-	if envDB == "" {
-		envDB = "db_lopiq_user"
-	}
-
-	var conns []string
-	seen := make(map[string]bool)
-	for _, h := range hosts {
-		if strings.TrimSpace(h) == "" {
-			continue
-		}
-		// Priority 1: Super admin apps root user (guaranteed to exist on postgres_apps)
-		cSuper := fmt.Sprintf("host=%s port=5432 user='super_admin_apps' password='SuperAdminApps@2k26#' dbname='%s' sslmode=disable", h, envDB)
-		if !seen[cSuper] {
-			conns = append(conns, cSuper)
-			seen[cSuper] = true
-		}
-		// Priority 2: Service specific user
-		if envPass != "" {
-			c := fmt.Sprintf("host=%s port=5432 user='%s' password='%s' dbname='%s' sslmode=disable", h, envUser, envPass, envDB)
-			if !seen[c] {
-				conns = append(conns, c)
-				seen[c] = true
-			}
-		}
-	}
-	return conns
+	return buildConnStrings(userDBCreds())
 }
 
 func fetchPostgresUsers() ([]UserDataJSON, bool) {
@@ -322,14 +237,16 @@ func fetchPostgresUsers() ([]UserDataJSON, bool) {
 				}
 			}
 			rows.Close()
+			mergeInternPeriods(ctx, db, loaded)
 			cancel()
 			db.Close()
 			if len(loaded) > 0 {
-				log.Printf("[fetchPostgresUsers Success] Loaded %d users from PostgreSQL (%s)", len(loaded), conn)
+				rememberGoodConn(authDBCreds().name, conn)
+				log.Printf("[fetchPostgresUsers Success] Loaded %d users from PostgreSQL", len(loaded))
 				break
 			}
 		} else {
-			log.Printf("[fetchPostgresUsers Error] %v on %s", err, conn)
+			log.Printf("[fetchPostgresUsers Error] %v", err)
 			cancel()
 			db.Close()
 		}

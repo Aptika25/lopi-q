@@ -59,7 +59,7 @@
         </div>
 
         <!-- Collapsible Menu Groups -->
-        <div v-for="group in menuGroups" :key="group.key" class="relative flex flex-col">
+        <div v-for="group in visibleMenuGroups" :key="group.key" class="relative flex flex-col">
           <!-- Collapsible Header Button -->
           <button
             @click="toggleGroup(group.key)"
@@ -257,11 +257,18 @@ const menuGroups = [
     title: 'Keamanan & Audit Sistem',
     icon: 'security',
     items: [
-      { to: '/admin/activity-logs', label: 'Log Audit Aktivitas', icon: 'history_toggle_off' },
+      { to: '/admin/activity-logs', label: 'Log Audit Aktivitas', icon: 'history_toggle_off', superOnly: true },
       { to: '/admin/security', label: 'Konfigurasi Keamanan & 2FA', icon: 'shield' }
     ]
   }
 ];
+
+// Super Admin-only pages are hidden for administrators / pembimbing (the API rejects them anyway)
+const visibleMenuGroups = computed(() =>
+  menuGroups
+    .map(group => ({ ...group, items: group.items.filter(item => !item.superOnly || authStore.isSuperAdmin) }))
+    .filter(group => group.items.length > 0)
+);
 
 // Expanded groups state
 const expandedGroups = ref({

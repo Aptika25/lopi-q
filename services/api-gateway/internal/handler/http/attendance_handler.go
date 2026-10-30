@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/http"
 	"strings"
+	"time"
 
 	"api-gateway/internal/client"
 	"api-gateway/internal/middleware"
@@ -66,6 +67,11 @@ func (h *AttendanceHTTPHandler) HandleAdminLocation(w http.ResponseWriter, r *ht
 	}
 
 	if r.Method == http.MethodPut || r.Method == http.MethodPost {
+		// Moving the geofence or rotating the QR token affects every intern, so only the Super Admin may do it.
+		if !isSuperAdmin(r) {
+			middleware.RespondJSON(w, http.StatusForbidden, map[string]interface{}{"success": false, "error": "Hanya Super Admin yang dapat mengubah lokasi Posko dan QR Code presensi."})
+			return
+		}
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil || len(bodyBytes) == 0 {
 			middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Payload JSON kosong atau tidak valid."})
@@ -108,7 +114,7 @@ func (h *AttendanceHTTPHandler) HandleAdminLocation(w http.ResponseWriter, r *ht
 			updatedToken = cfg.QRToken
 			_ = stub.SaveLocationConfig(cfg)
 		}
-		client.RecordActivityLog(1, "199501012020011000", "Muhammad Aswan", "UPDATE_LOCATION_CONFIG", fmt.Sprintf("Admin memperbarui kordinat / radius Geofence Posko 112 [Lat: %.6f, Lon: %.6f, Radius: %.1fm]", req.Latitude, req.Longitude, req.RadiusMeters), client.GetClientIP(r), r.UserAgent())
+		logAdminAction(r, "UPDATE_LOCATION_CONFIG", fmt.Sprintf("Admin memperbarui kordinat / radius Geofence Posko 112 [Lat: %.6f, Lon: %.6f, Radius: %.1fm]", req.Latitude, req.Longitude, req.RadiusMeters))
 		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{
 			"success":  true,
 			"message":  "Pengaturan Lokasi Posko & Radius Geofence berhasil disimpan.",
@@ -347,17 +353,54 @@ func (h *AttendanceHTTPHandler) HandleAdminSchedules(w http.ResponseWriter, r *h
 			middleware.RespondJSON(w, http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
 			return
 		}
-		client.RecordActivityLog(1, "199501012020011000", "Muhammad Aswan", "UPDATE_SCHEDULE", "Super Admin menyimpan perubahan pembagian roster shift bulan ini", client.GetClientIP(r), r.UserAgent())
+		logAdminAction(r, "UPDATE_SCHEDULE", "Super Admin menyimpan perubahan pembagian roster shift bulan ini")
 		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": true, "message": "Jadwal shift berhasil disimpan."})
 		return
 	}
 	middleware.RespondJSON(w, http.StatusMethodNotAllowed, map[string]interface{}{"success": false, "error": "Method not allowed"})
 }
 
+// leaveRequestList normalises the stored JSONB document into a list of request objects.
+func leaveRequestList(raw interface{}) []map[string]interface{} {
+	list := []map[string]interface{}{}
+	items, _ := raw.([]interface{})
+	for _, it := range items {
+		if m, ok := it.(map[string]interface{}); ok {
+			list = append(list, m)
+		}
+	}
+	return list
+}
+
+// leaveRequestOwnedBy matches on user_id (set by the server since this fix) and falls back to NIP for older entries.
+func leaveRequestOwnedBy(item map[string]interface{}, userID int, nip string) bool {
+	if id, ok := item["user_id"].(float64); ok && int(id) == userID && userID > 0 {
+		return true
+	}
+	cleanNIP := strings.ReplaceAll(nip, " ", "")
+	itemNIP, _ := item["user_nip"].(string)
+	return cleanNIP != "" && strings.ReplaceAll(itemNIP, " ", "") == cleanNIP
+}
+
 func (h *AttendanceHTTPHandler) HandleLeaveRequests(w http.ResponseWriter, r *http.Request) {
 	stub := &client.AttendanceClientDirectStub{}
+	role := requestRole(r)
+	isAdmin := role == "admin" || role == "superadmin"
+	userID, _ := r.Context().Value("user_id").(int)
+	nip, _ := r.Context().Value("nip").(string)
+
 	if r.Method == http.MethodGet {
 		reqs := stub.GetLeaveRequests()
+		if !isAdmin {
+			// Interns only see their own submissions
+			own := []map[string]interface{}{}
+			for _, item := range leaveRequestList(reqs) {
+				if leaveRequestOwnedBy(item, userID, nip) {
+					own = append(own, item)
+				}
+			}
+			reqs = own
+		}
 		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": true, "requests": reqs})
 		return
 	}
@@ -372,14 +415,80 @@ func (h *AttendanceHTTPHandler) HandleLeaveRequests(w http.ResponseWriter, r *ht
 			middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": "JSON format error: " + err.Error()})
 			return
 		}
+		if _, ok := raw.([]interface{}); !ok {
+			middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Format daftar pengajuan tidak valid."})
+			return
+		}
+
+		if !isAdmin {
+			// An intern may only add new requests of their own. Everything already stored (other interns'
+			// requests and admin decisions) is kept exactly as is.
+			existing := leaveRequestList(stub.GetLeaveRequests())
+			knownIDs := map[string]bool{}
+			for _, item := range existing {
+				knownIDs[fmt.Sprint(item["id"])] = true
+			}
+			name := h.presensiUserName(r, userID)
+			added := []interface{}{}
+			for i, item := range leaveRequestList(raw) {
+				if knownIDs[fmt.Sprint(item["id"])] {
+					continue
+				}
+				category, _ := item["category"].(string)
+				if category != "IZIN" && category != "SAKIT" {
+					continue
+				}
+				shiftDate, _ := item["shift_date"].(string)
+				reason, _ := item["reason"].(string)
+				if strings.TrimSpace(shiftDate) == "" || strings.TrimSpace(reason) == "" {
+					continue
+				}
+				now := time.Now()
+				displayNIP := nip
+				if displayNIP == "" {
+					displayNIP = "-"
+				}
+				added = append(added, map[string]interface{}{
+					"id":         now.UnixMilli() + int64(i),
+					"created_at": now.In(witaLocation()).Format("2006-01-02 15:04"),
+					"user_id":    userID,
+					"user_name":  name,
+					"user_nip":   displayNIP,
+					"category":   category,
+					"shift_date": shiftDate,
+					"reason":     strings.TrimSpace(reason),
+					"status":     "PENDING",
+				})
+			}
+			if len(added) == 0 {
+				middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Tidak ada pengajuan baru yang valid untuk disimpan."})
+				return
+			}
+			merged := added
+			for _, item := range existing {
+				merged = append(merged, item)
+			}
+			raw = merged
+		}
+
 		if err := stub.SaveLeaveRequests(raw); err != nil {
 			middleware.RespondJSON(w, http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
 			return
+		}
+		if isAdmin {
+			logAdminAction(r, "UPDATE_LEAVE_REQUESTS", "Admin memperbarui status pengajuan izin / sakit peserta magang")
 		}
 		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": true, "message": "Pengajuan berhasil disimpan."})
 		return
 	}
 	middleware.RespondJSON(w, http.StatusMethodNotAllowed, map[string]interface{}{"success": false, "error": "Method not allowed"})
+}
+
+func witaLocation() *time.Location {
+	if loc, err := time.LoadLocation("Asia/Makassar"); err == nil {
+		return loc
+	}
+	return time.FixedZone("WITA", 8*3600)
 }
 
 func (h *AttendanceHTTPHandler) HandleCleanupDuplicates(w http.ResponseWriter, r *http.Request) {
@@ -419,7 +528,7 @@ func (h *AttendanceHTTPHandler) HandleDeleteRecord(w http.ResponseWriter, r *htt
 		middleware.RespondJSON(w, http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
 		return
 	}
-	client.RecordActivityLog(1, "199501012020011000", "Muhammad Aswan", "DELETE_ATTENDANCE_RECORD", fmt.Sprintf("Admin menghapus record presensi ID #%d dari database", id), client.GetClientIP(r), r.UserAgent())
+	logAdminAction(r, "DELETE_ATTENDANCE_RECORD", fmt.Sprintf("Admin menghapus record presensi ID #%d dari database", id))
 	middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{
 		"success": true,
 		"message": fmt.Sprintf("Record presensi ID #%d berhasil dihapus dari database PostgreSQL.", id),
@@ -445,7 +554,7 @@ func (h *AttendanceHTTPHandler) HandleAdminManualEntry(w http.ResponseWriter, r 
 		middleware.RespondJSON(w, http.StatusInternalServerError, map[string]interface{}{"success": false, "error": err.Error()})
 		return
 	}
-	client.RecordActivityLog(1, "199501012020011000", "Muhammad Aswan", "MANUAL_ATTENDANCE_ENTRY", fmt.Sprintf("Admin menyimpan perubahan presensi manual petugas %s (NIP: %s) tanggal %s [Status: %s, Masuk: %s, Pulang: %s]", req.Name, req.NIP, req.Date, req.Status, req.TimeMasuk, req.TimePulang), client.GetClientIP(r), r.UserAgent())
+	logAdminAction(r, "MANUAL_ATTENDANCE_ENTRY", fmt.Sprintf("Admin menyimpan perubahan presensi manual petugas %s (NIP: %s) tanggal %s [Status: %s, Masuk: %s, Pulang: %s]", req.Name, req.NIP, req.Date, req.Status, req.TimeMasuk, req.TimePulang))
 	middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{
 		"success": true,
 		"message": fmt.Sprintf("Presensi %s pada tanggal %s berhasil di-update manual oleh Admin.", req.Name, req.Date),

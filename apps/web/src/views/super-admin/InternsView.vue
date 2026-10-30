@@ -108,6 +108,10 @@
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[#FCE4EC] text-[#F06292] border border-[#F06292]/20 mt-0.5">
                       INTERN
                     </span>
+                    <div v-if="ct.periode_mulai || ct.periode_selesai" class="flex items-center gap-1 text-[10px] font-semibold text-[#574146] mt-1 normal-case">
+                      <span class="material-symbols-outlined text-xs text-[#f06292]">date_range</span>
+                      <span>{{ formatPeriodDate(ct.periode_mulai) }} &ndash; {{ formatPeriodDate(ct.periode_selesai) }}</span>
+                    </div>
                   </td>
 
                   <!-- Status 2FA Badge -->
@@ -256,6 +260,21 @@
               <input v-model="form.jabatan" type="text" placeholder="Contoh: SMK Negeri 1 Bulukumba / Universitas Negeri Makassar" required class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292]" />
             </div>
 
+            <!-- Periode Magang -->
+            <div class="space-y-1">
+              <label class="font-bold text-[#574146] uppercase text-[10px]">Periode Magang</label>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <span class="block text-[10px] text-[#8a7176] mb-0.5">Tanggal Mulai</span>
+                  <input v-model="form.periode_mulai" type="date" class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292]" />
+                </div>
+                <div>
+                  <span class="block text-[10px] text-[#8a7176] mb-0.5">Tanggal Berakhir</span>
+                  <input v-model="form.periode_selesai" type="date" :min="form.periode_mulai || undefined" class="w-full px-3.5 py-2 border border-[#ddbfc5] rounded-lg focus:outline-none focus:border-[#f06292]" />
+                </div>
+              </div>
+            </div>
+
             <!-- Password Akses -->
             <div class="space-y-1">
               <label class="font-bold text-[#574146] uppercase text-[10px]">
@@ -340,7 +359,9 @@ const form = ref({
   email: '',
   unit_kerja: '',
   jabatan: '',
-  password: ''
+  password: '',
+  periode_mulai: '',
+  periode_selesai: ''
 })
 
 const toast = ref({ show: false, success: true, message: '' })
@@ -417,7 +438,9 @@ const openAddDialog = () => {
     email: '',
     unit_kerja: 'Rekayasa Perangkat Lunak',
     jabatan: 'SMK Negeri 1 Bulukumba',
-    password: ''
+    password: '',
+    periode_mulai: '',
+    periode_selesai: ''
   }
   dialogOpen.value = true
 }
@@ -433,9 +456,17 @@ const openEditDialog = (ct: any) => {
     email: ct.email,
     unit_kerja: ct.unit_kerja || 'Rekayasa Perangkat Lunak',
     jabatan: ct.jabatan || 'SMK Negeri 1 Bulukumba',
-    password: ''
+    password: '',
+    periode_mulai: ct.periode_mulai || '',
+    periode_selesai: ct.periode_selesai || ''
   }
   dialogOpen.value = true
+}
+
+const formatPeriodDate = (iso: string) => {
+  if (!iso) return '?'
+  const [y, m, d] = iso.split('-')
+  return `${d}/${m}/${y}`
 }
 
 const closeDialog = () => {
@@ -510,6 +541,9 @@ const submitForm = async () => {
 
   if (!form.value.name.trim()) { errorMessage.value = 'Nama lengkap wajib diisi.'; return }
   if (!form.value.nip.trim()) { errorMessage.value = 'NISN / NIM wajib diisi.'; return }
+  if (form.value.periode_mulai && form.value.periode_selesai && form.value.periode_selesai < form.value.periode_mulai) {
+    errorMessage.value = 'Tanggal berakhir magang tidak boleh sebelum tanggal mulai.'; return
+  }
   if (!isEdit.value) {
     if (!form.value.email || !form.value.password) { errorMessage.value = 'Gmail dan Password wajib diisi.'; return }
     if (form.value.password.length < 6) { errorMessage.value = 'Password minimal 6 karakter.'; return }
@@ -525,7 +559,9 @@ const submitForm = async () => {
         unit_kerja: form.value.unit_kerja.trim() || 'Rekayasa Perangkat Lunak',
         jabatan: form.value.jabatan.trim() || 'SMK Negeri 1 Bulukumba',
         role: 'intern',
-        password: form.value.password
+        password: form.value.password,
+        periode_mulai: form.value.periode_mulai,
+        periode_selesai: form.value.periode_selesai
       })
       if (res && res.success !== false) {
         showToast(true, `Data Peserta Magang ${form.value.name} berhasil diperbarui.`)
@@ -542,7 +578,9 @@ const submitForm = async () => {
         password: form.value.password,
         unit_kerja: form.value.unit_kerja.trim() || 'Rekayasa Perangkat Lunak',
         jabatan: form.value.jabatan.trim() || 'SMK Negeri 1 Bulukumba',
-        role: 'intern'
+        role: 'intern',
+        periode_mulai: form.value.periode_mulai,
+        periode_selesai: form.value.periode_selesai
       })
       if (res && res.success !== false) {
         // Instant optimism: push to local array and authStore

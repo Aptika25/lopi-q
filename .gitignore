@@ -34,3 +34,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# Root-level compose secrets (SUPER_ADMIN_DB_PASSWORD, ...)
+/.env

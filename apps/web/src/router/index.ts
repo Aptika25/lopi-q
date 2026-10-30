@@ -20,6 +20,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, hideNavbarFooter: true },
   },
   {
+    path: '/intern/journal',
+    name: 'InternJournal',
+    component: () => import('@/views/intern/JournalView.vue'),
+    meta: { requiresAuth: true, hideNavbarFooter: true },
+  },
+  {
     path: '/intern/history',
     name: 'InternHistory',
     component: () => import('@/views/intern/HistoryView.vue'),
@@ -89,7 +95,7 @@ const routes: RouteRecordRaw[] = [
     path: '/admin/activity-logs',
     name: 'AdminActivityLogs',
     component: () => import('@/views/super-admin/ActivityLogsView.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true, hideNavbarFooter: true },
+    meta: { requiresAuth: true, requiresAdmin: true, requiresSuperAdmin: true, hideNavbarFooter: true },
   },
   {
     path: '/admin/security',
@@ -120,6 +126,8 @@ router.beforeEach(async (to, _from, next) => {
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!isLoggedIn) {
       next({ name: 'Login' })
+    } else if (to.matched.some((record) => record.meta.requiresSuperAdmin) && !authStore.isSuperAdmin) {
+      next({ name: 'AdminDashboard' })
     } else if (to.matched.some((record) => record.meta.requiresAdmin) && !authStore.isAdmin) {
       next({ name: 'Home' })
     } else {

@@ -72,3 +72,15 @@ func RequireAdmin(next http.HandlerFunc) http.HandlerFunc {
 		next.ServeHTTP(w, r)
 	}
 }
+
+// RequireSuperAdmin must be wrapped by AuthenticateMiddleware; it only lets superadmin tokens through.
+func RequireSuperAdmin(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		role, _ := r.Context().Value("role").(string)
+		if r.Method != "OPTIONS" && role != "superadmin" {
+			RespondJSON(w, http.StatusForbidden, map[string]interface{}{"success": false, "error": "Akses ditolak. Endpoint ini hanya untuk Super Admin."})
+			return
+		}
+		next.ServeHTTP(w, r)
+	}
+}

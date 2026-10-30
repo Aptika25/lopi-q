@@ -3,17 +3,19 @@ package user
 import "context"
 
 type User struct {
-	Id          int32    `json:"id"`
-	Nip         string   `json:"nip"`
-	Email       string   `json:"email"`
-	Name        string   `json:"name"`
-	Role        string   `json:"role"`
-	Jabatan     string   `json:"jabatan"`
-	UnitKerja   string   `json:"unit_kerja"`
-	Permissions []string `json:"permissions"`
-	TotpEnabled bool     `json:"totp_enabled"`
-	IsActive    bool     `json:"is_active"`
-	CreatedAt   string   `json:"created_at"`
+	Id             int32    `json:"id"`
+	Nip            string   `json:"nip"`
+	Email          string   `json:"email"`
+	Name           string   `json:"name"`
+	Role           string   `json:"role"`
+	Jabatan        string   `json:"jabatan"`
+	UnitKerja      string   `json:"unit_kerja"`
+	Permissions    []string `json:"permissions"`
+	TotpEnabled    bool     `json:"totp_enabled"`
+	IsActive       bool     `json:"is_active"`
+	CreatedAt      string   `json:"created_at"`
+	PeriodeMulai   string   `json:"periode_mulai"`
+	PeriodeSelesai string   `json:"periode_selesai"`
 }
 
 type GetProfileRequest struct {
@@ -29,27 +31,31 @@ type ListUsersResponse struct {
 }
 
 type CreateUserRequest struct {
-	Nip         string   `json:"nip"`
-	Email       string   `json:"email"`
-	Name        string   `json:"name"`
-	Role        string   `json:"role"`
-	Jabatan     string   `json:"jabatan"`
-	UnitKerja   string   `json:"unit_kerja"`
-	Permissions []string `json:"permissions"`
-	Password    string   `json:"password"`
+	Nip            string   `json:"nip"`
+	Email          string   `json:"email"`
+	Name           string   `json:"name"`
+	Role           string   `json:"role"`
+	Jabatan        string   `json:"jabatan"`
+	UnitKerja      string   `json:"unit_kerja"`
+	Permissions    []string `json:"permissions"`
+	Password       string   `json:"password"`
+	PeriodeMulai   string   `json:"periode_mulai"`
+	PeriodeSelesai string   `json:"periode_selesai"`
 }
 
 type UpdateUserRequest struct {
-	Id          int32    `json:"id"`
-	Nip         string   `json:"nip"`
-	Email       string   `json:"email"`
-	Name        string   `json:"name"`
-	Role        string   `json:"role"`
-	Jabatan     string   `json:"jabatan"`
-	UnitKerja   string   `json:"unit_kerja"`
-	Permissions []string `json:"permissions"`
-	IsActive    bool     `json:"is_active"`
-	Password    string   `json:"password"`
+	Id             int32    `json:"id"`
+	Nip            string   `json:"nip"`
+	Email          string   `json:"email"`
+	Name           string   `json:"name"`
+	Role           string   `json:"role"`
+	Jabatan        string   `json:"jabatan"`
+	UnitKerja      string   `json:"unit_kerja"`
+	Permissions    []string `json:"permissions"`
+	IsActive       bool     `json:"is_active"`
+	Password       string   `json:"password"`
+	PeriodeMulai   string   `json:"periode_mulai"`
+	PeriodeSelesai string   `json:"periode_selesai"`
 }
 
 type ToggleActiveRequest struct {

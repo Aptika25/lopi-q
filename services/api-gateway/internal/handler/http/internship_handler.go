@@ -31,19 +31,12 @@ func pathID(r *http.Request, prefix string) (int, error) {
 	return id, nil
 }
 
-func actorFromContext(r *http.Request) (int, string) {
-	userID, _ := r.Context().Value("user_id").(int)
-	nip, _ := r.Context().Value("nip").(string)
-	return userID, nip
-}
-
 func (h *InternshipHTTPHandler) HandleProjects(w http.ResponseWriter, r *http.Request) {
 	id, err := pathID(r, "/api/admin/projects")
 	if err != nil {
 		middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": err.Error()})
 		return
 	}
-	userID, nip := actorFromContext(r)
 
 	switch {
 	case r.Method == http.MethodGet && id == 0:
@@ -70,7 +63,7 @@ func (h *InternshipHTTPHandler) HandleProjects(w http.ResponseWriter, r *http.Re
 			middleware.RespondJSON(w, http.StatusInternalServerError, map[string]interface{}{"success": false, "error": "Gagal menyimpan proyek: " + err.Error()})
 			return
 		}
-		client.RecordActivityLog(userID, nip, "", "SAVE_INTERN_PROJECT", fmt.Sprintf("Admin menyimpan proyek magang #%d: %s", savedID, p.Title), client.GetClientIP(r), r.UserAgent())
+		logAdminAction(r, "SAVE_INTERN_PROJECT", fmt.Sprintf("Admin menyimpan proyek magang #%d: %s", savedID, p.Title))
 		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": true, "id": savedID, "message": "Proyek berhasil disimpan."})
 
 	case r.Method == http.MethodDelete && id > 0:
@@ -78,7 +71,7 @@ func (h *InternshipHTTPHandler) HandleProjects(w http.ResponseWriter, r *http.Re
 			middleware.RespondJSON(w, http.StatusInternalServerError, map[string]interface{}{"success": false, "error": "Gagal menghapus proyek: " + err.Error()})
 			return
 		}
-		client.RecordActivityLog(userID, nip, "", "DELETE_INTERN_PROJECT", fmt.Sprintf("Admin menghapus proyek magang #%d", id), client.GetClientIP(r), r.UserAgent())
+		logAdminAction(r, "DELETE_INTERN_PROJECT", fmt.Sprintf("Admin menghapus proyek magang #%d", id))
 		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": true, "message": "Proyek berhasil dihapus."})
 
 	default:
@@ -92,7 +85,6 @@ func (h *InternshipHTTPHandler) HandleFinalReports(w http.ResponseWriter, r *htt
 		middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": err.Error()})
 		return
 	}
-	userID, nip := actorFromContext(r)
 
 	switch {
 	case r.Method == http.MethodGet && id == 0:
@@ -119,7 +111,7 @@ func (h *InternshipHTTPHandler) HandleFinalReports(w http.ResponseWriter, r *htt
 			middleware.RespondJSON(w, http.StatusInternalServerError, map[string]interface{}{"success": false, "error": "Gagal menyimpan laporan akhir: " + err.Error()})
 			return
 		}
-		client.RecordActivityLog(userID, nip, "", "SAVE_FINAL_REPORT", fmt.Sprintf("Admin menyimpan laporan akhir #%d (%s) - status %s", savedID, rep.InternName, rep.Status), client.GetClientIP(r), r.UserAgent())
+		logAdminAction(r, "SAVE_FINAL_REPORT", fmt.Sprintf("Admin menyimpan laporan akhir #%d (%s) - status %s", savedID, rep.InternName, rep.Status))
 		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": true, "id": savedID, "message": "Laporan akhir berhasil disimpan."})
 
 	case r.Method == http.MethodDelete && id > 0:
@@ -127,7 +119,7 @@ func (h *InternshipHTTPHandler) HandleFinalReports(w http.ResponseWriter, r *htt
 			middleware.RespondJSON(w, http.StatusInternalServerError, map[string]interface{}{"success": false, "error": "Gagal menghapus laporan akhir: " + err.Error()})
 			return
 		}
-		client.RecordActivityLog(userID, nip, "", "DELETE_FINAL_REPORT", fmt.Sprintf("Admin menghapus laporan akhir #%d", id), client.GetClientIP(r), r.UserAgent())
+		logAdminAction(r, "DELETE_FINAL_REPORT", fmt.Sprintf("Admin menghapus laporan akhir #%d", id))
 		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": true, "message": "Laporan akhir berhasil dihapus."})
 
 	default:
