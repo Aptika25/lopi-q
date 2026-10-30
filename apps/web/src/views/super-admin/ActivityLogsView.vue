@@ -132,7 +132,7 @@
                 <td colspan="5" class="py-6 text-center">
                   <div class="inline-flex items-center justify-center gap-1.5 text-xs text-slate-500 font-medium">
                     <span class="material-symbols-outlined text-slate-400" style="font-size: 14px !important;">info</span>
-                    <span>Tidak ada catatan log aktivitas yang sesuai dengan kriteria filter.</span>
+                    <span>{{ loadError || 'Tidak ada catatan log aktivitas yang sesuai dengan kriteria filter.' }}</span>
                   </div>
                 </td>
               </tr>
@@ -235,6 +235,7 @@ const selectedMonth = ref('');
 const pageSize = ref(10);
 const currentPage = ref(1);
 const loading = ref(false);
+const loadError = ref('');
 
 const logs = ref([]);
 
@@ -333,13 +334,15 @@ const formatUserAgent = (uaStr) => {
 
 const fetchLogs = async () => {
   loading.value = true;
+  loadError.value = '';
   try {
     const res = await axios.get('/api/admin/activity-logs');
-    if (res.data && Array.isArray(res.data.logs) && res.data.logs.length > 0) {
+    if (res.data && Array.isArray(res.data.logs)) {
       logs.value = res.data.logs;
     }
   } catch (e) {
     console.warn('Gagal memuat log aktivitas real-time:', e);
+    loadError.value = e.response?.data?.error || 'Gagal memuat log audit dari server.';
   } finally {
     loading.value = false;
   }

@@ -118,6 +118,10 @@ func (h *AuthHTTPHandler) HandleSetup2FA(w http.ResponseWriter, r *http.Request)
 		middleware.RespondJSON(w, http.StatusInternalServerError, map[string]interface{}{"success": false, "error": "Gagal setup 2FA"})
 		return
 	}
+	if !res.Success {
+		middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": res.Error})
+		return
+	}
 	middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{
 		"success":     res.Success,
 		"secret":      res.Secret,

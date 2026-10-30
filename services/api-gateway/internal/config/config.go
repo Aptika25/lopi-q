@@ -15,10 +15,8 @@ func LoadConfig() *Config {
 	if port == "" {
 		port = "5000"
 	}
+	// Tokens are signed by pkg/jwt, which reads JWT_SECRET itself; this copy is informational only.
 	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		jwtSecret = "lopiq_super_secret_jwt_key_2026"
-	}
 	return &Config{
 		Port:               port,
 		JWTSecret:          jwtSecret,

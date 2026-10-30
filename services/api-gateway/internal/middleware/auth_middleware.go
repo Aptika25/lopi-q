@@ -43,13 +43,6 @@ func AuthenticateMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-			if strings.HasPrefix(r.URL.Path, "/api/admin/users") || strings.HasPrefix(r.URL.Path, "/api/activities") {
-				ctx := context.WithValue(r.Context(), "user_id", 1)
-				ctx = context.WithValue(ctx, "role", "superadmin")
-				ctx = context.WithValue(ctx, "nip", "199708192025061003")
-				next.ServeHTTP(w, r.WithContext(ctx))
-				return
-			}
 			RespondJSON(w, http.StatusUnauthorized, map[string]interface{}{"success": false, "error": "Token autentikasi tidak ditemukan."})
 			return
 		}
@@ -57,13 +50,6 @@ func AuthenticateMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 		claims, err := jwt.ValidateToken(tokenStr)
 		if err != nil || claims.IsTemp {
-			if strings.HasPrefix(r.URL.Path, "/api/admin/users") || strings.HasPrefix(r.URL.Path, "/api/activities") {
-				ctx := context.WithValue(r.Context(), "user_id", 1)
-				ctx = context.WithValue(ctx, "role", "superadmin")
-				ctx = context.WithValue(ctx, "nip", "199708192025061003")
-				next.ServeHTTP(w, r.WithContext(ctx))
-				return
-			}
 			RespondJSON(w, http.StatusUnauthorized, map[string]interface{}{"success": false, "error": "Token tidak valid atau expired."})
 			return
 		}
@@ -72,5 +58,29 @@ func AuthenticateMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		ctx = context.WithValue(ctx, "role", claims.Role)
 		ctx = context.WithValue(ctx, "nip", claims.NIP)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	}
+}
+
+// RequireAdmin must be wrapped by AuthenticateMiddleware; it rejects tokens whose role is not admin/superadmin.
+func RequireAdmin(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		role, _ := r.Context().Value("role").(string)
+		if r.Method != "OPTIONS" && role != "admin" && role != "superadmin" {
+			RespondJSON(w, http.StatusForbidden, map[string]interface{}{"success": false, "error": "Akses ditolak. Endpoint ini hanya untuk Administrator."})
+			return
+		}
+		next.ServeHTTP(w, r)
+	}
+}
+
+// RequireSuperAdmin must be wrapped by AuthenticateMiddleware; it only lets superadmin tokens through.
+func RequireSuperAdmin(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		role, _ := r.Context().Value("role").(string)
+		if r.Method != "OPTIONS" && role != "superadmin" {
+			RespondJSON(w, http.StatusForbidden, map[string]interface{}{"success": false, "error": "Akses ditolak. Endpoint ini hanya untuk Super Admin."})
+			return
+		}
+		next.ServeHTTP(w, r)
 	}
 }

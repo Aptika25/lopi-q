@@ -117,8 +117,10 @@ async function initSetup() {
   try {
     const data = await authStore.setup2fa();
     if (data && data.success) {
-      qrCodeDataUrl.value = data.qr_code;
+      qrCodeDataUrl.value = data.qr_code || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.otpauth_url || "")}`;
       secretKey.value = data.secret;
+    } else {
+      errorMsg.value = authStore.error || "Gagal memulai setup 2FA.";
     }
   } catch (err) {
     errorMsg.value = "Gagal memulai setup 2FA.";
@@ -133,7 +135,7 @@ async function handleEnable() {
   errorMsg.value = '';
 
   try {
-    await authStore.enable2fa(totpCode.value);
+    await authStore.enable2fa(totpCode.value, secretKey.value);
     emit('close');
   } catch (err) {
     errorMsg.value = authStore.error || "Kode verifikasi salah.";

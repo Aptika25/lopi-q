@@ -261,7 +261,9 @@ export const useAuthStore = defineStore('auth', {
           jabatan: payload.jabatan || 'SMK Negeri 1 Bulukumba',
           unit_kerja: payload.unit_kerja || 'Rekayasa Perangkat Lunak',
           role: payload.role || 'intern',
-          permissions: payload.permissions || ['submit_attendance']
+          permissions: payload.permissions || ['submit_attendance'],
+          periode_mulai: payload.periode_mulai || '',
+          periode_selesai: payload.periode_selesai || ''
         }, { headers })
 
         if (response.data && response.data.user) {
@@ -292,7 +294,9 @@ export const useAuthStore = defineStore('auth', {
           unit_kerja: payload.unit_kerja || '',
           role: payload.role || 'admin',
           permissions: payload.permissions || [],
-          password: payload.password || ''
+          password: payload.password || '',
+          periode_mulai: payload.periode_mulai || '',
+          periode_selesai: payload.periode_selesai || ''
         }, {
           headers: { Authorization: `Bearer ${this.token}` }
         })

@@ -40,31 +40,15 @@ type AttendanceClientDirectStub struct {
 }
 
 func getPostgresDB(dbHost string) (*sql.DB, error) {
-	// 1. Try db_lopi-q_presensi with super_admin_apps
-	connSuper := fmt.Sprintf("host=%s port=5432 user='super_admin_apps' password='SuperAdminApps@2k26#' dbname='db_lopiq_attendance' sslmode=disable", dbHost)
-	if db, err := sql.Open("postgres", connSuper); err == nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-		defer cancel()
-		if err := db.PingContext(ctx); err == nil {
-			return db, nil
-		}
-		db.Close()
+	att := attendanceDBCreds()
+	conns := buildConnStrings(att)
+	// Legacy last resort kept from the previous implementation: the auth database (via the super admin
+	// account) may already hold presensi records written while the attendance database was unreachable.
+	if superPass := envOr([]string{"SUPER_ADMIN_DB_PASSWORD"}, ""); superPass != "" {
+		superUser := envOr([]string{"SUPER_ADMIN_DB_USER"}, "super_admin_apps")
+		conns = append(conns, connString(dbHost, dbCreds{user: superUser, pass: superPass, name: authDBCreds().name}))
 	}
-
-	// 2. Try db_lopi-q_presensi with user_lopi-q_presensi
-	connUser := fmt.Sprintf("host=%s port=5432 user='user_lopiq_attendance' password='lopiqattendancePassword@2k26#' dbname='db_lopiq_attendance' sslmode=disable", dbHost)
-	if db, err := sql.Open("postgres", connUser); err == nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-		defer cancel()
-		if err := db.PingContext(ctx); err == nil {
-			return db, nil
-		}
-		db.Close()
-	}
-
-	// 3. Fallback to db_lopiq_auth with super_admin_apps
-	connAuth := fmt.Sprintf("host=%s port=5432 user='super_admin_apps' password='SuperAdminApps@2k26#' dbname='db_lopiq_auth' sslmode=disable", dbHost)
-	return sql.Open("postgres", connAuth)
+	return openFirstReachable(att.name, conns)
 }
 
 func fetchPostgresLocationConfig() (LocationConfig, bool) {
@@ -239,6 +223,79 @@ func calculateHaversine(lat1, lon1, lat2, lon2 float64) float64 {
 	return math.Round((R*c)*100) / 100
 }
 
+const createPresensiRecordsTableSQL = `
+	CREATE TABLE IF NOT EXISTS presensi_records (
+		id SERIAL PRIMARY KEY,
+		user_id INT NOT NULL,
+		user_nip VARCHAR(50) NOT NULL,
+		user_name VARCHAR(255) NOT NULL,
+		type VARCHAR(20) NOT NULL,
+		timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+		latitude DOUBLE PRECISION NOT NULL,
+		longitude DOUBLE PRECISION NOT NULL,
+		distance_meters DOUBLE PRECISION NOT NULL,
+		within_radius BOOLEAN DEFAULT TRUE
+	);
+`
+
+// activeMasukExists reports whether the user has a MASUK within the last 30 hours with no later PULANG (covers overnight shifts).
+func activeMasukExists(ctx context.Context, db *sql.DB, userID int32, userNIP string) (bool, error) {
+	var exists bool
+	err := db.QueryRowContext(ctx, `
+		SELECT EXISTS (
+			SELECT 1 FROM presensi_records p1
+			WHERE (($2 <> '' AND REPLACE(user_nip, ' ', '') = REPLACE($2, ' ', '')) OR ($2 = '' AND user_id = $1))
+			  AND type = 'MASUK'
+			  AND (timestamp AT TIME ZONE 'Asia/Makassar') >= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Makassar') - INTERVAL '30 hours'
+			  AND NOT EXISTS (
+			      SELECT 1 FROM presensi_records p2
+			      WHERE ((p2.user_nip <> '' AND REPLACE(p2.user_nip, ' ', '') = REPLACE(p1.user_nip, ' ', '')) OR (p2.user_nip = '' AND p2.user_id = p1.user_id))
+			        AND p2.type = 'PULANG'
+			        AND p2.id > p1.id
+			  )
+		);
+	`, userID, userNIP).Scan(&exists)
+	return exists, err
+}
+
+func masukExistsToday(ctx context.Context, db *sql.DB, userID int32, userNIP string) (bool, error) {
+	var exists bool
+	err := db.QueryRowContext(ctx, `
+		SELECT EXISTS (
+			SELECT 1 FROM presensi_records
+			WHERE (($2 <> '' AND REPLACE(user_nip, ' ', '') = REPLACE($2, ' ', '')) OR ($2 = '' AND user_id = $1))
+			  AND type = 'MASUK'
+			  AND (timestamp AT TIME ZONE 'Asia/Makassar')::date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Makassar')::date
+		);
+	`, userID, userNIP).Scan(&exists)
+	return exists, err
+}
+
+// insertPresensiRecord stores one scan and returns the saved row, so callers only report success once it is in the database.
+func insertPresensiRecord(ctx context.Context, db *sql.DB, userID int32, userNIP, userName, recordType string, lat, lon, dist float64, withinRadius bool) (*attendanceProto.AttendanceRecord, error) {
+	rec := &attendanceProto.AttendanceRecord{
+		UserId:         userID,
+		UserNip:        userNIP,
+		UserName:       userName,
+		Type:           recordType,
+		Latitude:       lat,
+		Longitude:      lon,
+		DistanceMeters: dist,
+		WithinRadius:   withinRadius,
+	}
+	err := db.QueryRowContext(ctx, `
+		INSERT INTO presensi_records (user_id, user_nip, user_name, type, timestamp, latitude, longitude, distance_meters, within_radius)
+		VALUES ($1, $2, $3, $4, NOW(), $5, $6, $7, $8)
+		RETURNING id, to_char(timestamp AT TIME ZONE 'Asia/Makassar', 'YYYY-MM-DD HH24:MI:SS')
+	`, userID, userNIP, userName, recordType, lat, lon, dist, withinRadius).Scan(&rec.Id, &rec.Timestamp)
+	if err != nil {
+		log.Printf("[Presensi DB Error] Failed to insert %s record for %s (NIP %s): %v", recordType, userName, userNIP, err)
+		return nil, fmt.Errorf("gagal menyimpan presensi ke database: %v", err)
+	}
+	log.Printf("[Presensi DB Success] Presensi %s for user %s (NIP %s) saved to presensi_records (ID=%d)", recordType, userName, userNIP, rec.Id)
+	return rec, nil
+}
+
 func (s *AttendanceClientDirectStub) ClockIn(ctx context.Context, req *attendanceProto.ClockInRequest) (*attendanceProto.AttendanceResponse, error) {
 	dbHost := os.Getenv("DB_HOST")
 	if dbHost == "" {
@@ -248,85 +305,66 @@ func (s *AttendanceClientDirectStub) ClockIn(ctx context.Context, req *attendanc
 	cfg := s.GetLocationConfig()
 	dist := calculateHaversine(cfg.Latitude, cfg.Longitude, req.Latitude, req.Longitude)
 
-	if db, err := getPostgresDB(dbHost); err == nil {
-		defer db.Close()
-		queryCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
-		defer cancel()
+	db, err := getPostgresDB(dbHost)
+	if err != nil {
+		return nil, fmt.Errorf("koneksi database presensi gagal: %v", err)
+	}
+	defer db.Close()
+	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
 
-		_, _ = db.ExecContext(queryCtx, `
-			CREATE TABLE IF NOT EXISTS presensi_records (
-				id SERIAL PRIMARY KEY,
-				user_id INT NOT NULL,
-				user_nip VARCHAR(50) NOT NULL,
-				user_name VARCHAR(255) NOT NULL,
-				type VARCHAR(20) NOT NULL,
-				timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-				latitude DOUBLE PRECISION NOT NULL,
-				longitude DOUBLE PRECISION NOT NULL,
-				distance_meters DOUBLE PRECISION NOT NULL,
-				within_radius BOOLEAN DEFAULT TRUE
-			);
-		`)
+	if _, err := db.ExecContext(queryCtx, createPresensiRecordsTableSQL); err != nil {
+		log.Printf("[ClockIn DB Warning] Table creation check: %v", err)
+	}
 
-		// AUTO-REPAIR FIX: Revert corrupted evening records (>= 18:00 WITA) back to MASUK if there was no prior MASUK on that same date
-		_, _ = db.ExecContext(queryCtx, `
-			UPDATE presensi_records p1
-			SET type = 'MASUK'
-			WHERE p1.type = 'PULANG'
-			  AND EXTRACT(HOUR FROM (p1.timestamp AT TIME ZONE 'Asia/Makassar')) >= 18
-			  AND NOT EXISTS (
-			      SELECT 1 FROM presensi_records p2
-			      WHERE (p2.user_id = p1.user_id OR p2.user_nip = p1.user_nip)
-			        AND p2.type = 'MASUK'
-			        AND (p2.timestamp AT TIME ZONE 'Asia/Makassar')::date = (p1.timestamp AT TIME ZONE 'Asia/Makassar')::date
-			        AND p2.id < p1.id
-			  );
-		`)
+	// AUTO-REPAIR FIX: Revert corrupted evening records (>= 18:00 WITA) back to MASUK if there was no prior MASUK on that same date
+	_, _ = db.ExecContext(queryCtx, `
+		UPDATE presensi_records p1
+		SET type = 'MASUK'
+		WHERE p1.type = 'PULANG'
+		  AND EXTRACT(HOUR FROM (p1.timestamp AT TIME ZONE 'Asia/Makassar')) >= 18
+		  AND NOT EXISTS (
+		      SELECT 1 FROM presensi_records p2
+		      WHERE (p2.user_id = p1.user_id OR p2.user_nip = p1.user_nip)
+		        AND p2.type = 'MASUK'
+		        AND (p2.timestamp AT TIME ZONE 'Asia/Makassar')::date = (p1.timestamp AT TIME ZONE 'Asia/Makassar')::date
+		        AND p2.id < p1.id
+		  );
+	`)
 
-		// Check if user already has an active MASUK record within the last 30 hours without a PULANG record
-		var hasActiveMasuk bool
-		_ = db.QueryRowContext(queryCtx, `
-			SELECT EXISTS (
-				SELECT 1 FROM presensi_records p1
-				WHERE (($2 <> '' AND REPLACE(user_nip, ' ', '') = REPLACE($2, ' ', '')) OR ($2 = '' AND user_id = $1))
-				  AND type = 'MASUK'
-				  AND (timestamp AT TIME ZONE 'Asia/Makassar') >= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Makassar') - INTERVAL '30 hours'
-				  AND NOT EXISTS (
-				      SELECT 1 FROM presensi_records p2
-				      WHERE ((p2.user_nip <> '' AND REPLACE(p2.user_nip, ' ', '') = REPLACE(p1.user_nip, ' ', '')) OR (p2.user_nip = '' AND p2.user_id = p1.user_id))
-				        AND p2.type = 'PULANG'
-				        AND p2.id > p1.id
-				  )
-			);
-		`, req.UserId, req.UserNip).Scan(&hasActiveMasuk)
+	hasActiveMasuk, err := activeMasukExists(queryCtx, db, req.UserId, req.UserNip)
+	if err != nil {
+		return nil, fmt.Errorf("gagal membaca status presensi: %v", err)
+	}
 
-		recordType := "MASUK"
-		msgType := "MASUK"
-		if hasActiveMasuk {
-			recordType = "PULANG"
-			msgType = "PULANG (Otomatis dari Presensi Masuk Shift Malam Sebelumnya)"
-		}
-
-		_, err = db.ExecContext(queryCtx, `
-			INSERT INTO presensi_records (user_id, user_nip, user_name, type, timestamp, latitude, longitude, distance_meters, within_radius)
-			VALUES ($1, $2, $3, $4, NOW(), $5, $6, $7, $8)
-		`, req.UserId, req.UserNip, req.UserName, recordType, req.Latitude, req.Longitude, dist, dist <= cfg.RadiusMeters)
-
+	recordType := "MASUK"
+	msgType := "MASUK"
+	if hasActiveMasuk {
+		recordType = "PULANG"
+		msgType = "PULANG (Otomatis dari Presensi Masuk Shift Malam Sebelumnya)"
+	} else {
+		done, err := masukExistsToday(queryCtx, db, req.UserId, req.UserNip)
 		if err != nil {
-			log.Printf("[ClockIn DB Error] Failed to insert record: %v", err)
-		} else {
-			log.Printf("[ClockIn DB Success] Presensi %s for user %s (NIP %s) saved to PostgreSQL presensi_records", recordType, req.UserName, req.UserNip)
+			return nil, fmt.Errorf("gagal membaca status presensi: %v", err)
 		}
+		if done {
+			return &attendanceProto.AttendanceResponse{
+				Success: false,
+				Message: "Anda sudah menyelesaikan presensi Masuk & Pulang hari ini.",
+			}, nil
+		}
+	}
 
-		return &attendanceProto.AttendanceResponse{
-			Success: true,
-			Message: fmt.Sprintf("Presensi %s Berhasil! Petugas: %s. Jarak: %.2fm dari Posko.", msgType, req.UserName, dist),
-		}, nil
+	rec, err := insertPresensiRecord(queryCtx, db, req.UserId, req.UserNip, req.UserName, recordType, req.Latitude, req.Longitude, dist, dist <= cfg.RadiusMeters)
+	if err != nil {
+		return nil, err
 	}
 
 	return &attendanceProto.AttendanceResponse{
-		Success: true,
-		Message: fmt.Sprintf("Presensi MASUK Berhasil! Petugas: %s. Jarak: %.2fm dari Posko.", req.UserName, dist),
+		Success:        true,
+		Message:        fmt.Sprintf("Presensi %s Berhasil! Petugas: %s. Jarak: %.2fm dari Posko.", msgType, req.UserName, dist),
+		DistanceMeters: dist,
+		Record:         rec,
 	}, nil
 }
 
@@ -339,41 +377,39 @@ func (s *AttendanceClientDirectStub) ClockOut(ctx context.Context, req *attendan
 	cfg := s.GetLocationConfig()
 	dist := calculateHaversine(cfg.Latitude, cfg.Longitude, req.Latitude, req.Longitude)
 
-	if db, err := getPostgresDB(dbHost); err == nil {
-		defer db.Close()
-		queryCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
-		defer cancel()
+	db, err := getPostgresDB(dbHost)
+	if err != nil {
+		return nil, fmt.Errorf("koneksi database presensi gagal: %v", err)
+	}
+	defer db.Close()
+	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
 
-		_, _ = db.ExecContext(queryCtx, `
-			CREATE TABLE IF NOT EXISTS presensi_records (
-				id SERIAL PRIMARY KEY,
-				user_id INT NOT NULL,
-				user_nip VARCHAR(50) NOT NULL,
-				user_name VARCHAR(255) NOT NULL,
-				type VARCHAR(20) NOT NULL,
-				timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-				latitude DOUBLE PRECISION NOT NULL,
-				longitude DOUBLE PRECISION NOT NULL,
-				distance_meters DOUBLE PRECISION NOT NULL,
-				within_radius BOOLEAN DEFAULT TRUE
-			);
-		`)
+	if _, err := db.ExecContext(queryCtx, createPresensiRecordsTableSQL); err != nil {
+		log.Printf("[ClockOut DB Warning] Table creation check: %v", err)
+	}
 
-		_, err = db.ExecContext(queryCtx, `
-			INSERT INTO presensi_records (user_id, user_nip, user_name, type, timestamp, latitude, longitude, distance_meters, within_radius)
-			VALUES ($1, $2, $3, 'PULANG', NOW(), $4, $5, $6, $7)
-		`, req.UserId, req.UserNip, req.UserName, req.Latitude, req.Longitude, dist, dist <= cfg.RadiusMeters)
+	hasActiveMasuk, err := activeMasukExists(queryCtx, db, req.UserId, req.UserNip)
+	if err != nil {
+		return nil, fmt.Errorf("gagal membaca status presensi: %v", err)
+	}
+	if !hasActiveMasuk {
+		return &attendanceProto.AttendanceResponse{
+			Success: false,
+			Message: "Belum ada presensi MASUK yang aktif. Silakan scan presensi masuk terlebih dahulu.",
+		}, nil
+	}
 
-		if err != nil {
-			log.Printf("[ClockOut DB Error] Failed to insert record: %v", err)
-		} else {
-			log.Printf("[ClockOut DB Success] Presensi PULANG for user %s (NIP %s) saved to PostgreSQL presensi_records", req.UserName, req.UserNip)
-		}
+	rec, err := insertPresensiRecord(queryCtx, db, req.UserId, req.UserNip, req.UserName, "PULANG", req.Latitude, req.Longitude, dist, dist <= cfg.RadiusMeters)
+	if err != nil {
+		return nil, err
 	}
 
 	return &attendanceProto.AttendanceResponse{
-		Success: true,
-		Message: fmt.Sprintf("Presensi PULANG Berhasil! Petugas: %s. Jarak: %.2fm dari Posko.", req.UserName, dist),
+		Success:        true,
+		Message:        fmt.Sprintf("Presensi PULANG Berhasil! Petugas: %s. Jarak: %.2fm dari Posko.", req.UserName, dist),
+		DistanceMeters: dist,
+		Record:         rec,
 	}, nil
 }
 

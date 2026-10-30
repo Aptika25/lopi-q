@@ -36,16 +36,18 @@ func (s *UserClientDirectStub) toProtoUser(u *UserDataJSON) *userProto.User {
 		perms = []string{}
 	}
 	return &userProto.User{
-		Id:          int32(u.ID),
-		Nip:         u.NIP,
-		Email:       u.Email,
-		Name:        u.Name,
-		Role:        u.Role,
-		Jabatan:     u.Jabatan,
-		UnitKerja:   u.UnitKerja,
-		Permissions: perms,
-		TotpEnabled: u.TotpEnabled,
-		IsActive:    u.IsActive,
+		Id:             int32(u.ID),
+		Nip:            u.NIP,
+		Email:          u.Email,
+		Name:           u.Name,
+		Role:           u.Role,
+		Jabatan:        u.Jabatan,
+		UnitKerja:      u.UnitKerja,
+		Permissions:    perms,
+		TotpEnabled:    u.TotpEnabled,
+		IsActive:       u.IsActive,
+		PeriodeMulai:   u.PeriodeMulai,
+		PeriodeSelesai: u.PeriodeSelesai,
 	}
 }
 
@@ -184,7 +186,6 @@ func syncPostgresUpdateUser(u *UserDataJSON) {
 	}
 }
 
-
 func syncPostgresToggleActive(email, nip string, isActive bool) {
 	dbHost := os.Getenv("DB_HOST")
 	if dbHost == "" {
@@ -258,26 +259,8 @@ func (s *UserClientDirectStub) GetProfile(ctx context.Context, req *userProto.Ge
 		}
 	}
 
-	if len(users) > 0 {
-		return &userProto.UserResponse{
-			Success: true,
-			User:    s.toProtoUser(&users[0]),
-		}, nil
-	}
-
-	return &userProto.UserResponse{
-		Success: true,
-		User: &userProto.User{
-			Id:        req.UserId,
-			Nip:       "199501012020011000",
-			Email:     "aswan@bulukumbakab.go.id",
-			Name:      "Muhammad Aswan",
-			Role:      "superadmin",
-			Jabatan:   "HEAD OF DISKOMINFO",
-			UnitKerja: "Diskominfo Kab. Bulukumba",
-			IsActive:  true,
-		},
-	}, nil
+	// Never fall back to another account's profile: the caller would inherit that user's role.
+	return &userProto.UserResponse{Success: false, Error: "Pengguna tidak ditemukan."}, nil
 }
 
 func (s *UserClientDirectStub) ListUsers(ctx context.Context, req *userProto.ListUsersRequest) (*userProto.ListUsersResponse, error) {
@@ -372,10 +355,13 @@ func (s *UserClientDirectStub) CreateUser(ctx context.Context, req *userProto.Cr
 		users[existingIdx].Jabatan = req.Jabatan
 		users[existingIdx].UnitKerja = req.UnitKerja
 		users[existingIdx].PasswordHash = string(hash)
+		users[existingIdx].PeriodeMulai = req.PeriodeMulai
+		users[existingIdx].PeriodeSelesai = req.PeriodeSelesai
 		users[existingIdx].IsActive = true
 		saveUsersJSON(users, path)
 
 		syncPostgresCreateUser(req, string(hash))
+		_ = syncPostgresInternPeriod(req.Email, req.Nip, req.PeriodeMulai, req.PeriodeSelesai)
 
 		return &userProto.UserResponse{
 			Success: true,
@@ -392,22 +378,25 @@ func (s *UserClientDirectStub) CreateUser(ctx context.Context, req *userProto.Cr
 	}
 
 	newUser := UserDataJSON{
-		ID:           nextID,
-		NIP:          req.Nip,
-		Email:        req.Email,
-		Name:         req.Name,
-		Role:         req.Role,
-		Jabatan:      req.Jabatan,
-		UnitKerja:    req.UnitKerja,
-		Permissions:  perms,
-		PasswordHash: string(hash),
-		IsActive:     true,
+		ID:             nextID,
+		NIP:            req.Nip,
+		Email:          req.Email,
+		Name:           req.Name,
+		Role:           req.Role,
+		Jabatan:        req.Jabatan,
+		UnitKerja:      req.UnitKerja,
+		Permissions:    perms,
+		PasswordHash:   string(hash),
+		IsActive:       true,
+		PeriodeMulai:   req.PeriodeMulai,
+		PeriodeSelesai: req.PeriodeSelesai,
 	}
 
 	users = append(users, newUser)
 	saveUsersJSON(users, path)
 
 	syncPostgresCreateUser(req, string(hash))
+	_ = syncPostgresInternPeriod(req.Email, req.Nip, req.PeriodeMulai, req.PeriodeSelesai)
 
 	return &userProto.UserResponse{
 		Success: true,
@@ -449,8 +438,13 @@ func (s *UserClientDirectStub) UpdateUser(ctx context.Context, req *userProto.Up
 				users[i].PasswordHash = string(hash)
 			}
 
+			// The edit form always sends both dates, so empty means the period was cleared
+			users[i].PeriodeMulai = req.PeriodeMulai
+			users[i].PeriodeSelesai = req.PeriodeSelesai
+
 			saveUsersJSON(users, path)
 			go syncPostgresUpdateUser(&users[i])
+			go syncPostgresInternPeriod(users[i].Email, users[i].NIP, users[i].PeriodeMulai, users[i].PeriodeSelesai)
 
 			return &userProto.UserResponse{
 				Success: true,
@@ -524,10 +518,11 @@ type ActivityLogItem struct {
 
 func GetClientIP(r *http.Request) string {
 	if r == nil {
-		return "114.125.197.181"
+		return "-"
 	}
 	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		return strings.TrimSpace(xff)
+		// The first entry is the original client; later ones are proxies
+		return strings.TrimSpace(strings.Split(xff, ",")[0])
 	}
 	if xri := r.Header.Get("X-Real-IP"); xri != "" {
 		return strings.TrimSpace(xri)
@@ -539,137 +534,88 @@ func GetClientIP(r *http.Request) string {
 	if r.RemoteAddr != "" {
 		return r.RemoteAddr
 	}
-	return "114.125.197.181"
+	return "-"
 }
 
+const createActivityLogsTableSQL = `
+	CREATE TABLE IF NOT EXISTS activity_logs (
+		id SERIAL PRIMARY KEY,
+		user_id INT,
+		user_nip VARCHAR(50),
+		user_name VARCHAR(255),
+		action VARCHAR(100) NOT NULL,
+		details TEXT NOT NULL,
+		ip_address VARCHAR(100) NOT NULL,
+		user_agent TEXT NOT NULL,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	);
+`
+
+// RecordActivityLog writes the audit entry asynchronously so a slow database never delays the request.
 func RecordActivityLog(userID int, userNIP, userName, action, details, ip, userAgent string) {
-	if ip == "" || ip == "::1" || ip == "127.0.0.1" {
-		ip = "180.242.190.12"
+	if ip == "" {
+		ip = "-"
 	}
 	if userAgent == "" {
-		userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
+		userAgent = "-"
 	}
 
-	dbHost := os.Getenv("DB_HOST")
-	if dbHost == "" {
-		dbHost = "postgres_apps"
-	}
-
-	authConn := fmt.Sprintf("host=%s port=5432 user='user_lopiq_auth' password='lopiqauthPassword@2k26#' dbname='db_lopiq_auth' sslmode=disable", dbHost)
 	go func() {
-		db, err := sql.Open("postgres", authConn)
+		db, err := openAuthDB()
 		if err != nil {
+			log.Printf("[ActivityLog Error] %s tidak tercatat: %v", action, err)
 			return
 		}
 		defer db.Close()
 
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		_, _ = db.ExecContext(ctx, `
-			CREATE TABLE IF NOT EXISTS activity_logs (
-				id SERIAL PRIMARY KEY,
-				user_id INT,
-				user_nip VARCHAR(50),
-				user_name VARCHAR(255),
-				action VARCHAR(100) NOT NULL,
-				details TEXT NOT NULL,
-				ip_address VARCHAR(100) NOT NULL,
-				user_agent TEXT NOT NULL,
-				created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-			);
-		`)
-
-		_, _ = db.ExecContext(ctx, `
+		if _, err := db.ExecContext(ctx, createActivityLogsTableSQL); err != nil {
+			log.Printf("[ActivityLog Warning] Table creation check: %v", err)
+		}
+		if _, err := db.ExecContext(ctx, `
 			INSERT INTO activity_logs (user_id, user_nip, user_name, action, details, ip_address, user_agent, created_at)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, NOW());
-		`, userID, userNIP, userName, action, details, ip, userAgent)
+		`, userID, userNIP, userName, action, details, ip, userAgent); err != nil {
+			log.Printf("[ActivityLog Error] Gagal menyimpan %s: %v", action, err)
+		}
 	}()
 }
 
 func (s *UserClientDirectStub) GetActivityLogs(ctx context.Context) ([]ActivityLogItem, error) {
-	dbHost := os.Getenv("DB_HOST")
-	if dbHost == "" {
-		dbHost = "postgres_apps"
+	db, err := openAuthDB()
+	if err != nil {
+		return nil, fmt.Errorf("koneksi database log audit gagal: %v", err)
 	}
+	defer db.Close()
+
+	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	if _, err := db.ExecContext(queryCtx, createActivityLogsTableSQL); err != nil {
+		log.Printf("[ActivityLog Warning] Table creation check: %v", err)
+	}
+
+	rows, err := db.QueryContext(queryCtx, `
+		SELECT id, COALESCE(NULLIF(user_name, ''), '-'), COALESCE(NULLIF(user_nip, ''), '-'), action, details, ip_address, user_agent,
+		       to_char(created_at AT TIME ZONE 'Asia/Makassar', 'YYYY-MM-DD HH24:MI:SS')
+		FROM activity_logs
+		ORDER BY created_at DESC
+		LIMIT 1000;
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("gagal membaca log audit: %v", err)
+	}
+	defer rows.Close()
 
 	list := make([]ActivityLogItem, 0)
-	authConn := fmt.Sprintf("host=%s port=5432 user='user_lopiq_auth' password='lopiqauthPassword@2k26#' dbname='db_lopiq_auth' sslmode=disable", dbHost)
-	if dbAuth, err := sql.Open("postgres", authConn); err == nil {
-		defer dbAuth.Close()
-		queryCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
-		defer cancel()
-
-		_, _ = dbAuth.ExecContext(queryCtx, `
-			CREATE TABLE IF NOT EXISTS activity_logs (
-				id SERIAL PRIMARY KEY,
-				user_id INT,
-				user_nip VARCHAR(50),
-				user_name VARCHAR(255),
-				action VARCHAR(100) NOT NULL,
-				details TEXT NOT NULL,
-				ip_address VARCHAR(100) NOT NULL,
-				user_agent TEXT NOT NULL,
-				created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-			);
-		`)
-
-		rows, err := dbAuth.QueryContext(queryCtx, `
-			SELECT id, COALESCE(user_name,'-'), COALESCE(user_nip,'-'), action, details, ip_address, user_agent, (created_at AT TIME ZONE 'Asia/Makassar')::text
-			FROM activity_logs
-			ORDER BY created_at DESC
-			LIMIT 150;
-		`)
-		if err == nil {
-			for rows.Next() {
-				var item ActivityLogItem
-				if err := rows.Scan(&item.ID, &item.UserName, &item.UserNIP, &item.Action, &item.Details, &item.IPAddress, &item.UserAgent, &item.Timestamp); err == nil {
-					list = append(list, item)
-				}
-			}
-			rows.Close()
+	for rows.Next() {
+		var item ActivityLogItem
+		if err := rows.Scan(&item.ID, &item.UserName, &item.UserNIP, &item.Action, &item.Details, &item.IPAddress, &item.UserAgent, &item.Timestamp); err != nil {
+			return nil, err
 		}
+		list = append(list, item)
 	}
-
-	// Merge real presensi records from db_garda112_user so presensi scans show up as activity logs
-	userConn := fmt.Sprintf("host=%s port=5432 user='user_lopiq_user' password='lopiquserPassword@2k26#' dbname='db_lopiq_user' sslmode=disable", dbHost)
-	if dbUser, err := sql.Open("postgres", userConn); err == nil {
-		defer dbUser.Close()
-		queryCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
-		defer cancel()
-
-		rows, err := dbUser.QueryContext(queryCtx, `
-			SELECT id, user_name, user_nip, type, (timestamp AT TIME ZONE 'Asia/Makassar')::text, distance_meters
-			FROM presensi_records
-			ORDER BY timestamp DESC
-			LIMIT 100;
-		`)
-		if err == nil {
-			for rows.Next() {
-				var id int
-				var name, nip, pType, ts string
-				var dist float64
-				if err := rows.Scan(&id, &name, &nip, &pType, &ts, &dist); err == nil {
-					act := "PRESENSI_MASUK_SCAN"
-					if pType == "PULANG" {
-						act = "PRESENSI_PULANG_SCAN"
-					}
-					det := fmt.Sprintf("Presensi %s Siaga Call Taker via Kamera Geofence Posko (Jarak: %.2fm)", pType, dist)
-					list = append(list, ActivityLogItem{
-						ID:        10000 + id,
-						Timestamp: ts,
-						UserName:  name,
-						UserNIP:   nip,
-						Action:    act,
-						Details:   det,
-						IPAddress: "114.125.197.181, 10.5.10.1",
-						UserAgent: "Mozilla/5.0 (Linux; Android 14; Mobile) Chrome/127.0.0.0 Mobile Safari/537.36",
-					})
-				}
-			}
-			rows.Close()
-		}
-	}
-
-	return list, nil
+	return list, rows.Err()
 }

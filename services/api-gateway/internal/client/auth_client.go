@@ -16,6 +16,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"github.com/pquerna/otp/totp"
 	"golang.org/x/crypto/bcrypt"
 
 	"pkg/jwt"
@@ -72,6 +73,9 @@ type UserDataJSON struct {
 	TotpSecret   string   `json:"totp_secret,omitempty"`
 	BackupCodes  []string `json:"backup_codes,omitempty"`
 	IsActive     bool     `json:"is_active"`
+	// Internship period (YYYY-MM-DD), stored in auth_users.periode_mulai / periode_selesai
+	PeriodeMulai   string `json:"periode_mulai"`
+	PeriodeSelesai string `json:"periode_selesai"`
 }
 
 type AuthClientDirectStub struct {
@@ -114,101 +118,13 @@ func getSeedUsersJSON() []UserDataJSON {
 	return users
 }
 
+// getAuthConnStrings / getUserConnStrings keep their old signature; dbHost is already the first host candidate.
 func getAuthConnStrings(dbHost string) []string {
-	hosts := []string{dbHost, "postgres_apps", "localhost", "127.0.0.1", "host.docker.internal"}
-	envUser := os.Getenv("AUTH_DB_USER")
-	if envUser == "" {
-		envUser = os.Getenv("DB_USER")
-	}
-	if envUser == "" {
-		envUser = "user_lopiq_auth"
-	}
-
-	envPass := os.Getenv("AUTH_DB_PASSWORD")
-	if envPass == "" {
-		envPass = os.Getenv("DB_PASSWORD")
-	}
-	if envPass == "" {
-		envPass = "lopiqauthPassword@2k26#"
-	}
-
-	envDB := os.Getenv("AUTH_DB_NAME")
-	if envDB == "" {
-		envDB = os.Getenv("DB_NAME")
-	}
-	if envDB == "" {
-		envDB = "db_lopiq_auth"
-	}
-
-	var conns []string
-	seen := make(map[string]bool)
-	for _, h := range hosts {
-		if strings.TrimSpace(h) == "" {
-			continue
-		}
-		// Priority 1: Super admin apps root user (guaranteed to exist on postgres_apps)
-		cSuper := fmt.Sprintf("host=%s port=5432 user='super_admin_apps' password='SuperAdminApps@2k26#' dbname='%s' sslmode=disable", h, envDB)
-		if !seen[cSuper] {
-			conns = append(conns, cSuper)
-			seen[cSuper] = true
-		}
-		// Priority 2: Service specific user
-		if envPass != "" {
-			c := fmt.Sprintf("host=%s port=5432 user='%s' password='%s' dbname='%s' sslmode=disable", h, envUser, envPass, envDB)
-			if !seen[c] {
-				conns = append(conns, c)
-				seen[c] = true
-			}
-		}
-	}
-	return conns
+	return buildConnStrings(authDBCreds())
 }
 
 func getUserConnStrings(dbHost string) []string {
-	hosts := []string{dbHost, "postgres_apps", "localhost", "127.0.0.1", "host.docker.internal"}
-	envUser := os.Getenv("USER_DB_USER")
-	if envUser == "" {
-		envUser = os.Getenv("DB_USER")
-	}
-	if envUser == "" {
-		envUser = "user_lopiq_user"
-	}
-
-	envPass := os.Getenv("USER_DB_PASSWORD")
-	if envPass == "" {
-		envPass = os.Getenv("DB_PASSWORD")
-	}
-
-	envDB := os.Getenv("USER_DB_NAME")
-	if envDB == "" {
-		envDB = os.Getenv("DB_NAME")
-	}
-	if envDB == "" {
-		envDB = "db_lopiq_user"
-	}
-
-	var conns []string
-	seen := make(map[string]bool)
-	for _, h := range hosts {
-		if strings.TrimSpace(h) == "" {
-			continue
-		}
-		// Priority 1: Super admin apps root user (guaranteed to exist on postgres_apps)
-		cSuper := fmt.Sprintf("host=%s port=5432 user='super_admin_apps' password='SuperAdminApps@2k26#' dbname='%s' sslmode=disable", h, envDB)
-		if !seen[cSuper] {
-			conns = append(conns, cSuper)
-			seen[cSuper] = true
-		}
-		// Priority 2: Service specific user
-		if envPass != "" {
-			c := fmt.Sprintf("host=%s port=5432 user='%s' password='%s' dbname='%s' sslmode=disable", h, envUser, envPass, envDB)
-			if !seen[c] {
-				conns = append(conns, c)
-				seen[c] = true
-			}
-		}
-	}
-	return conns
+	return buildConnStrings(userDBCreds())
 }
 
 func fetchPostgresUsers() ([]UserDataJSON, bool) {
@@ -321,14 +237,16 @@ func fetchPostgresUsers() ([]UserDataJSON, bool) {
 				}
 			}
 			rows.Close()
+			mergeInternPeriods(ctx, db, loaded)
 			cancel()
 			db.Close()
 			if len(loaded) > 0 {
-				log.Printf("[fetchPostgresUsers Success] Loaded %d users from PostgreSQL (%s)", len(loaded), conn)
+				rememberGoodConn(authDBCreds().name, conn)
+				log.Printf("[fetchPostgresUsers Success] Loaded %d users from PostgreSQL", len(loaded))
 				break
 			}
 		} else {
-			log.Printf("[fetchPostgresUsers Error] %v on %s", err, conn)
+			log.Printf("[fetchPostgresUsers Error] %v", err)
 			cancel()
 			db.Close()
 		}
@@ -381,20 +299,6 @@ func (s *AuthClientDirectStub) Login(ctx context.Context, req *authProto.LoginRe
 	}
 
 	if matchedUser == nil {
-		// Fallback for default superadmin
-		if cleanID == "aswan@bulukumbakab.go.id" || cleanNIP == "199501012020011000" {
-			tempToken, _ := jwt.GenerateTempToken(1, 15*time.Minute)
-			return &authProto.LoginResponse{
-				Success:          true,
-				OtpRequired:      true,
-				OtpSetupRequired: false,
-				TempToken:        tempToken,
-				UserId:           1,
-				Role:             "superadmin",
-				Nip:              "199501012020011000",
-				Name:             "Muhammad Aswan",
-			}, nil
-		}
 		return &authProto.LoginResponse{Success: false, Error: "NIP / Email Dinas atau password salah."}, nil
 	}
 
@@ -405,10 +309,9 @@ func (s *AuthClientDirectStub) Login(ctx context.Context, req *authProto.LoginRe
 		}, nil
 	}
 
-	if matchedUser.PasswordHash != "" {
-		if err := bcrypt.CompareHashAndPassword([]byte(matchedUser.PasswordHash), []byte(req.Password)); err != nil {
-			return &authProto.LoginResponse{Success: false, Error: "NIP / Email Dinas atau password salah."}, nil
-		}
+	// An account without a password hash must never be accessible with an arbitrary password.
+	if matchedUser.PasswordHash == "" || bcrypt.CompareHashAndPassword([]byte(matchedUser.PasswordHash), []byte(req.Password)) != nil {
+		return &authProto.LoginResponse{Success: false, Error: "NIP / Email Dinas atau password salah."}, nil
 	}
 
 	tempToken, _ := jwt.GenerateTempToken(matchedUser.ID, 15*time.Minute)
@@ -433,52 +336,64 @@ func (s *AuthClientDirectStub) Verify2FA(ctx context.Context, req *authProto.Ver
 	defer s.mu.Unlock()
 
 	claims, err := jwt.ValidateToken(req.TempToken)
-	userID := 1
-	if err == nil && claims.IsTemp {
-		userID = claims.UserID
+	if err != nil || !claims.IsTemp {
+		return &authProto.Verify2FAResponse{Success: false, Error: "Sesi login telah berakhir. Silakan login ulang."}, nil
 	}
 
 	users, _ := loadUsersJSON()
-	var matchedUser *UserDataJSON
-	for i := range users {
-		if users[i].ID == userID {
-			matchedUser = &users[i]
-			break
-		}
+	matchedUser := findUserByID(users, claims.UserID)
+	if matchedUser == nil {
+		return &authProto.Verify2FAResponse{Success: false, Error: "Akun tidak ditemukan. Silakan login ulang."}, nil
 	}
 
-	if matchedUser != nil && !matchedUser.IsActive {
+	if !matchedUser.IsActive {
 		return &authProto.Verify2FAResponse{
 			Success: false,
 			Error:   "Akun Anda telah dinonaktifkan oleh Administrator Posko 112. Silakan hubungi Super Admin.",
 		}, nil
 	}
 
-	role := "superadmin"
-	nip := "199501012020011000"
-	name := "Muhammad Aswan"
-
-	if matchedUser != nil {
-		role = matchedUser.Role
-		nip = matchedUser.NIP
-		name = matchedUser.Name
+	if matchedUser.TotpSecret == "" || !totp.Validate(strings.TrimSpace(req.Code), matchedUser.TotpSecret) {
+		return &authProto.Verify2FAResponse{Success: false, Error: "Kode verifikasi salah atau expired."}, nil
 	}
 
-	token, _ := jwt.GenerateToken(userID, nip, role, 24*time.Hour)
+	token, err := jwt.GenerateToken(matchedUser.ID, matchedUser.NIP, matchedUser.Role, 24*time.Hour)
+	if err != nil {
+		return &authProto.Verify2FAResponse{Success: false, Error: "Gagal membuat sesi login."}, nil
+	}
 
 	// Ensure 2FA active state is persisted to PostgreSQL so QR setup never pops up again
-	if matchedUser != nil {
-		syncPostgres2FAState(matchedUser.Email, matchedUser.NIP, matchedUser.TotpSecret, true)
-	}
+	syncPostgres2FAState(matchedUser.Email, matchedUser.NIP, matchedUser.TotpSecret, true)
 
 	return &authProto.Verify2FAResponse{
 		Success: true,
 		Token:   token,
-		UserId:  int32(userID),
-		Role:    role,
-		Nip:     nip,
-		Name:    name,
+		UserId:  int32(matchedUser.ID),
+		Role:    matchedUser.Role,
+		Nip:     matchedUser.NIP,
+		Name:    matchedUser.Name,
 	}, nil
+}
+
+func findUserByID(users []UserDataJSON, id int) *UserDataJSON {
+	if id <= 0 {
+		return nil
+	}
+	for i := range users {
+		if users[i].ID == id {
+			return &users[i]
+		}
+	}
+	return nil
+}
+
+// userIDFromToken accepts either the temp token issued after password login or a full session token.
+func userIDFromToken(token string) int {
+	claims, err := jwt.ValidateToken(token)
+	if err != nil {
+		return 0
+	}
+	return claims.UserID
 }
 
 func generateUniqueBase32Secret(userID int, email string) string {
@@ -494,43 +409,29 @@ func (s *AuthClientDirectStub) Setup2FA(ctx context.Context, req *authProto.Setu
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	userID := int(req.UserId)
-	if userID == 0 && req.TempToken != "" {
-		if claims, err := jwt.ValidateToken(req.TempToken); err == nil && claims.IsTemp {
-			userID = claims.UserID
-		}
+	// Check the token before touching the database so anonymous calls fail fast
+	var matchedUser *UserDataJSON
+	if userID := userIDFromToken(req.TempToken); userID > 0 {
+		users, _ := loadUsersJSON()
+		matchedUser = findUserByID(users, userID)
+	}
+	if matchedUser == nil {
+		return &authProto.Setup2FAResponse{Success: false, Error: "Sesi tidak valid. Silakan login ulang."}, nil
 	}
 
-	users, path := loadUsersJSON()
-	accountIdentifier := "user@bulukumbakab.go.id"
-	var totpSecret string
-	var targetEmail, targetNIP string
-
-	for i := range users {
-		if users[i].ID == userID {
-			if users[i].Email != "" {
-				accountIdentifier = users[i].Email
-			} else if users[i].NIP != "" {
-				accountIdentifier = users[i].NIP
-			}
-			targetEmail = users[i].Email
-			targetNIP = users[i].NIP
-
-			if users[i].TotpSecret != "" {
-				totpSecret = users[i].TotpSecret
-			} else {
-				totpSecret = generateUniqueBase32Secret(users[i].ID, users[i].Email)
-				users[i].TotpSecret = totpSecret
-				saveUsersJSON(users, path)
-				syncPostgres2FAState(targetEmail, targetNIP, totpSecret, users[i].TotpEnabled)
-			}
-			break
-		}
+	// Never hand out the secret of an account that already has 2FA; that would let anyone who knows the
+	// password enrol their own authenticator. A Super Admin must reset 2FA first.
+	if matchedUser.TotpEnabled || matchedUser.TotpSecret != "" {
+		return &authProto.Setup2FAResponse{Success: false, Error: "2FA sudah aktif untuk akun ini. Hubungi Super Admin untuk reset 2FA."}, nil
 	}
 
-	if totpSecret == "" {
-		totpSecret = generateUniqueBase32Secret(userID, accountIdentifier)
+	accountIdentifier := matchedUser.Email
+	if accountIdentifier == "" {
+		accountIdentifier = matchedUser.NIP
 	}
+
+	// The secret is only persisted by Enable2FA, once the user proves their authenticator produces valid codes.
+	totpSecret := generateUniqueBase32Secret(matchedUser.ID, matchedUser.Email)
 
 	escapedAccount := url.QueryEscape(accountIdentifier)
 	otpUrl := fmt.Sprintf("otpauth://totp/LOPI-Q%%20BULUKUMBA:%s?secret=%s&issuer=LOPI-Q%%20BULUKUMBA", escapedAccount, totpSecret)
@@ -604,48 +505,33 @@ func (s *AuthClientDirectStub) Enable2FA(ctx context.Context, req *authProto.Ena
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	userID := int(req.UserId)
-	if userID == 0 && req.TempToken != "" {
-		if claims, err := jwt.ValidateToken(req.TempToken); err == nil && claims.IsTemp {
-			userID = claims.UserID
-		}
+	// Check the token before touching the database so anonymous calls fail fast
+	var matchedUser *UserDataJSON
+	if userID := userIDFromToken(req.TempToken); userID > 0 {
+		users, _ := loadUsersJSON()
+		matchedUser = findUserByID(users, userID)
 	}
-
-	if userID == 0 {
-		userID = 1
+	if matchedUser == nil {
+		return &authProto.Enable2FAResponse{Success: false, Error: "Sesi tidak valid. Silakan login ulang."}, nil
 	}
-
-	users, path := loadUsersJSON()
-	backupCodes := []string{"88219412", "99124012", "77123951", "12495812"}
+	if matchedUser.TotpEnabled || matchedUser.TotpSecret != "" {
+		return &authProto.Enable2FAResponse{Success: false, Error: "2FA sudah aktif untuk akun ini. Hubungi Super Admin untuk reset 2FA."}, nil
+	}
 
 	secretToUse := strings.TrimSpace(req.Secret)
-
-	var targetEmail, targetNIP string
-	for i := range users {
-		if users[i].ID == userID {
-			if secretToUse == "" {
-				secretToUse = users[i].TotpSecret
-			}
-			if secretToUse == "" {
-				secretToUse = generateUniqueBase32Secret(users[i].ID, users[i].Email)
-			}
-			users[i].TotpSecret = secretToUse
-			users[i].TotpEnabled = true
-			users[i].BackupCodes = backupCodes
-			targetEmail = users[i].Email
-			targetNIP = users[i].NIP
-			saveUsersJSON(users, path)
-			break
-		}
+	if secretToUse == "" {
+		return &authProto.Enable2FAResponse{Success: false, Error: "Data setup 2FA tidak ditemukan. Silakan ulangi setup 2FA."}, nil
+	}
+	if !totp.Validate(strings.TrimSpace(req.Code), secretToUse) {
+		return &authProto.Enable2FAResponse{Success: false, Error: "Kode verifikasi 2FA tidak cocok."}, nil
 	}
 
-	if targetEmail != "" || targetNIP != "" {
-		syncPostgres2FAState(targetEmail, targetNIP, secretToUse, true)
-	}
+	syncPostgres2FAState(matchedUser.Email, matchedUser.NIP, secretToUse, true)
 
+	// Backup codes are not stored server-side, so none are issued; 2FA recovery goes through a Super Admin reset.
 	return &authProto.Enable2FAResponse{
 		Success:     true,
-		BackupCodes: backupCodes,
+		BackupCodes: []string{},
 	}, nil
 }
 
@@ -668,26 +554,10 @@ func (s *AuthClientDirectStub) Disable2FA(ctx context.Context, req *authProto.Di
 }
 
 func (s *AuthClientDirectStub) SelfReset2FA(ctx context.Context, req *authProto.SelfReset2FARequest) (*authProto.SelfReset2FAResponse, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	users, path := loadUsersJSON()
-	claims, err := jwt.ValidateToken(req.TempToken)
-	userID := 1
-	if err == nil && claims.IsTemp {
-		userID = claims.UserID
-	}
-
-	for i := range users {
-		if users[i].ID == userID {
-			users[i].TotpEnabled = false
-			users[i].TotpSecret = ""
-			users[i].BackupCodes = nil
-			saveUsersJSON(users, path)
-			syncPostgres2FAState(users[i].Email, users[i].NIP, "", false)
-			break
-		}
-	}
-
-	return &authProto.SelfReset2FAResponse{Success: true}, nil
+	// Self-service reset used to wipe 2FA for anyone holding only a password (or no token at all, which
+	// defaulted to the Super Admin). Without per-user backup codes there is no safe way to offer it.
+	return &authProto.SelfReset2FAResponse{
+		Success: false,
+		Error:   "Reset 2FA mandiri tidak tersedia. Silakan hubungi Super Admin untuk mereset 2FA akun Anda.",
+	}, nil
 }

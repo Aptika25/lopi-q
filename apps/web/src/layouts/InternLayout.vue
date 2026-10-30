@@ -226,6 +226,7 @@ const showLogoutModal = ref(false);
 const menuItems = [
   { to: '/intern/dashboard', label: 'Beranda Status Presensi', icon: 'space_dashboard' },
   { to: '/intern/scan', label: 'Absensi & Scan QR Code', icon: 'qr_code_scanner' },
+  { to: '/intern/journal', label: 'Jurnal Kegiatan Harian', icon: 'edit_note' },
   { to: '/intern/history', label: 'Riwayat Presensi Saya', icon: 'history_edu' }
 ];
 

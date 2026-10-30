@@ -37,7 +37,8 @@ func (h *UserHTTPHandler) HandleGetProfile(w http.ResponseWriter, r *http.Reques
 	userID := r.Context().Value("user_id").(int)
 	res, _ := h.userSvc.GetProfile(r.Context(), &userProto.GetProfileRequest{UserId: int32(userID)})
 	if !res.Success {
-		middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": res.Error})
+		// 401 so the web client drops a token that belongs to a deleted account
+		middleware.RespondJSON(w, http.StatusUnauthorized, map[string]interface{}{"success": false, "error": res.Error})
 		return
 	}
 	middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": true, "user": res.User})
@@ -50,16 +51,18 @@ func (h *UserHTTPHandler) HandleAdminUsers(w http.ResponseWriter, r *http.Reques
 		if res != nil && res.Users != nil {
 			for _, u := range res.Users {
 				usersList = append(usersList, map[string]interface{}{
-					"id":           u.Id,
-					"nip":          u.Nip,
-					"email":        u.Email,
-					"name":         u.Name,
-					"role":         u.Role,
-					"jabatan":      u.Jabatan,
-					"unit_kerja":   u.UnitKerja,
-					"permissions":  u.Permissions,
-					"totp_enabled": u.TotpEnabled,
-					"is_active":    u.IsActive,
+					"id":              u.Id,
+					"nip":             u.Nip,
+					"email":           u.Email,
+					"name":            u.Name,
+					"role":            u.Role,
+					"jabatan":         u.Jabatan,
+					"unit_kerja":      u.UnitKerja,
+					"permissions":     u.Permissions,
+					"totp_enabled":    u.TotpEnabled,
+					"is_active":       u.IsActive,
+					"periode_mulai":   u.PeriodeMulai,
+					"periode_selesai": u.PeriodeSelesai,
 				})
 			}
 		}
@@ -71,19 +74,25 @@ func (h *UserHTTPHandler) HandleAdminUsers(w http.ResponseWriter, r *http.Reques
 	}
 	if r.Method == "POST" {
 		var body struct {
-			NIP         string   `json:"nip"`
-			Email       string   `json:"email"`
-			Name        string   `json:"name"`
-			Role        string   `json:"role"`
-			Jabatan     string   `json:"jabatan"`
-			UnitKerja   string   `json:"unit_kerja"`
-			Permissions []string `json:"permissions"`
-			Password    string   `json:"password"`
+			NIP            string   `json:"nip"`
+			Email          string   `json:"email"`
+			Name           string   `json:"name"`
+			Role           string   `json:"role"`
+			Jabatan        string   `json:"jabatan"`
+			UnitKerja      string   `json:"unit_kerja"`
+			Permissions    []string `json:"permissions"`
+			Password       string   `json:"password"`
+			PeriodeMulai   string   `json:"periode_mulai"`
+			PeriodeSelesai string   `json:"periode_selesai"`
 		}
 		_ = json.NewDecoder(r.Body).Decode(&body)
 
 		if body.Role == "" {
 			body.Role = "intern"
+		}
+		if !isSuperAdmin(r) && !isInternRole(body.Role) {
+			middleware.RespondJSON(w, http.StatusForbidden, map[string]interface{}{"success": false, "error": "Hanya Super Admin yang dapat membuat akun Administrator / Pembimbing."})
+			return
 		}
 		if body.Permissions == nil {
 			body.Permissions = []string{"submit_attendance"}
@@ -96,31 +105,39 @@ func (h *UserHTTPHandler) HandleAdminUsers(w http.ResponseWriter, r *http.Reques
 			middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": "Email dan Nama Lengkap wajib diisi."})
 			return
 		}
+		if err := client.ValidateInternPeriod(body.PeriodeMulai, body.PeriodeSelesai); err != nil {
+			middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": err.Error()})
+			return
+		}
 
 		res, _ := h.userSvc.CreateUser(r.Context(), &userProto.CreateUserRequest{
-			Nip:         body.NIP,
-			Email:       body.Email,
-			Name:        body.Name,
-			Role:        body.Role,
-			Jabatan:     body.Jabatan,
-			UnitKerja:   body.UnitKerja,
-			Permissions: body.Permissions,
-			Password:    body.Password,
+			Nip:            body.NIP,
+			Email:          body.Email,
+			Name:           body.Name,
+			Role:           body.Role,
+			Jabatan:        body.Jabatan,
+			UnitKerja:      body.UnitKerja,
+			Permissions:    body.Permissions,
+			Password:       body.Password,
+			PeriodeMulai:   body.PeriodeMulai,
+			PeriodeSelesai: body.PeriodeSelesai,
 		})
 
 		var userRes interface{} = nil
 		if res != nil && res.User != nil {
 			userRes = map[string]interface{}{
-				"id":           res.User.Id,
-				"nip":          res.User.Nip,
-				"email":        res.User.Email,
-				"name":         res.User.Name,
-				"role":         res.User.Role,
-				"jabatan":      res.User.Jabatan,
-				"unit_kerja":   res.User.UnitKerja,
-				"permissions":  res.User.Permissions,
-				"totp_enabled": res.User.TotpEnabled,
-				"is_active":    res.User.IsActive,
+				"id":              res.User.Id,
+				"nip":             res.User.Nip,
+				"email":           res.User.Email,
+				"name":            res.User.Name,
+				"role":            res.User.Role,
+				"jabatan":         res.User.Jabatan,
+				"unit_kerja":      res.User.UnitKerja,
+				"permissions":     res.User.Permissions,
+				"totp_enabled":    res.User.TotpEnabled,
+				"periode_mulai":   res.User.PeriodeMulai,
+				"periode_selesai": res.User.PeriodeSelesai,
+				"is_active":       res.User.IsActive,
 			}
 		} else {
 			userRes = map[string]interface{}{
@@ -135,7 +152,7 @@ func (h *UserHTTPHandler) HandleAdminUsers(w http.ResponseWriter, r *http.Reques
 			}
 		}
 
-		client.RecordActivityLog(1, "199501012020011000", "Muhammad Aswan", "CREATE_USER", fmt.Sprintf("Menambahkan peserta magang baru: %s (%s)", body.Name, body.Email), client.GetClientIP(r), r.UserAgent())
+		logAdminAction(r, "CREATE_USER", fmt.Sprintf("Menambahkan peserta magang baru: %s (%s)", body.Name, body.Email))
 		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{
 			"success": true,
 			"user":    userRes,
@@ -156,6 +173,19 @@ func (h *UserHTTPHandler) HandleAdminUserDetail(w http.ResponseWriter, r *http.R
 	var userID int32
 	_, _ = fmt.Sscanf(idStr, "%d", &userID)
 
+	// Administrators / pembimbing may only manage intern accounts; admin and superadmin accounts are Super Admin territory.
+	if !isSuperAdmin(r) {
+		targetRole, found := userRoleByID(r.Context(), userID)
+		if !found {
+			middleware.RespondJSON(w, http.StatusNotFound, map[string]interface{}{"success": false, "error": "Pengguna tidak ditemukan."})
+			return
+		}
+		if !isInternRole(targetRole) {
+			middleware.RespondJSON(w, http.StatusForbidden, map[string]interface{}{"success": false, "error": "Hanya Super Admin yang dapat mengelola akun Administrator / Pembimbing."})
+			return
+		}
+	}
+
 	if strings.HasSuffix(r.URL.Path, "/toggle-active") && r.Method == "PUT" {
 		var body struct {
 			IsActive bool `json:"is_active"`
@@ -163,48 +193,61 @@ func (h *UserHTTPHandler) HandleAdminUserDetail(w http.ResponseWriter, r *http.R
 		_ = json.NewDecoder(r.Body).Decode(&body)
 
 		res, _ := h.userSvc.ToggleActive(r.Context(), &userProto.ToggleActiveRequest{Id: userID, IsActive: body.IsActive})
-		client.RecordActivityLog(1, "199501012020011000", "Muhammad Aswan", "TOGGLE_USER_ACTIVE", fmt.Sprintf("Admin mengubah status akses user ID #%d menjadi: %v", userID, body.IsActive), client.GetClientIP(r), r.UserAgent())
+		logAdminAction(r, "TOGGLE_USER_ACTIVE", fmt.Sprintf("Admin mengubah status akses user ID #%d menjadi: %v", userID, body.IsActive))
 		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": res.Success, "user": res.User})
 		return
 	}
 
 	if strings.HasSuffix(r.URL.Path, "/reset-2fa") && r.Method == "POST" {
 		res, _ := h.userSvc.Reset2FA(r.Context(), &userProto.Reset2FARequest{Id: userID})
-		client.RecordActivityLog(1, "199501012020011000", "Muhammad Aswan", "RESET_USER_2FA", fmt.Sprintf("Admin mereset 2FA Google Authenticator untuk user ID #%d", userID), client.GetClientIP(r), r.UserAgent())
+		logAdminAction(r, "RESET_USER_2FA", fmt.Sprintf("Admin mereset 2FA Google Authenticator untuk user ID #%d", userID))
 		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": res.Success, "message": res.Message})
 		return
 	}
 
 	if r.Method == "PUT" {
 		var body struct {
-			NIP         string   `json:"nip"`
-			Email       string   `json:"email"`
-			Name        string   `json:"name"`
-			Role        string   `json:"role"`
-			Jabatan     string   `json:"jabatan"`
-			UnitKerja   string   `json:"unit_kerja"`
-			Permissions []string `json:"permissions"`
-			Password    string   `json:"password"`
+			NIP            string   `json:"nip"`
+			Email          string   `json:"email"`
+			Name           string   `json:"name"`
+			Role           string   `json:"role"`
+			Jabatan        string   `json:"jabatan"`
+			UnitKerja      string   `json:"unit_kerja"`
+			Permissions    []string `json:"permissions"`
+			Password       string   `json:"password"`
+			PeriodeMulai   string   `json:"periode_mulai"`
+			PeriodeSelesai string   `json:"periode_selesai"`
 		}
 		_ = json.NewDecoder(r.Body).Decode(&body)
+
+		if !isSuperAdmin(r) && !isInternRole(body.Role) {
+			middleware.RespondJSON(w, http.StatusForbidden, map[string]interface{}{"success": false, "error": "Hanya Super Admin yang dapat mengubah role menjadi Administrator / Pembimbing."})
+			return
+		}
 
 		if body.Permissions == nil {
 			body.Permissions = []string{}
 		}
+		if err := client.ValidateInternPeriod(body.PeriodeMulai, body.PeriodeSelesai); err != nil {
+			middleware.RespondJSON(w, http.StatusBadRequest, map[string]interface{}{"success": false, "error": err.Error()})
+			return
+		}
 
 		res, _ := h.userSvc.UpdateUser(r.Context(), &userProto.UpdateUserRequest{
-			Id:          userID,
-			Nip:         body.NIP,
-			Email:       body.Email,
-			Name:        body.Name,
-			Role:        body.Role,
-			Jabatan:     body.Jabatan,
-			UnitKerja:   body.UnitKerja,
-			Permissions: body.Permissions,
-			Password:    body.Password,
+			Id:             userID,
+			Nip:            body.NIP,
+			Email:          body.Email,
+			Name:           body.Name,
+			Role:           body.Role,
+			Jabatan:        body.Jabatan,
+			UnitKerja:      body.UnitKerja,
+			Permissions:    body.Permissions,
+			Password:       body.Password,
+			PeriodeMulai:   body.PeriodeMulai,
+			PeriodeSelesai: body.PeriodeSelesai,
 		})
 		if res != nil && res.Success {
-			client.RecordActivityLog(1, "199501012020011000", "Muhammad Aswan", "UPDATE_USER", fmt.Sprintf("Admin memperbarui profil pengguna: %s (NIP: %s, Role: %s)", body.Name, body.NIP, body.Role), client.GetClientIP(r), r.UserAgent())
+			logAdminAction(r, "UPDATE_USER", fmt.Sprintf("Admin memperbarui profil pengguna: %s (NIP: %s, Role: %s)", body.Name, body.NIP, body.Role))
 		}
 		middleware.RespondJSON(w, http.StatusOK, map[string]interface{}{"success": res.Success, "user": res.User})
 		return

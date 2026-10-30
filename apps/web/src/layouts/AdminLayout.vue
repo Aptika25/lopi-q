@@ -59,7 +59,7 @@
         </div>
 
         <!-- Collapsible Menu Groups -->
-        <div v-for="group in menuGroups" :key="group.key" class="relative flex flex-col">
+        <div v-for="group in visibleMenuGroups" :key="group.key" class="relative flex flex-col">
           <!-- Collapsible Header Button -->
           <button
             @click="toggleGroup(group.key)"
@@ -247,7 +247,9 @@ const menuGroups = [
     items: [
       { to: '/admin/attendance-recap', label: 'Rekapitulasi Kehadiran', icon: 'assignment' },
       { to: '/admin/location', label: 'Lokasi & QR Code Presensi', icon: 'distance' },
-      { to: '/admin/activities', label: 'Jurnal & Laporan Aktivitas', icon: 'article' }
+      { to: '/admin/activities', label: 'Jurnal & Laporan Aktivitas', icon: 'article' },
+      { to: '/admin/projects', label: 'Proyek', icon: 'rocket_launch' },
+      { to: '/admin/final-reports', label: 'Laporan Akhir', icon: 'menu_book' }
     ]
   },
   {
@@ -255,11 +257,18 @@ const menuGroups = [
     title: 'Keamanan & Audit Sistem',
     icon: 'security',
     items: [
-      { to: '/admin/activity-logs', label: 'Log Audit Aktivitas', icon: 'history_toggle_off' },
+      { to: '/admin/activity-logs', label: 'Log Audit Aktivitas', icon: 'history_toggle_off', superOnly: true },
       { to: '/admin/security', label: 'Konfigurasi Keamanan & 2FA', icon: 'shield' }
     ]
   }
 ];
+
+// Super Admin-only pages are hidden for administrators / pembimbing (the API rejects them anyway)
+const visibleMenuGroups = computed(() =>
+  menuGroups
+    .map(group => ({ ...group, items: group.items.filter(item => !item.superOnly || authStore.isSuperAdmin) }))
+    .filter(group => group.items.length > 0)
+);
 
 // Expanded groups state
 const expandedGroups = ref({
@@ -292,6 +301,8 @@ const pageTitle = computed(() => {
   if (path === '/admin/attendance-recap') return 'Rekapitulasi Kehadiran';
   if (path === '/admin/location') return 'Lokasi & QR Code Presensi';
   if (path === '/admin/activities') return 'Jurnal & Laporan Aktivitas';
+  if (path === '/admin/projects') return 'Proyek Magang';
+  if (path === '/admin/final-reports') return 'Laporan Akhir';
   if (path === '/admin/activity-logs') return 'Log Audit Aktivitas';
   if (path === '/admin/security') return 'Konfigurasi Keamanan & 2FA';
   return 'Dashboard Utama';
@@ -304,6 +315,8 @@ const breadcrumbSub = computed(() => {
   if (path === '/admin/attendance-recap') return 'Presensi';
   if (path === '/admin/location') return 'Geofence';
   if (path === '/admin/activities') return 'Jurnal';
+  if (path === '/admin/projects') return 'Proyek';
+  if (path === '/admin/final-reports') return 'Laporan Akhir';
   if (path === '/admin/activity-logs') return 'Audit';
   if (path === '/admin/security') return 'Keamanan';
   return 'Dashboard';

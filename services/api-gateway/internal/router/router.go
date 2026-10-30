@@ -11,10 +11,12 @@ import (
 	"api-gateway/internal/utils"
 )
 
-func NewRouter(authHandler *httpHandler.AuthHTTPHandler, userHandler *httpHandler.UserHTTPHandler, attendanceHandler *httpHandler.AttendanceHTTPHandler, activityHandler *httpHandler.ActivityHTTPHandler) *http.ServeMux {
+func NewRouter(authHandler *httpHandler.AuthHTTPHandler, userHandler *httpHandler.UserHTTPHandler, attendanceHandler *httpHandler.AttendanceHTTPHandler, activityHandler *httpHandler.ActivityHTTPHandler, internshipHandler *httpHandler.InternshipHTTPHandler, journalHandler *httpHandler.JournalHTTPHandler) *http.ServeMux {
 	mux := http.NewServeMux()
 	cors := middleware.CORSHandler
 	authMw := middleware.AuthenticateMiddleware
+	adminMw := func(h http.HandlerFunc) http.HandlerFunc { return authMw(middleware.RequireAdmin(h)) }
+	superAdminMw := func(h http.HandlerFunc) http.HandlerFunc { return authMw(middleware.RequireSuperAdmin(h)) }
 
 	// AUTH ENDPOINTS
 	mux.HandleFunc("/api/auth/login", cors(authHandler.HandleLogin))
@@ -26,19 +28,26 @@ func NewRouter(authHandler *httpHandler.AuthHTTPHandler, userHandler *httpHandle
 
 	// USER & ADMIN ENDPOINTS
 	mux.HandleFunc("/api/users/me", cors(authMw(userHandler.HandleGetProfile)))
-	mux.HandleFunc("/api/admin/users", cors(authMw(userHandler.HandleAdminUsers)))
-	mux.HandleFunc("/api/admin/users/", cors(authMw(userHandler.HandleAdminUserDetail)))
-	mux.HandleFunc("/api/admin/location", cors(authMw(attendanceHandler.HandleAdminLocation)))
-	mux.HandleFunc("/api/admin/schedules", cors(authMw(attendanceHandler.HandleAdminSchedules)))
-	mux.HandleFunc("/api/admin/leave-requests", cors(authMw(attendanceHandler.HandleLeaveRequests)))
-	mux.HandleFunc("/api/admin/presensi/cleanup-duplicates", cors(authMw(attendanceHandler.HandleCleanupDuplicates)))
-	mux.HandleFunc("/api/admin/presensi/manual-entry", cors(authMw(attendanceHandler.HandleAdminManualEntry)))
-	mux.HandleFunc("/api/admin/presensi/records/", cors(authMw(attendanceHandler.HandleDeleteRecord)))
-	mux.HandleFunc("/api/admin/activity-logs", cors(authMw(userHandler.HandleAdminActivityLogs)))
-	mux.HandleFunc("/api/admin/activities", cors(authMw(activityHandler.HandleActivities)))
+	mux.HandleFunc("/api/admin/users", cors(adminMw(userHandler.HandleAdminUsers)))
+	mux.HandleFunc("/api/admin/users/", cors(adminMw(userHandler.HandleAdminUserDetail)))
+	mux.HandleFunc("/api/admin/location", cors(adminMw(attendanceHandler.HandleAdminLocation)))
+	mux.HandleFunc("/api/admin/schedules", cors(adminMw(attendanceHandler.HandleAdminSchedules)))
+	mux.HandleFunc("/api/admin/leave-requests", cors(adminMw(attendanceHandler.HandleLeaveRequests)))
+	mux.HandleFunc("/api/admin/presensi/cleanup-duplicates", cors(superAdminMw(attendanceHandler.HandleCleanupDuplicates)))
+	mux.HandleFunc("/api/admin/presensi/manual-entry", cors(adminMw(attendanceHandler.HandleAdminManualEntry)))
+	mux.HandleFunc("/api/admin/presensi/records/", cors(superAdminMw(attendanceHandler.HandleDeleteRecord)))
+	mux.HandleFunc("/api/admin/activity-logs", cors(superAdminMw(userHandler.HandleAdminActivityLogs)))
+	mux.HandleFunc("/api/admin/activities", cors(adminMw(activityHandler.HandleActivities)))
+	mux.HandleFunc("/api/admin/projects", cors(adminMw(internshipHandler.HandleProjects)))
+	mux.HandleFunc("/api/admin/projects/", cors(adminMw(internshipHandler.HandleProjects)))
+	mux.HandleFunc("/api/admin/final-reports", cors(adminMw(internshipHandler.HandleFinalReports)))
+	mux.HandleFunc("/api/admin/final-reports/", cors(adminMw(internshipHandler.HandleFinalReports)))
 
 	// DAILY ACTIVITY LOGBOOK ENDPOINTS
 	mux.HandleFunc("/api/activities", cors(authMw(activityHandler.HandleActivities)))
+	mux.HandleFunc("/api/journal", cors(authMw(journalHandler.HandleJournal)))
+	mux.HandleFunc("/api/journal/", cors(authMw(journalHandler.HandleJournalItem)))
+	mux.HandleFunc("/api/admin/journal/", cors(adminMw(journalHandler.HandleJournalReview)))
 
 	// ATTENDANCE ENDPOINTS
 	mux.HandleFunc("/api/presensi/posko-qr", cors(attendanceHandler.HandleGetPoskoQR))
