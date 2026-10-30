@@ -24,8 +24,9 @@ func main() {
 	userHTTP := httpHandler.NewUserHTTPHandler(userStub)
 	attendanceHTTP := httpHandler.NewAttendanceHTTPHandler(attendanceStub, userStub)
 	activityHTTP := httpHandler.NewActivityHTTPHandler(activityStub)
+	internshipHTTP := httpHandler.NewInternshipHTTPHandler()
 
-	r := router.NewRouter(authHTTP, userHTTP, attendanceHTTP, activityHTTP)
+	r := router.NewRouter(authHTTP, userHTTP, attendanceHTTP, activityHTTP, internshipHTTP)
 
 	fmt.Printf("===================================================\n")
 	fmt.Printf("🚀 LOPI-Q API GATEWAY RUNNING ON http://localhost:%s\n", cfg.Port)

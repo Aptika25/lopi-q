@@ -11,7 +11,7 @@ import (
 	"api-gateway/internal/utils"
 )
 
-func NewRouter(authHandler *httpHandler.AuthHTTPHandler, userHandler *httpHandler.UserHTTPHandler, attendanceHandler *httpHandler.AttendanceHTTPHandler, activityHandler *httpHandler.ActivityHTTPHandler) *http.ServeMux {
+func NewRouter(authHandler *httpHandler.AuthHTTPHandler, userHandler *httpHandler.UserHTTPHandler, attendanceHandler *httpHandler.AttendanceHTTPHandler, activityHandler *httpHandler.ActivityHTTPHandler, internshipHandler *httpHandler.InternshipHTTPHandler) *http.ServeMux {
 	mux := http.NewServeMux()
 	cors := middleware.CORSHandler
 	authMw := middleware.AuthenticateMiddleware
@@ -37,6 +37,10 @@ func NewRouter(authHandler *httpHandler.AuthHTTPHandler, userHandler *httpHandle
 	mux.HandleFunc("/api/admin/presensi/records/", cors(adminMw(attendanceHandler.HandleDeleteRecord)))
 	mux.HandleFunc("/api/admin/activity-logs", cors(adminMw(userHandler.HandleAdminActivityLogs)))
 	mux.HandleFunc("/api/admin/activities", cors(adminMw(activityHandler.HandleActivities)))
+	mux.HandleFunc("/api/admin/projects", cors(adminMw(internshipHandler.HandleProjects)))
+	mux.HandleFunc("/api/admin/projects/", cors(adminMw(internshipHandler.HandleProjects)))
+	mux.HandleFunc("/api/admin/final-reports", cors(adminMw(internshipHandler.HandleFinalReports)))
+	mux.HandleFunc("/api/admin/final-reports/", cors(adminMw(internshipHandler.HandleFinalReports)))
 
 	// DAILY ACTIVITY LOGBOOK ENDPOINTS
 	mux.HandleFunc("/api/activities", cors(authMw(activityHandler.HandleActivities)))

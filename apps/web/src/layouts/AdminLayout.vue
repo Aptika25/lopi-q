@@ -247,7 +247,9 @@ const menuGroups = [
     items: [
       { to: '/admin/attendance-recap', label: 'Rekapitulasi Kehadiran', icon: 'assignment' },
       { to: '/admin/location', label: 'Lokasi & QR Code Presensi', icon: 'distance' },
-      { to: '/admin/activities', label: 'Jurnal & Laporan Aktivitas', icon: 'article' }
+      { to: '/admin/activities', label: 'Jurnal & Laporan Aktivitas', icon: 'article' },
+      { to: '/admin/projects', label: 'Proyek', icon: 'rocket_launch' },
+      { to: '/admin/final-reports', label: 'Laporan Akhir', icon: 'menu_book' }
     ]
   },
   {
@@ -292,6 +294,8 @@ const pageTitle = computed(() => {
   if (path === '/admin/attendance-recap') return 'Rekapitulasi Kehadiran';
   if (path === '/admin/location') return 'Lokasi & QR Code Presensi';
   if (path === '/admin/activities') return 'Jurnal & Laporan Aktivitas';
+  if (path === '/admin/projects') return 'Proyek Magang';
+  if (path === '/admin/final-reports') return 'Laporan Akhir';
   if (path === '/admin/activity-logs') return 'Log Audit Aktivitas';
   if (path === '/admin/security') return 'Konfigurasi Keamanan & 2FA';
   return 'Dashboard Utama';
@@ -304,6 +308,8 @@ const breadcrumbSub = computed(() => {
   if (path === '/admin/attendance-recap') return 'Presensi';
   if (path === '/admin/location') return 'Geofence';
   if (path === '/admin/activities') return 'Jurnal';
+  if (path === '/admin/projects') return 'Proyek';
+  if (path === '/admin/final-reports') return 'Laporan Akhir';
   if (path === '/admin/activity-logs') return 'Audit';
   if (path === '/admin/security') return 'Keamanan';
   return 'Dashboard';
