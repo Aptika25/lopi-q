@@ -21,7 +21,6 @@ import (
 
 	"pkg/jwt"
 	authProto "proto/auth"
-	userProto "proto/user"
 )
 
 type AuthClient struct {
@@ -252,20 +251,12 @@ func fetchPostgresUsers() ([]UserDataJSON, bool) {
 		}
 	}
 
+	// No auto-seeding here any more: a read that merely timed out used to "re-seed" the super admin with an
+	// empty SUPER_ADMIN_PASSWORD_HASH, wiping the real password in auth_users. The account is created by the
+	// auth-service migrations instead.
 	if len(loaded) == 0 {
-		// Auto-seed PostgreSQL auth_users & users tables if empty
-		seeds := getSeedUsersJSON()
-		for _, s := range seeds {
-			syncPostgresCreateUser(&userProto.CreateUserRequest{
-				Nip:       s.NIP,
-				Email:     s.Email,
-				Name:      s.Name,
-				Role:      s.Role,
-				Jabatan:   s.Jabatan,
-				UnitKerja: s.UnitKerja,
-			}, s.PasswordHash)
-		}
-		return seeds, true
+		log.Printf("[fetchPostgresUsers Error] Tidak ada data pengguna yang dapat dibaca dari %s; periksa koneksi / kredensial database.", authDBCreds().name)
+		return nil, false
 	}
 
 	return loaded, true
@@ -275,7 +266,7 @@ func loadUsersJSON() ([]UserDataJSON, string) {
 	if pgUsers, ok := fetchPostgresUsers(); ok {
 		return pgUsers, ""
 	}
-	return getSeedUsersJSON(), ""
+	return nil, ""
 }
 
 func saveUsersJSON(users []UserDataJSON, path string) {
@@ -287,12 +278,20 @@ func (s *AuthClientDirectStub) Login(ctx context.Context, req *authProto.LoginRe
 	defer s.mu.Unlock()
 
 	users, _ := loadUsersJSON()
+	if len(users) == 0 {
+		// Say so instead of "wrong password" when the user table cannot be read at all
+		return &authProto.LoginResponse{Success: false, Error: "Server tidak dapat terhubung ke database pengguna. Silakan coba lagi beberapa saat atau hubungi Administrator."}, nil
+	}
 	cleanID := strings.TrimSpace(strings.ToLower(req.Identifier))
-	cleanNIP := strings.ReplaceAll(req.Identifier, " ", "")
+	cleanNIP := strings.ReplaceAll(strings.TrimSpace(req.Identifier), " ", "")
+	if cleanID == "" {
+		return &authProto.LoginResponse{Success: false, Error: "NIP / Email Dinas atau password salah."}, nil
+	}
 
 	var matchedUser *UserDataJSON
 	for i := range users {
-		if strings.ToLower(users[i].Email) == cleanID || strings.ReplaceAll(users[i].NIP, " ", "") == cleanNIP {
+		userNIP := strings.ReplaceAll(users[i].NIP, " ", "")
+		if strings.ToLower(users[i].Email) == cleanID || (userNIP != "" && userNIP == cleanNIP) {
 			matchedUser = &users[i]
 			break
 		}
